@@ -1,0 +1,228 @@
+using System.Collections.ObjectModel;
+using System.Windows.Input;
+using ZasDictWin.Models;
+using ZasDictWin.Services;
+
+namespace ZasDictWin.ViewModels;
+
+public sealed class TranslationRow : ViewModelBase
+{
+    private string _title = "";
+    private string _formsText = "";
+    public string Title { get => _title; set => Set(ref _title, value); }
+    /// <summary>「犬, 狗」のようにカンマ区切りで編集し、確定時に forms 配列へ戻す。</summary>
+    public string FormsText { get => _formsText; set => Set(ref _formsText, value); }
+
+    /// <summary>品詞チップ（ネストした ItemsControl 内）から自分の Title を書き換えるためのコマンド。</summary>
+    public ICommand SetTitleCommand { get; }
+
+    public TranslationRow() => SetTitleCommand = new RelayCommand(o => { if (o is string s) Title = s; });
+}
+
+public sealed class ContentRow : ViewModelBase
+{
+    private string _title = "";
+    private string _text = "";
+    public string Title { get => _title; set => Set(ref _title, value); }
+    public string Text { get => _text; set => Set(ref _text, value); }
+}
+
+public sealed class VariationRow : ViewModelBase
+{
+    private string _title = "";
+    private string _form = "";
+    public string Title { get => _title; set => Set(ref _title, value); }
+    public string Form { get => _form; set => Set(ref _form, value); }
+}
+
+public sealed class RelationRow : ViewModelBase
+{
+    private string _title = "";
+    public string Title { get => _title; set => Set(ref _title, value); }
+    public int Id { get; init; }
+    public string Form { get; init; } = "";
+    public string CounterpartHint { get; set; } = "";
+}
+
+public sealed class WordEditViewModel : OverlayViewModel
+{
+    private readonly ObservableCollection<Word> _allWords;
+    private readonly RelationService _relations;
+    private readonly SearchService _search;
+    private readonly Action<WordEditViewModel> _commit;
+
+    private string _form = "";
+    private string _relationQuery = "";
+    private string _relationTitle = "対義語";
+
+    public WordEditViewModel(Word? source, ObservableCollection<Word> allWords, RelationService relations,
+                             SearchService search, Action<WordEditViewModel> commit, string initialForm = "")
+    {
+        _allWords = allWords;
+        _relations = relations;
+        _search = search;
+        _commit = commit;
+
+        Source = source;
+        Title = source is null ? "単語を追加" : "単語を編集";
+
+        if (source is not null)
+        {
+            Form = source.Form;
+            TagsText = string.Join(", ", source.Tags);
+            foreach (var t in source.Translations)
+                Translations.Add(new TranslationRow { Title = t.Title, FormsText = string.Join(", ", t.Forms) });
+            // 語法→文化→用例→語源→（その他の既存タイトル）の順で初期表示する
+            foreach (var c in source.Contents.OrderBy(c => ContentRank(c.Title)))
+                Contents.Add(new ContentRow { Title = c.Title, Text = c.Text });
+            foreach (var v in source.Variations)
+                Variations.Add(new VariationRow { Title = v.Title, Form = v.Form });
+            foreach (var r in source.Relations)
+                Relations.Add(new RelationRow { Title = r.Title, Id = r.Id, Form = r.Form, CounterpartHint = HintFor(r.Title) });
+        }
+        else
+        {
+            Form = initialForm.Trim();
+            Translations.Add(new TranslationRow());
+        }
+
+        RelationTitles = new ObservableCollection<string>(relations.Titles);
+        RefreshAvailableContentTypes();
+
+        AddTranslationCommand = new RelayCommand(() => Translations.Add(new TranslationRow()));
+        RemoveTranslationCommand = new RelayCommand(o => { if (o is TranslationRow r) Translations.Remove(r); });
+        AddContentTypeCommand = new RelayCommand(o => { if (o is string s) AddContentType(s); });
+        RemoveContentCommand = new RelayCommand(o => { if (o is ContentRow r) { Contents.Remove(r); RefreshAvailableContentTypes(); } });
+        AddVariationCommand = new RelayCommand(() => Variations.Add(new VariationRow()));
+        RemoveVariationCommand = new RelayCommand(o => { if (o is VariationRow r) Variations.Remove(r); });
+        RemoveRelationCommand = new RelayCommand(o => { if (o is RelationRow r) Relations.Remove(r); });
+        AddRelationCommand = new RelayCommand(o => { if (o is Word w) AddRelation(w); });
+        SetRelationTitleCommand = new RelayCommand(o => { if (o is string s) RelationTitle = s; });
+        SaveCommand = new RelayCommand(() => _commit(this));
+    }
+
+    public Word? Source { get; }
+
+    public string Form
+    {
+        get => _form;
+        set => Set(ref _form, value);
+    }
+
+    public string TagsText { get; set; } = "";
+
+    public ObservableCollection<TranslationRow> Translations { get; } = new();
+    public ObservableCollection<ContentRow> Contents { get; } = new();
+    public ObservableCollection<VariationRow> Variations { get; } = new();
+    public ObservableCollection<RelationRow> Relations { get; } = new();
+
+    /// <summary>訳語の品詞チップに並べる固定語彙（Const.ValidPos）。</summary>
+    public IReadOnlyList<string> PosTitles { get; } = Const.ValidPos;
+
+    /// <summary>まだ追加していない内容欄の種類。追加済みの種類はここから消える。</summary>
+    public ObservableCollection<string> AvailableContentTypes { get; } = new();
+
+    public ObservableCollection<string> RelationTitles { get; }
+    public ObservableCollection<Word> RelationCandidates { get; } = new();
+
+    public string RelationTitle
+    {
+        get => _relationTitle;
+        set { if (Set(ref _relationTitle, value)) Raise(nameof(RelationTitleHint)); }
+    }
+
+    public string RelationTitleHint => HintFor(RelationTitle) is { Length: > 0 } h
+        ? $"相手側には「{h}」が自動登録されます"
+        : "対照関係が未定義のため相手側には登録されません";
+
+    public string RelationQuery
+    {
+        get => _relationQuery;
+        set { if (Set(ref _relationQuery, value)) RefreshCandidates(); }
+    }
+
+    public ICommand AddTranslationCommand { get; }
+    public ICommand RemoveTranslationCommand { get; }
+    public ICommand AddContentTypeCommand { get; }
+    public ICommand RemoveContentCommand { get; }
+    public ICommand AddVariationCommand { get; }
+    public ICommand RemoveVariationCommand { get; }
+    public ICommand RemoveRelationCommand { get; }
+    public ICommand AddRelationCommand { get; }
+    public ICommand SetRelationTitleCommand { get; }
+    public ICommand SaveCommand { get; }
+
+    private string HintFor(string title) => _relations.Counterpart(title) ?? "";
+
+    /// <summary>語法→文化→用例→語源の順。未知のタイトルは末尾に回す。</summary>
+    private static int ContentRank(string title)
+    {
+        var i = Const.ContentTypes.ToList().IndexOf(title);
+        return i < 0 ? Const.ContentTypes.Count : i;
+    }
+
+    private void AddContentType(string title)
+    {
+        if (Contents.Any(c => c.Title == title)) return;
+        Contents.Add(new ContentRow { Title = title });
+        var sorted = Contents.OrderBy(c => ContentRank(c.Title)).ToList();
+        Contents.Clear();
+        foreach (var c in sorted) Contents.Add(c);
+        RefreshAvailableContentTypes();
+    }
+
+    private void RefreshAvailableContentTypes()
+    {
+        AvailableContentTypes.Clear();
+        foreach (var t in Const.ContentTypes.Where(t => !Contents.Any(c => c.Title == t)))
+            AvailableContentTypes.Add(t);
+    }
+
+    private void RefreshCandidates()
+    {
+        RelationCandidates.Clear();
+        if (RelationQuery.Length == 0) return;
+        var q = RelationQuery.ToLowerInvariant();
+        foreach (var w in _allWords.Where(w => w != Source && _search.Matches(w, q, SearchMode.Partial, SearchScope.Both)).Take(30))
+            RelationCandidates.Add(w);
+    }
+
+    private void AddRelation(Word target)
+    {
+        if (Relations.Any(r => r.Id == target.Id && r.Title == RelationTitle)) return;
+        Relations.Add(new RelationRow
+        {
+            Title = RelationTitle,
+            Id = target.Id,
+            Form = target.Form,
+            CounterpartHint = HintFor(RelationTitle)
+        });
+    }
+
+    public List<Translation> BuildTranslations() => Translations
+        .Where(t => !string.IsNullOrWhiteSpace(t.FormsText) || !string.IsNullOrWhiteSpace(t.Title))
+        .Select(t => new Translation
+        {
+            Title = t.Title.Trim(),
+            Forms = SplitList(t.FormsText)
+        }).ToList();
+
+    public List<string> BuildTags() => SplitList(TagsText);
+
+    public List<ContentItem> BuildContents() => Contents
+        .Where(c => !string.IsNullOrWhiteSpace(c.Title) || !string.IsNullOrWhiteSpace(c.Text))
+        .Select(c => new ContentItem { Title = c.Title.Trim(), Text = c.Text }).ToList();
+
+    public List<Variation> BuildVariations() => Variations
+        .Where(v => !string.IsNullOrWhiteSpace(v.Form))
+        .Select(v => new Variation { Title = v.Title.Trim(), Form = v.Form.Trim() }).ToList();
+
+    public List<Relation> BuildRelations() => Relations
+        .Select(r => new Relation { Title = r.Title, Id = r.Id, Form = r.Form }).ToList();
+
+    private static List<string> SplitList(string text) => text
+        .Split(new[] { ',', '、', '，' }, StringSplitOptions.RemoveEmptyEntries)
+        .Select(s => s.Trim())
+        .Where(s => s.Length > 0)
+        .ToList();
+}

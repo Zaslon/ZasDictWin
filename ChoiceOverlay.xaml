@@ -1,0 +1,37 @@
+<UserControl x:Class="ZasDictWin.Views.Overlays.ChoiceOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+
+    <Border Style="{StaticResource Card}" MaxWidth="520" VerticalAlignment="Center" HorizontalAlignment="Center"
+            Padding="24">
+        <StackPanel>
+            <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
+                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
+            <TextBlock Text="{Binding Message}" Foreground="{StaticResource Muted}" Margin="0,8,0,0"
+                       Visibility="{Binding Message, Converter={StaticResource NullVis}}" />
+
+            <ItemsControl ItemsSource="{Binding Choices}" Margin="0,20,0,0">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:ChoiceItem}">
+                        <Button Content="{Binding Label}" Command="{Binding Command}"
+                                HorizontalContentAlignment="Center" Margin="0,0,0,8" Padding="14,10">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDanger}" Value="True">
+                                            <Setter Property="Background" Value="{StaticResource Danger}" />
+                                            <Setter Property="BorderBrush" Value="{StaticResource Danger}" />
+                                            <Setter Property="Foreground" Value="#1B0D0D" />
+                                            <Setter Property="FontWeight" Value="SemiBold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </Border>
+</UserControl>

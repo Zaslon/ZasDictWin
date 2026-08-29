@@ -1,0 +1,65 @@
+<Window x:Class="ZasDictWin.Views.StreamWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:m="clr-namespace:ZasDictWin.Models"
+        xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+        Title="ZasDict 単語ウィンドウ"
+        Width="960" Height="360" MinWidth="480" MinHeight="200"
+        ShowInTaskbar="True"
+        WindowStyle="SingleBorderWindow"
+        Background="{Binding Settings.StreamBackground, Converter={StaticResource StringBrush}}">
+
+    <Grid Margin="48,32">
+        <TextBlock Text="単語を選ぶとここに表示されます"
+                   Foreground="#66FFFFFF"
+                   FontSize="{Binding StreamPlaceholderSize}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   Visibility="{Binding HasSelection, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
+
+        <StackPanel Visibility="{Binding HasSelection, Converter={StaticResource BoolVis}}" VerticalAlignment="Center">
+            <StackPanel DataContext="{Binding SelectedWord}">
+                <TextBlock Text="{Binding DisplayForm}"
+                           Foreground="White"
+                           FontSize="{Binding DataContext.StreamHeadwordSize, RelativeSource={RelativeSource AncestorType=Window}}"
+                           FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
+
+                <ItemsControl ItemsSource="{Binding Translations}" Margin="0,10,0,0"
+                              Visibility="{Binding DataContext.Settings.StreamShowTranslations, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type m:Translation}">
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                <TextBlock Text="{Binding Title}" Foreground="#CCFFFFFF" MinWidth="90"
+                                           FontSize="{Binding DataContext.StreamLabelSize, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                <ItemsControl ItemsSource="{Binding Forms}">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" Foreground="White" Margin="0,0,16,0"
+                                                       FontSize="{Binding DataContext.StreamBodySize, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <ItemsControl ItemsSource="{Binding Contents}" Margin="0,12,0,0"
+                              Visibility="{Binding DataContext.Settings.StreamShowContents, RelativeSource={RelativeSource AncestorType=Window}, Converter={StaticResource BoolVis}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type m:ContentItem}">
+                            <StackPanel Margin="0,0,0,8">
+                                <TextBlock Text="{Binding Title}" Foreground="#CCFFFFFF"
+                                           FontSize="{Binding DataContext.StreamLabelSize, RelativeSource={RelativeSource AncestorType=Window}}" />
+                                <TextBlock Text="{Binding Text}" Foreground="White"
+                                           FontSize="{Binding DataContext.StreamBodySize, RelativeSource={RelativeSource AncestorType=Window}}" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

@@ -1,0 +1,30 @@
+<Application x:Class="ZasDictWin.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+             xmlns:ov="clr-namespace:ZasDictWin.Views.Overlays"
+             StartupUri="MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Theme.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <DataTemplate DataType="{x:Type vm:ChoiceViewModel}">
+                <ov:ChoiceOverlay />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:WordEditViewModel}">
+                <ov:WordEditOverlay />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ToolsViewModel}">
+                <ov:ToolsOverlay />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+                <ov:SettingsOverlay />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:InfoViewModel}">
+                <ov:InfoOverlay />
+            </DataTemplate>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

@@ -1,0 +1,224 @@
+<UserControl x:Class="ZasDictWin.Views.Overlays.WordEditOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+             xmlns:m="clr-namespace:ZasDictWin.Models">
+
+    <Border Style="{StaticResource Card}" MaxWidth="920" Margin="40,28" Padding="0">
+        <DockPanel>
+
+            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
+                <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
+                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
+            </Border>
+
+            <Border DockPanel.Dock="Bottom" Padding="24,14" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="キャンセル" Command="{Binding CloseCommand}" />
+                    <Button Content="保存" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" Margin="0" />
+                </StackPanel>
+            </Border>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,16">
+                <StackPanel>
+
+                    <TextBlock Text="見出し語" Style="{StaticResource Label}" />
+                    <TextBox Text="{Binding Form, UpdateSourceTrigger=PropertyChanged}"
+                             FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}"
+                             FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}" />
+
+                    <TextBlock Text="タグ（カンマ区切り）" Style="{StaticResource Label}" Margin="0,14,0,4" />
+                    <TextBox Text="{Binding TagsText, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <DockPanel Margin="0,20,0,6">
+                        <Button DockPanel.Dock="Right" Content="＋ 訳語" Style="{StaticResource GhostButton}"
+                                Command="{Binding AddTranslationCommand}" Margin="0" />
+                        <TextBlock Text="訳語" Style="{StaticResource SectionHeading}" Margin="0" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <ItemsControl ItemsSource="{Binding Translations}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:TranslationRow}">
+                                <Border x:Name="TranslationRowRoot" Background="{StaticResource Ink}" CornerRadius="8"
+                                        Padding="10" Margin="0,0,0,8">
+                                    <StackPanel>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBox Grid.Column="0" Text="{Binding FormsText, UpdateSourceTrigger=PropertyChanged}"
+                                                     Margin="0,0,6,0" />
+                                            <Button Grid.Column="1" Content="✕" Style="{StaticResource GhostButton}" Margin="0"
+                                                    Command="{Binding DataContext.RemoveTranslationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" />
+                                        </Grid>
+                                        <TextBlock Text="品詞" Style="{StaticResource Label}" Margin="0,8,0,4" />
+                                        <ItemsControl ItemsSource="{Binding DataContext.PosTitles, RelativeSource={RelativeSource AncestorType=UserControl}}">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <!-- ネストした ItemsControl の中では DataContext が品詞名の string に変わるため、
+                                                         行自体（TranslationRow）へは ElementName で TranslationRowRoot を直接参照する。
+                                                         RelativeSource AncestorType だと Chip の ControlTemplate 内の
+                                                         ContentPresenter まで ContentPresenter 祖先としてカウントされてしまい、
+                                                         ネスト段数がずれるため使えない。 -->
+                                                    <ToggleButton Style="{StaticResource Chip}" Content="{Binding}" Margin="0,0,6,6"
+                                                                  Command="{Binding ElementName=TranslationRowRoot, Path=DataContext.SetTitleCommand}"
+                                                                  CommandParameter="{Binding}">
+                                                        <ToggleButton.IsChecked>
+                                                            <MultiBinding Converter="{StaticResource EqualsMulti}" Mode="OneWay">
+                                                                <Binding />
+                                                                <Binding ElementName="TranslationRowRoot" Path="DataContext.Title" />
+                                                            </MultiBinding>
+                                                        </ToggleButton.IsChecked>
+                                                    </ToggleButton>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Text="内容" Style="{StaticResource SectionHeading}" Margin="0,20,0,6" />
+                    <ItemsControl ItemsSource="{Binding Contents}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:ContentRow}">
+                                <StackPanel Margin="0,0,0,10">
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="✕" Style="{StaticResource GhostButton}" Margin="0"
+                                                Command="{Binding DataContext.RemoveContentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}" />
+                                        <!-- 内容欄の種類は固定語彙（Const.ContentTypes）から選ぶため、既存行のタイトルは編集不可にする -->
+                                        <TextBlock Text="{Binding Title}" Style="{StaticResource Label}" Margin="0" VerticalAlignment="Center" />
+                                    </DockPanel>
+                                    <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
+                                             AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72" VerticalScrollBarVisibility="Auto" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <!-- 追加済みの種類はここから消える（ZasDictAndroid の CONTENT_TYPES 追加ボタンと同じ挙動） -->
+                    <ItemsControl ItemsSource="{Binding AvailableContentTypes}" Margin="0,0,0,4">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource GhostButton}" Margin="0,0,6,6"
+                                        Command="{Binding DataContext.AddContentTypeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}">
+                                    <TextBlock Text="{Binding StringFormat=＋ {0}}" />
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Text="関連語" Style="{StaticResource SectionHeading}" />
+                    <ItemsControl ItemsSource="{Binding Relations}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:RelationRow}">
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="130" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Form}" VerticalAlignment="Center"
+                                               FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
+                                    <Button Grid.Column="2" Content="✕" Style="{StaticResource GhostButton}" Margin="4,0,0,0"
+                                            Command="{Binding DataContext.RemoveRelationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Border Background="{StaticResource Ink}" CornerRadius="8" Padding="14" Margin="0,10,0,0">
+                        <StackPanel>
+                            <TextBlock Text="関連語を追加" Style="{StaticResource Label}" />
+                            <ItemsControl ItemsSource="{Binding RelationTitles}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <ToggleButton Style="{StaticResource Chip}" Content="{Binding}" Margin="0,0,6,6"
+                                                      Command="{Binding DataContext.SetRelationTitleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                      CommandParameter="{Binding}">
+                                            <ToggleButton.IsChecked>
+                                                <MultiBinding Converter="{StaticResource EqualsMulti}" Mode="OneWay">
+                                                    <Binding />
+                                                    <Binding Path="DataContext.RelationTitle" RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                                                </MultiBinding>
+                                            </ToggleButton.IsChecked>
+                                        </ToggleButton>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                            <Grid Margin="0,4,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="200" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBox Grid.Column="0" Text="{Binding RelationTitle, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,8,0" />
+                                <TextBox Grid.Column="1" Text="{Binding RelationQuery, UpdateSourceTrigger=PropertyChanged, Delay=120}"
+                                         FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
+                            </Grid>
+                            <TextBlock Text="{Binding RelationTitleHint}" Style="{StaticResource Label}" Margin="0,6,0,0" />
+
+                            <ItemsControl ItemsSource="{Binding RelationCandidates}" Margin="0,4,0,0">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type m:Word}">
+                                        <Button HorizontalContentAlignment="Left" Margin="0,0,0,4" Padding="10,6"
+                                                Command="{Binding DataContext.AddRelationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding DisplayForm}" Margin="0,0,12,0"
+                                                           FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
+                                                <TextBlock Text="{Binding TranslationSummary}" Foreground="{StaticResource Muted}"
+                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
+                                                           TextTrimming="CharacterEllipsis" MaxWidth="520" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
+
+                    <DockPanel Margin="0,20,0,6">
+                        <Button DockPanel.Dock="Right" Content="＋ 変化形" Style="{StaticResource GhostButton}"
+                                Command="{Binding AddVariationCommand}" Margin="0" />
+                        <TextBlock Text="変化形" Style="{StaticResource SectionHeading}" Margin="0" VerticalAlignment="Center" />
+                    </DockPanel>
+                    <ItemsControl ItemsSource="{Binding Variations}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:VariationRow}">
+                                <Grid Margin="0,0,0,6">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="140" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBox Grid.Column="0" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0" />
+                                    <TextBox Grid.Column="1" Text="{Binding Form, UpdateSourceTrigger=PropertyChanged}"
+                                             FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
+                                    <Button Grid.Column="2" Content="✕" Style="{StaticResource GhostButton}" Margin="4,0,0,0"
+                                            Command="{Binding DataContext.RemoveVariationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="左が名称（複数形・過去形など）、右がその綴り。" Style="{StaticResource Label}" Margin="0,2,0,0" />
+
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>
