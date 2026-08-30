@@ -18,7 +18,8 @@
                  文字サイズ倍率を上げても入力欄が画面外に押し出されないようにするため。 -->
             <TabControl Margin="24,14,24,20">
                 <TabItem Header="方言変換">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <!-- 縦にだけ流す。横スクロールは行の並び順がずれる原因になるので封じる -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,14,0,0">
                             <TextBlock Text="元単語（強勢のある母音を大文字で入力）" Style="{StaticResource Label}" />
                             <TextBox Text="{Binding Input, UpdateSourceTrigger=PropertyChanged, Delay=120}"
@@ -65,7 +66,7 @@
                 </TabItem>
 
                 <TabItem Header="IPA → 綴り">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,14,0,0">
                             <TextBlock Text="IPA" Style="{StaticResource Label}" />
                             <TextBox Text="{Binding IpaInput, UpdateSourceTrigger=PropertyChanged, Delay=120}"

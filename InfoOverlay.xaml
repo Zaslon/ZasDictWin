@@ -18,7 +18,8 @@
                  文字サイズ倍率を上げたときにスクロール領域だけが極端に狭くなる。 -->
             <TabControl Margin="24,14,24,20">
                 <TabItem Header="統計">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <!-- 統計・更新履歴とも縦にだけ流す（横スクロールで行順が崩れるのを防ぐ） -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,16,0,0">
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -156,6 +157,7 @@
 
                             <!-- 履歴は追記順（古い → 新しい）なので、表示時に一度だけ末尾＝最新行へ送る。 -->
                             <ScrollViewer x:Name="ChangelogScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled"
                                           Loaded="ChangelogScroll_Loaded">
                                 <ItemsControl ItemsSource="{Binding ChangelogRows}">
                                     <ItemsControl.ItemTemplate>

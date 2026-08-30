@@ -30,7 +30,8 @@
                 </Grid>
             </Border>
 
-            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,16">
+            <!-- 縦スクロールのみ。横に流すと項目の折り返し幅が変わって見出しと入力の並びがずれる -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24,16">
                 <StackPanel>
 
                     <TextBlock Text="見出し語" Style="{StaticResource Label}" />

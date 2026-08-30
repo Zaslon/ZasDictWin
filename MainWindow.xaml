@@ -25,33 +25,41 @@
     <Grid>
         <DockPanel>
 
-            <Border DockPanel.Dock="Top" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}"
-                    BorderThickness="0,0,0,1" Padding="14,10">
+            <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
+                    BorderThickness="0,0,0,1" Padding="12,7">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- アプリの顔。辞書名が長くなるので小さく据える -->
+                        <Border Width="24" Height="24" CornerRadius="7" Background="{StaticResource AccentFill}"
+                                Margin="0,0,9,0" VerticalAlignment="Center">
+                            <TextBlock Text="Z" FontSize="13" FontWeight="Bold" Foreground="#170F28"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                        </Border>
                         <Button Content="←" Style="{StaticResource GhostButton}"
-                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}"
+                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}"
                                 Command="{Binding BackCommand}"
                                 Visibility="{Binding IsBackVisible, Converter={StaticResource BoolVis}}" />
                         <TextBlock Text="{Binding DictionaryName}" FontWeight="SemiBold"
-                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=17}"
-                                   VerticalAlignment="Center" Margin="4,0,6,0" />
-                        <TextBlock Text="*" Foreground="{StaticResource Accent}" VerticalAlignment="Center"
-                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=17}"
-                                   Visibility="{Binding IsDirty, Converter={StaticResource BoolVis}}" />
+                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=15}"
+                                   VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <!-- 未保存は「*」よりドット。ラベルと本文の間に記号を挟まない -->
+                        <Ellipse Width="8" Height="8" Fill="{StaticResource Accent}" VerticalAlignment="Center"
+                                 ToolTip="未保存の変更があります"
+                                 Visibility="{Binding IsDirty, Converter={StaticResource BoolVis}}" />
                     </StackPanel>
 
-                    <WrapPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                    <WrapPanel HorizontalAlignment="Right" Orientation="Horizontal"
+TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}">
                         <Button Content="開く" Command="{Binding OpenCommand}" />
                         <Button Content="新規辞書" Command="{Binding NewDictionaryCommand}" />
                         <Button Content="保存" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" />
                         <Button Content="別名で保存" Command="{Binding SaveAsCommand}" />
-                        <Border Width="1" Background="{StaticResource Line}" Margin="6,2" />
+                        <Border Width="1" Background="{StaticResource Line}" Margin="4,3" />
                         <Button Content="＋ 単語" Command="{Binding NewWordCommand}" />
                         <Button Content="ツール" Command="{Binding ShowToolsCommand}" />
                         <Button Content="凡例・統計" Command="{Binding ShowInfoCommand}" />
                         <Button Content="設定" Command="{Binding ShowSettingsCommand}" />
-                        <Border Width="1" Background="{StaticResource Line}" Margin="6,2" />
+                        <Border Width="1" Background="{StaticResource Line}" Margin="4,3" />
                         <Button x:Name="LayoutButton" Content="レイアウト切替" Command="{Binding ToggleLayoutCommand}" />
                         <Button x:Name="BrowserButton" Content="{Binding Browser.ToggleLabel}"
                                 Command="{Binding Browser.ToggleCommand}" ToolTip="右にウェブブラウザのサイドバーを開閉します" />
@@ -60,12 +68,14 @@
                 </DockPanel>
             </Border>
 
-            <Border DockPanel.Dock="Bottom" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}"
-                    BorderThickness="0,1,0,0" Padding="14,7">
+            <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Line}"
+                    BorderThickness="0,1,0,0" Padding="12,5">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Right" Text="{Binding CountLabel}" Foreground="{StaticResource Muted}"
-                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
-                               VerticalAlignment="Center" />
+                    <Border DockPanel.Dock="Right" Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
+                            BorderThickness="1" CornerRadius="999" Padding="10,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding CountLabel}" Foreground="{StaticResource Muted}"
+                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                    </Border>
                     <TextBlock Text="{Binding Status}" Foreground="{StaticResource Muted}"
                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
                                VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
@@ -87,7 +97,16 @@
                        DragDelta="BrowserGrip_DragDelta" DragCompleted="BrowserGrip_DragCompleted">
                     <Thumb.Template>
                         <ControlTemplate TargetType="Thumb">
-                            <Border Background="{StaticResource Line}" />
+                            <Border x:Name="grip" Background="{StaticResource Line}" />
+                            <ControlTemplate.Triggers>
+                                <!-- ガリ幅は常に同じ。触れたときだけアクセント色にして「動かせる」ことを伝える -->
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="grip" Property="Background" Value="{StaticResource Accent}" />
+                                </Trigger>
+                                <Trigger Property="IsDragging" Value="True">
+                                    <Setter TargetName="grip" Property="Background" Value="{StaticResource Accent}" />
+                                </Trigger>
+                            </ControlTemplate.Triggers>
                         </ControlTemplate>
                     </Thumb.Template>
                 </Thumb>

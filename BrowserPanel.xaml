@@ -8,25 +8,63 @@
     <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1,0,0,0">
         <DockPanel>
 
+            <!-- ツールバー。戻る／進むは履歴がないときに押せないことを明示する（打っても効かないよりマシ） -->
             <Grid DockPanel.Dock="Top" Margin="8,8,8,6">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Button Content="←" Style="{StaticResource GhostButton}" Command="{Binding BackCommand}" ToolTip="戻る" />
-                    <Button Content="→" Style="{StaticResource GhostButton}" Command="{Binding ForwardCommand}" ToolTip="進む" />
-                    <Button Content="⟳" Style="{StaticResource GhostButton}" Command="{Binding ReloadCommand}" ToolTip="再読み込み" Margin="0" />
+                    <Button Content="←" Style="{StaticResource IconButton}" Command="{Binding BackCommand}"
+                            ToolTip="戻る" IsEnabled="{Binding CanGoBack}" />
+                    <Button Content="→" Style="{StaticResource IconButton}" Command="{Binding ForwardCommand}"
+                            ToolTip="進む" IsEnabled="{Binding CanGoForward}" />
+                    <Button Content="⟳" Style="{StaticResource IconButton}" Command="{Binding ReloadCommand}"
+                            ToolTip="再読み込み" Margin="0" />
                 </StackPanel>
-                <TextBox Grid.Column="1" Margin="8,0,0,0" VerticalContentAlignment="Center"
-                         Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}">
-                    <TextBox.InputBindings>
-                        <KeyBinding Key="Enter" Command="{Binding NavigateCommand}" />
-                    </TextBox.InputBindings>
-                </TextBox>
+                <!-- アドレス欄。枠そのものは TextBox ではなくピル状の Border で描き、
+                     フォーカス中だけアクセント色に光らせる -->
+                <Border Grid.Column="1" Margin="6,0,0,0" CornerRadius="999" Height="28"
+                        Background="{StaticResource Field}" VerticalAlignment="Center">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+                            <Setter Property="BorderThickness" Value="1" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsKeyboardFocused, ElementName=AddressBox}" Value="True">
+                                    <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                    <TextBox x:Name="AddressBox" BorderThickness="0" Background="Transparent"
+                             Padding="11,0" VerticalContentAlignment="Center"
+                             t:Placeholder.Text="アドレスまたは検索語句"
+                             Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Enter" Command="{Binding NavigateCommand}" />
+                        </TextBox.InputBindings>
+                    </TextBox>
+                </Border>
             </Grid>
 
-            <Border DockPanel.Dock="Bottom" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}"
+            <!-- 読み込み中は WebView2 に重ねられない（airspace のため WPF 描画が常に背後）ので、
+                 ツールバー下の行として出す -->
+            <Border DockPanel.Dock="Top" Height="2" Background="{StaticResource AccentFill}"
+                    Visibility="{Binding IsBusy, Converter={StaticResource BoolVis}}">
+                <Border.Triggers>
+                    <EventTrigger RoutedEvent="Border.Loaded">
+                        <BeginStoryboard>
+                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" From="0.3" To="1"
+                                                 Duration="0:0:0.7" />
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Border.Triggers>
+            </Border>
+
+            <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Line}"
                     BorderThickness="0,1,0,0" Padding="10,5">
                 <!-- 既定の TextBlock スタイルが Wrap なので 1 行に固定し、長い URL は途中を … で
                      省略する（末尾だけ切れると判別できないため先頭と末尾を残す）。 -->
@@ -40,10 +78,12 @@
             <Grid>
                 <wv2:WebView2 x:Name="Web"
                               Visibility="{Binding HasError, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
-                <TextBlock Text="{Binding ErrorText}" Margin="16" TextWrapping="Wrap"
-                           Foreground="{StaticResource Muted}" VerticalAlignment="Center"
-                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}"
-                           Visibility="{Binding HasError, Converter={StaticResource BoolVis}}" />
+                <StackPanel VerticalAlignment="Center" Margin="20"
+                            Visibility="{Binding HasError, Converter={StaticResource BoolVis}}">
+                    <TextBlock Style="{StaticResource EmptyState}" Text="ページを表示できません" FontWeight="SemiBold" />
+                    <TextBlock Style="{StaticResource EmptyState}" Text="{Binding ErrorText}" Margin="24,4,24,0"
+                               Opacity="0.8" />
+                </StackPanel>
             </Grid>
         </DockPanel>
     </Border>

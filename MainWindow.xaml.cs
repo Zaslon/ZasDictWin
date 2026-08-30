@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using ZasDictWin.Services;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
@@ -18,7 +19,29 @@ public partial class MainWindow : Window
         DataContext = _vm;
         _vm.SelectionChanged += () => _stream?.Refresh();
         _vm.SettingsApplied += () => _stream?.ApplySettings();
+        App.UiException += ShowException;
         PreviewKeyDown += OnPreviewKeyDown;
+    }
+
+    // UI スレッドで漏れた例外はアプリを落とさず、OBS に映るオーバーレイで知らせます。
+    // MessageBox は別ウィンドウになるため使わない方針です。
+    private void ShowException(Exception ex)
+    {
+        try
+        {
+            var vm = new ChoiceViewModel(
+                "問題が発生しました",
+                $"この操作は中止しましたが、アプリはそのまま続けられます。\n\n" +
+                $"{ex.GetType().Name}: {ex.Message}\n\n" +
+                $"詳しい記録: {ErrorLog.FilePath}");
+            vm.AddCancel("閉じる");
+            _vm.ShowOverlay(vm);
+        }
+        catch (Exception overlayEx)
+        {
+            // オーバーレイを描くこと自体が失敗する状態ではこれ以上出さず、記録だけ残します。
+            ErrorLog.Write("ErrorOverlay", overlayEx);
+        }
     }
 
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)

@@ -4,35 +4,51 @@
              xmlns:m="clr-namespace:ZasDictWin.Models"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
 
-    <Grid Margin="18,14">
+    <Grid Margin="16,12">
 
-        <TextBlock Text="左の一覧から単語を選ぶと、ここに内容が出ます。"
-                   Foreground="{StaticResource Muted}" VerticalAlignment="Center" HorizontalAlignment="Center"
-                   Visibility="{Binding HasSelection, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
+        <!-- 未選択のとき。一行だけの案内だと画面が壊れて見えるため、顔となるマークと操作案内を添える -->
+        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
+                    Visibility="{Binding HasSelection, Converter={StaticResource BoolVis}, ConverterParameter=invert}">
+            <Border Width="46" Height="46" CornerRadius="14" Background="{StaticResource Panel}"
+                    BorderBrush="{StaticResource Line}" BorderThickness="1" Margin="0,0,0,14"
+                    HorizontalAlignment="Center">
+                <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="18"
+                           Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            <TextBlock Style="{StaticResource EmptyState}" Margin="0" Text="単語を選んでください" FontWeight="SemiBold" />
+            <TextBlock Style="{StaticResource EmptyState}" Margin="0,6,0,0" Opacity="0.75"
+                       Text="左の一覧から選ぶと、ここに内容が出ます" />
+        </StackPanel>
 
-        <DockPanel Visibility="{Binding HasSelection, Converter={StaticResource BoolVis}}"
-                   DataContext="{Binding}">
+        <DockPanel Visibility="{Binding HasSelection, Converter={StaticResource BoolVis}}">
 
-            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,14,0,0">
-                <Button Content="編集" Style="{StaticResource PrimaryButton}" Command="{Binding EditWordCommand}" />
-                <Button Content="複製" Command="{Binding DuplicateWordCommand}" />
-                <Button Content="削除" Style="{StaticResource DangerButton}" Command="{Binding DeleteWordCommand}" />
-            </StackPanel>
+            <!-- 操作はフッタに寄せて、本文のスクロールと混ざらないようにする -->
+            <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0"
+                    Padding="0,10,0,0" Margin="0,12,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="編集" Style="{StaticResource PrimaryButton}" Command="{Binding EditWordCommand}" />
+                    <Button Content="複製" Command="{Binding DuplicateWordCommand}" />
+                    <Button Content="削除" Style="{StaticResource DangerButton}" Command="{Binding DeleteWordCommand}" />
+                </StackPanel>
+            </Border>
 
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <!-- 詳細面は縦スクロールのみ。横に流すと本文の折り返し位置が測定のたびに移り、
+                 見出しと本文の並びがずれて見える -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel DataContext="{Binding SelectedWord}">
 
                     <TextBlock Text="{Binding DisplayForm}"
                                FontSize="{Binding DataContext.HeadwordFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
 
-                    <ItemsControl ItemsSource="{Binding Tags}" Margin="0,8,0,0">
+                    <ItemsControl ItemsSource="{Binding Tags}" Margin="0,8,0,2">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Background="{StaticResource Raised}" CornerRadius="999" Padding="10,3" Margin="0,0,6,6">
+                                <Border Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
+                                        BorderThickness="1" CornerRadius="999" Padding="10,3" Margin="0,0,6,6">
                                     <TextBlock Text="{Binding}" Foreground="{StaticResource Muted}"
                                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
                                 </Border>
@@ -40,76 +56,95 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <TextBlock Text="訳語" Style="{StaticResource SectionHeading}"
-                               Visibility="{Binding Translations.Count, Converter={StaticResource CountVis}}" />
-                    <ItemsControl ItemsSource="{Binding Translations}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type m:Translation}">
-                                <Grid Margin="0,0,0,6">
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="Auto" MinWidth="76" />
-                                        <ColumnDefinition Width="*" />
-                                    </Grid.ColumnDefinitions>
-                                    <TextBlock Grid.Column="0" Text="{Binding Title}" Foreground="{StaticResource Accent}" />
-                                    <!-- 訳語は編集欄と同じカンマ区切りで並べる（1 つの TextBlock なので長い場合は折り返す）。 -->
-                                    <TextBlock Grid.Column="1" Text="{Binding FormSummary}" TextWrapping="Wrap" Margin="0,0,0,2"
-                                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}" />
-                                </Grid>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <!-- 以降の節はカードに区切る。影は使わず、枠と面の差だけで奥行きを出す
+                         （Effect はビットマップ化されて文字がにじみ、OBS キャプチャ で画質が落ちる） -->
+                    <Border Style="{StaticResource FilterCard}" Margin="0,10,0,0"
+                            Visibility="{Binding Translations.Count, Converter={StaticResource CountVis}}">
+                        <StackPanel>
+                            <TextBlock Text="訳語" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
+                            <ItemsControl ItemsSource="{Binding Translations}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type m:Translation}">
+                                        <Grid Margin="0,0,0,6">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" MinWidth="76" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Grid.Column="0" Text="{Binding Title}" Foreground="{StaticResource Accent}"
+                                                       VerticalAlignment="Top" Margin="0,2,8,0" />
+                                            <!-- 訳語は編集欄と同じカンマ区切りで並べる（1 つの TextBlock なので長い場合は折り返す）。 -->
+                                            <TextBlock Grid.Column="1" Text="{Binding FormSummary}" TextWrapping="Wrap" Margin="0,0,0,2"
+                                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}" />
+                                        </Grid>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
 
-                    <TextBlock Text="変化形" Style="{StaticResource SectionHeading}"
-                               Visibility="{Binding Variations.Count, Converter={StaticResource CountVis}}" />
-                    <ItemsControl ItemsSource="{Binding Variations}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type m:Variation}">
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource Muted}" MinWidth="76" />
-                                    <TextBlock Text="{Binding Form}"
-                                               FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <Border Style="{StaticResource FilterCard}" Margin="0,10,0,0"
+                            Visibility="{Binding Variations.Count, Converter={StaticResource CountVis}}">
+                        <StackPanel>
+                            <TextBlock Text="変化形" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
+                            <ItemsControl ItemsSource="{Binding Variations}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type m:Variation}">
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                            <TextBlock Text="{Binding Title}" Foreground="{StaticResource Muted}" MinWidth="76" />
+                                            <TextBlock Text="{Binding Form}"
+                                                       FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
 
-                    <TextBlock Text="内容" Style="{StaticResource SectionHeading}"
-                               Visibility="{Binding Contents.Count, Converter={StaticResource CountVis}}" />
-                    <ItemsControl ItemsSource="{Binding Contents}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type m:ContentItem}">
-                                <StackPanel Margin="0,0,0,10">
-                                    <TextBlock Text="{Binding Title}" Foreground="{StaticResource Accent}"
-                                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
-                                    <TextBlock Text="{Binding Text}" Margin="0,2,0,0" LineHeight="22" />
-                                </StackPanel>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <Border Style="{StaticResource FilterCard}" Margin="0,10,0,0"
+                            Visibility="{Binding Contents.Count, Converter={StaticResource CountVis}}">
+                        <StackPanel>
+                            <TextBlock Text="内容" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
+                            <ItemsControl ItemsSource="{Binding Contents}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type m:ContentItem}">
+                                        <StackPanel Margin="0,0,0,10">
+                                            <TextBlock Text="{Binding Title}" Foreground="{StaticResource Accent}"
+                                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
+                                            <TextBlock Text="{Binding Text}" Margin="0,3,0,0" LineHeight="22" />
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
 
-                    <TextBlock Text="関連語" Style="{StaticResource SectionHeading}"
-                               Visibility="{Binding Relations.Count, Converter={StaticResource CountVis}}" />
-                    <ItemsControl ItemsSource="{Binding Relations}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type m:Relation}">
-                                <Button Margin="0,0,6,6"
-                                        Command="{Binding DataContext.FollowRelationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding Title}" Foreground="{StaticResource Muted}" Margin="0,0,8,0"
-                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
-                                        <TextBlock Text="{Binding Form}"
-                                                   FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
-                                    </StackPanel>
-                                </Button>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
+                    <Border Style="{StaticResource FilterCard}" Margin="0,10,0,0"
+                            Visibility="{Binding Relations.Count, Converter={StaticResource CountVis}}">
+                        <StackPanel>
+                            <TextBlock Text="関連語" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
+                            <ItemsControl ItemsSource="{Binding Relations}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type m:Relation}">
+                                        <Button Margin="0,0,6,6" Padding="10,5"
+                                                Command="{Binding DataContext.FollowRelationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                CommandParameter="{Binding}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Title}" Foreground="{StaticResource Muted}" Margin="0,0,8,0"
+                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                                                <TextBlock Text="{Binding Form}"
+                                                           FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
 
-                    <Border Height="24" Background="Transparent" />
+                    <Border Height="12" Background="Transparent" />
                 </StackPanel>
             </ScrollViewer>
         </DockPanel>

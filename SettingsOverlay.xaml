@@ -21,7 +21,9 @@
                  文字サイズ倍率を上げたときに数行しか見えなくなる。 -->
             <TabControl Margin="24,14,24,0">
                 <TabItem Header="表示・動作">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <!-- 設定は縦にだけ流す。横スクロールを許すと折り返し幅が測定のたびに変わり、
+                         上下の並びがずれて見える（横に広い内容は折り返しと末尾省略で吸収させる） -->
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,14,0,14">
                             <TextBlock Text="文字サイズ倍率" Style="{StaticResource Label}" />
                             <TextBox Text="{Binding FontScale}" Width="120" HorizontalAlignment="Left" />
@@ -61,7 +63,7 @@
                 </TabItem>
 
                 <TabItem Header="辞書依存">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,14,0,14">
                             <TextBlock Text="辞書が開かれていないため編集できません。" Foreground="{StaticResource Muted}"
                                        Visibility="{Binding HasDictionary, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
@@ -79,7 +81,7 @@
                 </TabItem>
 
                 <TabItem Header="単語ウィンドウ">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,14,0,14">
                             <TextBlock Text="背景色（クロマキーなら #00B140 など。透過するなら Transparent）" Style="{StaticResource Label}" />
                             <DockPanel>
@@ -103,7 +105,7 @@
                 </TabItem>
 
                 <TabItem Header="ブラウザ">
-                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,14,0,14">
                             <CheckBox Content="起動時に右サイドバーのブラウザを開く" IsChecked="{Binding BrowserVisible}" />
 

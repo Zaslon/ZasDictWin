@@ -46,7 +46,9 @@ public sealed class CountToVisibilityConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         var n = value is int i ? i : (value as System.Collections.ICollection)?.Count ?? 0;
-        return n > 0 ? Visibility.Visible : Visibility.Collapsed;
+        var hasItems = n > 0;
+        if (parameter as string == "invert") hasItems = !hasItems;
+        return hasItems ? Visibility.Visible : Visibility.Collapsed;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
