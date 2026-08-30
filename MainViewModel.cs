@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Text.Json.Nodes;
 using System.Windows.Input;
 using Microsoft.Win32;
 using ZasDictWin.Models;
@@ -475,7 +476,13 @@ public sealed class MainViewModel : ViewModelBase
 
     private void ShowInfo()
     {
-        var legend = _doc is null ? "" : OtmJsonIo.PrettyPrint(_doc.Legend ?? _doc.Root["zpdicOnline"]);
+        // legend が Markdown 文字列ならそのまま描画に渡す。構造化 JSON の場合は
+        // 従来どおり整形済み JSON をテキスト表示する（Markdown として見劣りしない範囲で）。
+        var legend = _doc is null ? "" : _doc.Legend switch
+        {
+            JsonValue lv when lv.TryGetValue<string>(out var ls) => ls,
+            var other => OtmJsonIo.PrettyPrint(other ?? _doc.Root["zpdicOnline"]),
+        };
         var csv = _doc?.Path is null
             ? (Settings.ChangelogPath ?? "")
             : (Settings.ChangelogPath ?? ChangelogService.DefaultPathFor(_doc.Path));

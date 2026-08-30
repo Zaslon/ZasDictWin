@@ -246,11 +246,11 @@ public sealed class SettingsViewModel : OverlayViewModel
 
 public sealed class InfoViewModel : OverlayViewModel
 {
-    public InfoViewModel(OtmDocument? doc, string legendJson, IReadOnlyList<string[]> changelogRows,
+    public InfoViewModel(OtmDocument? doc, string legendMarkdown, IReadOnlyList<string[]> changelogRows,
                          string changelogPath, ICommand exportChangelogCommand, ICommand relinkChangelogCommand)
     {
         Title = "凡例・統計・更新履歴";
-        LegendJson = legendJson;
+        LegendMarkdown = legendMarkdown;
         ChangelogRows = new ObservableCollection<string[]>(changelogRows);
         ChangelogPath = changelogPath;
         ExportChangelogCommand = exportChangelogCommand;
@@ -274,7 +274,8 @@ public sealed class InfoViewModel : OverlayViewModel
             .Select(g => $"{g.Key}:{g.Count()}"));
     }
 
-    public string LegendJson { get; }
+    /// <summary>凡例の Markdown ソース（legend が文字列でない場合は整形済み JSON のフォールバック）。</summary>
+    public string LegendMarkdown { get; }
     public ObservableCollection<string[]> ChangelogRows { get; }
     public string ChangelogPath { get; }
     public ICommand ExportChangelogCommand { get; }

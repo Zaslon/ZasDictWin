@@ -60,10 +60,10 @@
                 </TabItem>
 
                 <TabItem Header="凡例">
-                    <TextBox Text="{Binding LegendJson, Mode=OneWay}" IsReadOnly="True" AcceptsReturn="True"
-                             FontFamily="Consolas"
-                             FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
-                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" Margin="0,14,0,0" />
+                    <FlowDocumentScrollViewer x:Name="LegendView" Background="Transparent"
+                                              IsSelectionEnabled="True"
+                                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                              Margin="0,14,0,0" />
                 </TabItem>
 
                 <TabItem Header="更新履歴">
