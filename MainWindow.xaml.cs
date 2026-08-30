@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using ZasDictWin.ViewModels;
 
@@ -26,6 +27,13 @@ public partial class MainWindow : Window
         if (_vm.IsOverlayOpen) { _vm.CloseOverlay(); e.Handled = true; return; }
         if (_vm.IsNavigateLayout && _vm.NavIndex == 1) { _vm.NavIndex = 0; e.Handled = true; }
     }
+
+    // サイドバーの幅ドラッグ。右端に寄せているので左へ引く（負方向）と広がります。
+    private void BrowserGrip_DragDelta(object sender, DragDeltaEventArgs e)
+        => _vm.Browser.Width -= e.HorizontalChange;
+
+    private void BrowserGrip_DragCompleted(object sender, DragCompletedEventArgs e)
+        => _vm.Browser.CommitWidth();
 
     private void ToggleStreamWindow_Click(object sender, RoutedEventArgs e)
     {

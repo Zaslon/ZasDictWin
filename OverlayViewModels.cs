@@ -126,6 +126,9 @@ public sealed class SettingsViewModel : OverlayViewModel
         StreamShowTranslations = settings.StreamShowTranslations;
         StreamShowContents = settings.StreamShowContents;
 
+        BrowserVisible = settings.BrowserVisible;
+        BrowserStartUrl = settings.BrowserStartUrl;
+
         if (doc is not null)
         {
             Punctuations = string.Concat(
@@ -192,6 +195,9 @@ public sealed class SettingsViewModel : OverlayViewModel
     public bool StreamShowTranslations { get; set; }
     public bool StreamShowContents { get; set; }
 
+    public bool BrowserVisible { get; set; }
+    public string BrowserStartUrl { get; set; } = "";
+
     public ICommand ApplyCommand { get; }
     public ICommand PickFontCommand { get; }
     public ICommand ResetReciprocalCommand { get; }
@@ -230,6 +236,9 @@ public sealed class SettingsViewModel : OverlayViewModel
         _settings.StreamWindowTopmost = StreamTopmost;
         _settings.StreamShowTranslations = StreamShowTranslations;
         _settings.StreamShowContents = StreamShowContents;
+
+        _settings.BrowserVisible = BrowserVisible;
+        _settings.BrowserStartUrl = string.IsNullOrWhiteSpace(BrowserStartUrl) ? "" : BrowserStartUrl.Trim();
 
         if (_doc is not null)
         {

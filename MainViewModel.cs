@@ -31,6 +31,13 @@ public sealed class MainViewModel : ViewModelBase
         Settings = AppSettings.Load();
         _search = new SearchService(_text, null);
         _relations = new RelationService(Settings.ReciprocalMap);
+        Browser = new BrowserViewModel(Settings);
+
+        // サイドバーの開閉はオーバーレイとの排他表示（IsBrowserShown）に効く。
+        Browser.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(BrowserViewModel.IsOpen)) Raise(nameof(IsBrowserShown));
+        };
 
         OpenCommand = new RelayCommand(OpenDictionary);
         NewDictionaryCommand = new RelayCommand(NewDictionary);
@@ -64,6 +71,9 @@ public sealed class MainViewModel : ViewModelBase
     public ObservableCollection<Word> FilteredWords { get; } = new();
 
     public ObservableCollection<Word> AllWords => _doc?.Words ?? EmptyWords;
+
+    /// <summary>右サイドバーのブラウザ（WebView2）の状態。</summary>
+    public BrowserViewModel Browser { get; }
 
     private static readonly ObservableCollection<Word> EmptyWords = new();
 
@@ -129,10 +139,19 @@ public sealed class MainViewModel : ViewModelBase
     public OverlayViewModel? CurrentOverlay
     {
         get => _overlay;
-        private set { if (Set(ref _overlay, value)) Raise(nameof(IsOverlayOpen)); }
+        private set
+        {
+            if (!Set(ref _overlay, value)) return;
+            Raise(nameof(IsOverlayOpen));
+            Raise(nameof(IsBrowserShown));   // オーバーレイを閉じたらブラウザを見せる
+        }
     }
 
     public bool IsOverlayOpen => CurrentOverlay is not null;
+
+    /// <summary>ブラウザサイドバーの実表示。オーバーレイが開いている間は airspace（WebView2 が
+    /// WPF 描画より手前に出る）を避けるため強制的に false にする。</summary>
+    public bool IsBrowserShown => Browser.IsOpen && !IsOverlayOpen;
 
     /// <summary>遷移レイアウト時のみ意味を持つ。0=検索, 1=詳細。</summary>
     public int NavIndex
@@ -329,6 +348,7 @@ public sealed class MainViewModel : ViewModelBase
         var heksa = Settings.HeksaEnabled ? HeadwordFontState.Load(Settings.HeksaFontPath) : null;
         HeadwordFontState.Instance.Family = heksa ?? HeadwordFontState.Fallback;
         FontScaleState.Instance.Scale = Settings.FontScale;
+        Browser.SyncWithSettings();   // 幅と開始 URL。表示中のページは切り替えない
 
         Raise(nameof(BaseFontSize));
         Raise(nameof(HeadwordFontSize));

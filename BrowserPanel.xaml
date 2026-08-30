@@ -1,0 +1,50 @@
+<UserControl x:Class="ZasDictWin.Views.BrowserPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+             xmlns:t="clr-namespace:ZasDictWin.Views">
+
+    <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1,0,0,0">
+        <DockPanel>
+
+            <Grid DockPanel.Dock="Top" Margin="8,8,8,6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <Button Content="←" Style="{StaticResource GhostButton}" Command="{Binding BackCommand}" ToolTip="戻る" />
+                    <Button Content="→" Style="{StaticResource GhostButton}" Command="{Binding ForwardCommand}" ToolTip="進む" />
+                    <Button Content="⟳" Style="{StaticResource GhostButton}" Command="{Binding ReloadCommand}" ToolTip="再読み込み" Margin="0" />
+                </StackPanel>
+                <TextBox Grid.Column="1" Margin="8,0,0,0" VerticalContentAlignment="Center"
+                         Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}">
+                    <TextBox.InputBindings>
+                        <KeyBinding Key="Enter" Command="{Binding NavigateCommand}" />
+                    </TextBox.InputBindings>
+                </TextBox>
+            </Grid>
+
+            <Border DockPanel.Dock="Bottom" Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}"
+                    BorderThickness="0,1,0,0" Padding="10,5">
+                <!-- 既定の TextBlock スタイルが Wrap なので 1 行に固定し、長い URL は途中を … で
+                     省略する（末尾だけ切れると判別できないため先頭と末尾を残す）。 -->
+                <TextBlock t:EllipsisMiddle.Source="{Binding Status}" Foreground="{StaticResource Muted}"
+                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
+                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+            </Border>
+
+            <!-- WebView2 は airspace の関係で WPF 描画より手前に出るため、エラー時はコントロール自体を
+                 畳んでメッセージを見せる（重ねて隠すことはできない）。 -->
+            <Grid>
+                <wv2:WebView2 x:Name="Web"
+                              Visibility="{Binding HasError, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
+                <TextBlock Text="{Binding ErrorText}" Margin="16" TextWrapping="Wrap"
+                           Foreground="{StaticResource Muted}" VerticalAlignment="Center"
+                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}"
+                           Visibility="{Binding HasError, Converter={StaticResource BoolVis}}" />
+            </Grid>
+        </DockPanel>
+    </Border>
+</UserControl>

@@ -28,6 +28,11 @@ public sealed class AppSettings
     public bool StreamShowTranslations { get; set; } = true;
     public bool StreamShowContents { get; set; }
 
+    // 右サイドバーのブラウザ（WebView2）
+    public bool BrowserVisible { get; set; }
+    public double BrowserWidth { get; set; } = 420;
+    public string BrowserStartUrl { get; set; } = "https://www.google.com/";
+
     private static string Dir =>
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZasDictWin");
 

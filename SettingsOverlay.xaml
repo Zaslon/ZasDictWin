@@ -101,6 +101,24 @@
                         </StackPanel>
                     </ScrollViewer>
                 </TabItem>
+
+                <TabItem Header="ブラウザ">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,14,0,14">
+                            <CheckBox Content="起動時に右サイドバーのブラウザを開く" IsChecked="{Binding BrowserVisible}" />
+
+                            <TextBlock Text="開始 URL（空にすると既定の検索ページ）" Style="{StaticResource Label}" Margin="0,16,0,4" />
+                            <TextBox Text="{Binding BrowserStartUrl, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
+
+                            <TextBlock Style="{StaticResource Label}" Margin="0,14,0,0"
+                                       Text="ヘッダーの［ブラウザ］ボタンでいつでも開閉できます。幅はサイドバーの左端をドラッグして調整し、設定は自動で保存されます。" />
+                            <TextBlock Style="{StaticResource Label}" Margin="0,8,0,0"
+                                       Text="WebView2 ランタイム（Microsoft Edge に同梱）を使用します。表示したページはメインウィンドウの一部なので、OBS ではウィンドウキャプチャにそのまま映ります。アドレス欄で Enter を押すと移動し、URL でない語句を入力した場合は検索になります。" />
+                            <TextBlock Style="{StaticResource Label}" Margin="0,8,0,0"
+                                       Text="WebView2 は WPF より手前に描画されるため、設定などのオーバーレイを開いている間は自動的に隠れます。ページ側にフォーカスがある間は Ctrl+S などのアプリのショートカットキーが効きません。" />
+                        </StackPanel>
+                    </ScrollViewer>
+                </TabItem>
             </TabControl>
         </DockPanel>
     </Border>
