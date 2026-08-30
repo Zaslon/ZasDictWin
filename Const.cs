@@ -32,6 +32,13 @@ public static class Const
         ["同意"] = "同意"
     };
 
-    /// <summary>内容欄の種類。エディタでは上から順に追加ボタンとして表示し、各項目は1つまで。</summary>
-    public static readonly IReadOnlyList<string> ContentTypes = new[] { "語法", "文化", "用例", "語源" };
+    /// <summary>内容欄の種類。エディタでは上から順に追加ボタンとして表示し、各項目は1つまで。
+    /// 「発音記号」が pronunciation の唯一の保存先（専用の発音欄や variations への保存は使わない）。</summary>
+    public static readonly IReadOnlyList<string> ContentTypes = new[] { "発音記号", "語法", "文化", "用例", "語源" };
+
+    /// <summary>発音記号を保存する内容欄の title。ContentTypes の先頭要素と同じ値にする。</summary>
+    public const string PronContentTitle = "発音記号";
+
+    /// <summary>内容欄の「発音記号」にテキストが入っている単語に自動で付くタグ（空になったら自動で外す）。</summary>
+    public const string SpecialPronTag = "特殊発音";
 }

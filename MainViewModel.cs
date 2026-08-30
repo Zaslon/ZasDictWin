@@ -291,6 +291,23 @@ public sealed class MainViewModel : ViewModelBase
         }
     }
 
+    /// <summary>保留中の更新履歴にエントリを追加する。同じ見出し語の直近エントリが ADD / CHANGE
+    /// の場合に CHANGE を重ねても追記しない（保存までの「追加→編集」「編集→編集」は 1 行に集約）。
+    /// DELETE の後の CHANGE や、別の見出し語への CHANGE は普通に追記する。</summary>
+    private void AddPendingChange(ChangeEntry entry)
+    {
+        if (entry.Operation == "CHANGE")
+        {
+            for (int i = _pendingChanges.Count - 1; i >= 0; i--)
+            {
+                if (_pendingChanges[i].Form != entry.Form) continue;
+                if (_pendingChanges[i].Operation is "ADD" or "CHANGE") return;
+                break;
+            }
+        }
+        _pendingChanges.Add(entry);
+    }
+
     // ---- indexing / filtering -------------------------------------------
 
     private void ApplySettings()
@@ -376,6 +393,7 @@ public sealed class MainViewModel : ViewModelBase
 
         var isNew = vm.Source is null;
         var word = vm.Source ?? Word.CreateNew(_doc.NextId());
+        var oldForm = word.Form;
         var formChanged = word.Form != vm.Form.Trim();
 
         word.Form = vm.Form.Trim();
@@ -390,7 +408,9 @@ public sealed class MainViewModel : ViewModelBase
         if (isNew) _doc.Words.Add(word);
         if (formChanged && !isNew) RelationService.PropagateFormChange(_doc.Words, word);
 
-        _pendingChanges.Add(new ChangeEntry(DateTime.Now, isNew ? "追加" : "編集", word.Form, word.TranslationSummary));
+        // 更新履歴は ADD / CHANGE / DELETE。見出し語変更（リネーム）の時だけ details に旧見出し語を残す。
+        var changeDetail = !isNew && formChanged ? $"旧: {oldForm}" : "";
+        AddPendingChange(new ChangeEntry(DateTime.Now, isNew ? "ADD" : "CHANGE", word.Form, changeDetail));
 
         CloseOverlay();
         RebuildIndex();
@@ -403,7 +423,7 @@ public sealed class MainViewModel : ViewModelBase
         if (_doc is null || w is null) return;
         var copy = w.Duplicate(_doc.NextId());
         _doc.Words.Add(copy);
-        _pendingChanges.Add(new ChangeEntry(DateTime.Now, "複製", copy.Form, $"{w.Form} から複製"));
+        _pendingChanges.Add(new ChangeEntry(DateTime.Now, "ADD", copy.Form, ""));
         RebuildIndex();
         SelectedWord = copy;
         MarkDirty($"「{w.Form}」を複製しました。");
@@ -423,7 +443,7 @@ public sealed class MainViewModel : ViewModelBase
         if (_doc is null) return;
         RelationService.RemoveReferences(_doc.Words, w);
         _doc.Words.Remove(w);
-        _pendingChanges.Add(new ChangeEntry(DateTime.Now, "削除", w.Form, w.TranslationSummary));
+        _pendingChanges.Add(new ChangeEntry(DateTime.Now, "DELETE", w.Form, ""));
         if (SelectedWord == w) SelectedWord = null;
         RebuildIndex();
         NavIndex = 0;
@@ -486,7 +506,10 @@ public sealed class MainViewModel : ViewModelBase
         var csv = _doc?.Path is null
             ? (Settings.ChangelogPath ?? "")
             : (Settings.ChangelogPath ?? ChangelogService.DefaultPathFor(_doc.Path));
-        var rows = csv.Length > 0 ? ChangelogService.Read(csv) : Array.Empty<string[]>();
+        // CSV にまだフラッシュしていない保留履歴は、行頭（timestamp）に * を付けて後続表示する。
+        var rows = new List<string[]>(csv.Length > 0 ? ChangelogService.Read(csv) : Array.Empty<string[]>());
+        foreach (var e in _pendingChanges)
+            rows.Add(new[] { "*" + e.At.ToString("yyyy-MM-dd"), e.Operation, e.Form, e.Detail });
 
         ShowOverlay(new InfoViewModel(_doc, legend, rows, csv,
             new RelayCommand(() => ExportChangelog(csv)),

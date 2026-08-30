@@ -244,6 +244,9 @@ public sealed class SettingsViewModel : OverlayViewModel
     }
 }
 
+/// <summary>統計タブの品詞・タグ内訳をグリッド表示するための 1 セル分データ。</summary>
+public sealed record BreakdownItem(string Name, int Count);
+
 public sealed class InfoViewModel : OverlayViewModel
 {
     public InfoViewModel(OtmDocument? doc, string legendMarkdown, IReadOnlyList<string[]> changelogRows,
@@ -251,7 +254,10 @@ public sealed class InfoViewModel : OverlayViewModel
     {
         Title = "凡例・統計・更新履歴";
         LegendMarkdown = legendMarkdown;
-        ChangelogRows = new ObservableCollection<string[]>(changelogRows);
+        // CSV 先頭の見出し行は、本文と一緒にスクロールせず固定表示するヘッダー側に回す。
+        var (header, body) = SplitChangelogHeader(changelogRows);
+        ChangelogHeader = header;
+        ChangelogRows = new ObservableCollection<string[]>(body);
         ChangelogPath = changelogPath;
         ExportChangelogCommand = exportChangelogCommand;
         RelinkChangelogCommand = relinkChangelogCommand;
@@ -263,19 +269,26 @@ public sealed class InfoViewModel : OverlayViewModel
         TranslationCount = doc.Words.Sum(w => w.Translations.Sum(t => t.Forms.Count));
         RelationCount = doc.Words.Sum(w => w.Relations.Count);
         AverageFormLength = forms.Count == 0 ? 0 : Math.Round(forms.Average(f => f.Length), 2);
-        TagBreakdown = string.Join("  ", doc.Words.SelectMany(w => w.Tags)
+        TagItems = doc.Words.SelectMany(w => w.Tags)
             .GroupBy(t => t, StringComparer.Ordinal)
             .OrderByDescending(g => g.Count())
-            .Select(g => $"{g.Key}:{g.Count()}"));
-        PosBreakdown = string.Join("  ", doc.Words.SelectMany(w => w.Translations.Select(t => t.Title))
+            .ThenBy(g => g.Key, StringComparer.Ordinal)
+            .Select(g => new BreakdownItem(g.Key, g.Count()))
+            .ToList();
+        PosItems = doc.Words.SelectMany(w => w.Translations.Select(t => t.Title))
             .Where(t => !string.IsNullOrEmpty(t))
             .GroupBy(t => t, StringComparer.Ordinal)
             .OrderByDescending(g => g.Count())
-            .Select(g => $"{g.Key}:{g.Count()}"));
+            .ThenBy(g => g.Key, StringComparer.Ordinal)
+            .Select(g => new BreakdownItem(g.Key, g.Count()))
+            .ToList();
     }
 
     /// <summary>凡例の Markdown ソース（legend が文字列でない場合は整形済み JSON のフォールバック）。</summary>
     public string LegendMarkdown { get; }
+    /// <summary>更新履歴の見出し行。タブ側ではスクロール領域の外に固定して表示する（常に 4 列）。</summary>
+    public string[] ChangelogHeader { get; }
+    /// <summary>更新履歴の本文行（見出し行は含まない）。追記順 = 古い順で並ぶ。</summary>
     public ObservableCollection<string[]> ChangelogRows { get; }
     public string ChangelogPath { get; }
     public ICommand ExportChangelogCommand { get; }
@@ -286,6 +299,22 @@ public sealed class InfoViewModel : OverlayViewModel
     public int TranslationCount { get; }
     public int RelationCount { get; }
     public double AverageFormLength { get; }
-    public string TagBreakdown { get; } = "";
-    public string PosBreakdown { get; } = "";
+    /// <summary>タグ内訳（件数の多い順）。WrapPanel + SharedSizeGroup でグリッド状に整列表示する。</summary>
+    public IReadOnlyList<BreakdownItem> TagItems { get; } = Array.Empty<BreakdownItem>();
+    /// <summary>品詞（訳語タイトル）内訳（件数の多い順）。</summary>
+    public IReadOnlyList<BreakdownItem> PosItems { get; } = Array.Empty<BreakdownItem>();
+
+    /// <summary>
+    /// 読み出した CSV を「見出し行」と「本文行」に分離する。見出し行が無い CSV では既定の列名をそのまま使う。
+    /// 手作業で作った CSV で列が足りないときもヘッダーのバインディングが壊れないよう、常に 4 列へそろえる。
+    /// </summary>
+    private static (string[] Header, IEnumerable<string[]> Rows) SplitChangelogHeader(IReadOnlyList<string[]> rows)
+    {
+        if (rows.Count == 0 || !ChangelogService.IsHeaderRow(rows[0]))
+            return ((string[])ChangelogService.DefaultHeader.Clone(), rows);
+
+        var header = new string[ChangelogService.DefaultHeader.Length];
+        for (var i = 0; i < header.Length; i++) header[i] = i < rows[0].Length ? rows[0][i] : "";
+        return (header, rows.Skip(1));
+    }
 }

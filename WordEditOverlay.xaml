@@ -13,10 +13,21 @@
             </Border>
 
             <Border DockPanel.Dock="Bottom" Padding="24,14" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Content="キャンセル" Command="{Binding CloseCommand}" />
-                    <Button Content="保存" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" Margin="0" />
-                </StackPanel>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <!-- 品詞未選択などの検証エラーを保存ボタンと同じフッターに表示する。 -->
+                    <TextBlock Grid.Column="0" Text="{Binding ValidationMessage}" Foreground="{StaticResource Danger}"
+                               VerticalAlignment="Center" TextWrapping="Wrap"
+                               Visibility="{Binding ValidationMessage, Converter={StaticResource NullVis}}"
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button Content="キャンセル" Command="{Binding CloseCommand}" />
+                        <Button Content="保存" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" Margin="0" />
+                    </StackPanel>
+                </Grid>
             </Border>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="24,16">
@@ -27,8 +38,7 @@
                              FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}"
                              FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}" />
 
-                    <TextBlock Text="タグ（カンマ区切り）" Style="{StaticResource Label}" Margin="0,14,0,4" />
-                    <TextBox Text="{Binding TagsText, UpdateSourceTrigger=PropertyChanged}" />
+                    <!-- 発音記号は「内容」欄の「発音記号」が単一の保存先（専用の発音欄は設けない）。 -->
 
                     <DockPanel Margin="0,20,0,6">
                         <Button DockPanel.Dock="Right" Content="＋ 訳語" Style="{StaticResource GhostButton}"
@@ -116,6 +126,8 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                        <TextBlock Text="「発音記号」を入力すると「特殊発音」タグが自動で付き、空にすると外れます。"
+                                   Style="{StaticResource Label}" Margin="0,2,0,0" />
 
                     <TextBlock Text="関連語" Style="{StaticResource SectionHeading}" />
                     <ItemsControl ItemsSource="{Binding Relations}">
@@ -216,6 +228,9 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <TextBlock Text="左が名称（複数形・過去形など）、右がその綴り。" Style="{StaticResource Label}" Margin="0,2,0,0" />
+
+                    <TextBlock Text="タグ（カンマ区切り）" Style="{StaticResource Label}" Margin="0,20,0,4" />
+                    <TextBox Text="{Binding TagsText, UpdateSourceTrigger=PropertyChanged}" />
 
                 </StackPanel>
             </ScrollViewer>

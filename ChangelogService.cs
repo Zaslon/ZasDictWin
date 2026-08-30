@@ -10,7 +10,8 @@ public sealed record ChangeEntry(DateTime At, string Operation, string Form, str
 /// </summary>
 public static class ChangelogService
 {
-    private const string Header = "日時,操作,見出し語,内容";
+    /// <summary>CSV の列名。書き出し時の見出し行と、更新履歴欄の固定ヘッダーの両方で使う。</summary>
+    public static readonly string[] DefaultHeader = { "timestamp", "type", "form", "details" };
 
     public static string DefaultPathFor(string dictionaryPath)
     {
@@ -26,10 +27,10 @@ public static class ChangelogService
 
         var isNew = !File.Exists(csvPath);
         var sb = new StringBuilder();
-        if (isNew) sb.AppendLine(Header);
+        if (isNew) sb.AppendLine(string.Join(',', DefaultHeader));
         foreach (var e in list)
         {
-            sb.Append(Escape(e.At.ToString("yyyy-MM-dd HH:mm:ss"))).Append(',')
+            sb.Append(Escape(e.At.ToString("yyyy-MM-dd"))).Append(',')
               .Append(Escape(e.Operation)).Append(',')
               .Append(Escape(e.Form)).Append(',')
               .Append(Escape(e.Detail)).AppendLine();
@@ -50,6 +51,20 @@ public static class ChangelogService
             if (rows.Count >= maxRows + 1) break;
         }
         return rows;
+    }
+
+    /// <summary>
+    /// CSV の 1 行目が見出し行かどうか。このアプリは必ず先頭に見出すを書きますが、
+    /// 手作業で作った CSV でも判別できるよう「日付（yyyy-MM-dd）で始まらない行」を見出しとみなします。
+    /// </summary>
+    public static bool IsHeaderRow(string[] cells) => cells.Length == 0 || !StartsWithDate(cells[0]);
+
+    private static bool StartsWithDate(string s)
+    {
+        if (s.StartsWith('*')) s = s[1..];   // 未フラッシュの履歴は行頭に * を付けて表示している
+        return s.Length >= 10 && char.IsDigit(s[0]) && char.IsDigit(s[1])
+                            && char.IsDigit(s[2]) && char.IsDigit(s[3])
+                 && (s[4] == '-' || s[4] == '/');
     }
 
     private static string Escape(string s)

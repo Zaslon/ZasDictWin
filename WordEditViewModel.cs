@@ -54,6 +54,7 @@ public sealed class WordEditViewModel : OverlayViewModel
     private string _form = "";
     private string _relationQuery = "";
     private string _relationTitle = "対義語";
+    private string _validationMessage = "";
 
     public WordEditViewModel(Word? source, ObservableCollection<Word> allWords, RelationService relations,
                              SearchService search, Action<WordEditViewModel> commit, string initialForm = "")
@@ -98,7 +99,7 @@ public sealed class WordEditViewModel : OverlayViewModel
         RemoveRelationCommand = new RelayCommand(o => { if (o is RelationRow r) Relations.Remove(r); });
         AddRelationCommand = new RelayCommand(o => { if (o is Word w) AddRelation(w); });
         SetRelationTitleCommand = new RelayCommand(o => { if (o is string s) RelationTitle = s; });
-        SaveCommand = new RelayCommand(() => _commit(this));
+        SaveCommand = new RelayCommand(() => { if (Validate()) _commit(this); });
     }
 
     public Word? Source { get; }
@@ -107,6 +108,26 @@ public sealed class WordEditViewModel : OverlayViewModel
     {
         get => _form;
         set => Set(ref _form, value);
+    }
+
+    /// <summary>保存時の検証エラーメッセージ（未入力なら折りたたみ表示）。</summary>
+    public string ValidationMessage
+    {
+        get => _validationMessage;
+        set => Set(ref _validationMessage, value);
+    }
+
+    /// <summary>訳語は品詞の選択が必須。何らかの内容がある行（訳語または品詞が入力済み）に、
+    /// ValidPos の品詞が選ばれていない場合は保存を止める。完全に空の行は従来どおり無視して保存する。</summary>
+    private bool Validate()
+    {
+        var missing = Translations.Any(t =>
+            (!string.IsNullOrWhiteSpace(t.FormsText) || !string.IsNullOrWhiteSpace(t.Title)) &&
+            !Const.ValidPos.Contains(t.Title.Trim()));
+        ValidationMessage = missing
+            ? "訳語の品詞を選択してください（各訳語で品詞チップを 1 つ選びます）。"
+            : "";
+        return !missing;
     }
 
     public string TagsText { get; set; } = "";
@@ -207,7 +228,19 @@ public sealed class WordEditViewModel : OverlayViewModel
             Forms = SplitList(t.FormsText)
         }).ToList();
 
-    public List<string> BuildTags() => SplitList(TagsText);
+    public List<string> BuildTags()
+    {
+        var tags = SplitList(TagsText);
+        // 発音記号は内容欄の「発音記号」が単一の保存先。そこにテキストがあるかどうかで
+        // 「特殊発音」タグを同期させる（自動付与／解除）。
+        var hasPron = Contents.Any(c => c.Title.Trim() == Const.PronContentTitle && !string.IsNullOrWhiteSpace(c.Text));
+        if (hasPron)
+        {
+            if (!tags.Contains(Const.SpecialPronTag)) tags.Add(Const.SpecialPronTag);
+        }
+        else tags.RemoveAll(t => t == Const.SpecialPronTag);
+        return tags;
+    }
 
     public List<ContentItem> BuildContents() => Contents
         .Where(c => !string.IsNullOrWhiteSpace(c.Title) || !string.IsNullOrWhiteSpace(c.Text))
