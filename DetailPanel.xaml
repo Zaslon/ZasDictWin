@@ -51,17 +51,9 @@
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
                                     <TextBlock Grid.Column="0" Text="{Binding Title}" Foreground="{StaticResource Accent}" />
-                                    <ItemsControl Grid.Column="1" ItemsSource="{Binding Forms}">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <TextBlock Text="{Binding}" Margin="0,0,14,2"
-                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}" />
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
+                                    <!-- 訳語は編集欄と同じカンマ区切りで並べる（1 つの TextBlock なので長い場合は折り返す）。 -->
+                                    <TextBlock Grid.Column="1" Text="{Binding FormSummary}" TextWrapping="Wrap" Margin="0,0,0,2"
+                                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}" />
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

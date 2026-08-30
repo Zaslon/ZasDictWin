@@ -30,17 +30,9 @@
                             <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                                 <TextBlock Text="{Binding Title}" Foreground="#CCFFFFFF" MinWidth="90"
                                            FontSize="{Binding DataContext.StreamLabelSize, RelativeSource={RelativeSource AncestorType=Window}}" />
-                                <ItemsControl ItemsSource="{Binding Forms}">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding}" Foreground="White" Margin="0,0,16,0"
-                                                       FontSize="{Binding DataContext.StreamBodySize, RelativeSource={RelativeSource AncestorType=Window}}" />
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                <!-- 訳語はカンマ区切り（詳細欄・編集欄と同じ表記）。 -->
+                                <TextBlock Text="{Binding FormSummary}" Foreground="White"
+                                           FontSize="{Binding DataContext.StreamBodySize, RelativeSource={RelativeSource AncestorType=Window}}" />
                             </StackPanel>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

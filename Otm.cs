@@ -8,6 +8,9 @@ public sealed class Translation
 {
     public string Title { get; set; } = "";
     public List<string> Forms { get; set; } = new();
+
+    /// <summary>訳語綴りを表示用にまとめたもの。編集欄と同じくカンマ区切り（JSON の forms 配列は変えない）。</summary>
+    public string FormSummary => string.Join(", ", Forms);
 }
 
 public sealed class ContentItem
@@ -60,8 +63,8 @@ public sealed class Word : INotifyPropertyChanged
             var parts = Translations
                 .Where(t => t.Forms.Count > 0)
                 .Select(t => string.IsNullOrEmpty(t.Title)
-                    ? string.Join("・", t.Forms)
-                    : $"［{t.Title}］{string.Join("・", t.Forms)}");
+                    ? t.FormSummary
+                    : $"［{t.Title}］{t.FormSummary}");
             return string.Join("  ", parts);
         }
     }
