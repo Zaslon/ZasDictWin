@@ -190,6 +190,9 @@
 
     <!-- 検索条件の切り替え。単体でも選んだ状態が分かるよう、ON は淡い紫の面＋アクセント枠にする
          （全面をアクセント色で塗ると 8 個並んだときに主張が強すぎるため）。 -->
+    <!-- chip の角は「長丸（CornerRadius=999）」ではなく角丸にする。ピルだと文字数の少ない
+         項目（「訳語」「名詞」など）がほぼ真円に見えて、隣の角丸のボタンや入力欄と形が揃わない。
+         半径はボタンの 8・カードの 12 より一段小さい 6 で、要素の大きさと段を合わせている。 -->
     <Style x:Key="Chip" TargetType="ToggleButton">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="Background" Value="Transparent" />
@@ -200,11 +203,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
-                    <Border x:Name="bd" CornerRadius="999" Background="{TemplateBinding Background}"
+                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}"
                             BorderBrush="{StaticResource Line}" BorderThickness="1">
                         <Grid>
                             <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
-                            <Border x:Name="veil" CornerRadius="999" Background="#FFFFFF" Opacity="0" IsHitTestVisible="False" />
+                            <Border x:Name="veil" CornerRadius="5" Background="#FFFFFF" Opacity="0" IsHitTestVisible="False" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
