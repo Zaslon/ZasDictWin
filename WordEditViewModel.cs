@@ -12,11 +12,6 @@ public sealed class TranslationRow : ViewModelBase
     public string Title { get => _title; set => Set(ref _title, value); }
     /// <summary>「犬, 狗」のようにカンマ区切りで編集し、確定時に forms 配列へ戻す。</summary>
     public string FormsText { get => _formsText; set => Set(ref _formsText, value); }
-
-    /// <summary>品詞チップ（ネストした ItemsControl 内）から自分の Title を書き換えるためのコマンド。</summary>
-    public ICommand SetTitleCommand { get; }
-
-    public TranslationRow() => SetTitleCommand = new RelayCommand(o => { if (o is string s) Title = s; });
 }
 
 public sealed class ContentRow : ViewModelBase
@@ -98,7 +93,6 @@ public sealed class WordEditViewModel : OverlayViewModel
         RemoveVariationCommand = new RelayCommand(o => { if (o is VariationRow r) Variations.Remove(r); });
         RemoveRelationCommand = new RelayCommand(o => { if (o is RelationRow r) Relations.Remove(r); });
         AddRelationCommand = new RelayCommand(o => { if (o is Word w) AddRelation(w); });
-        SetRelationTitleCommand = new RelayCommand(o => { if (o is string s) RelationTitle = s; });
         SaveCommand = new RelayCommand(() => { if (Validate()) _commit(this); });
     }
 
@@ -125,7 +119,7 @@ public sealed class WordEditViewModel : OverlayViewModel
             (!string.IsNullOrWhiteSpace(t.FormsText) || !string.IsNullOrWhiteSpace(t.Title)) &&
             !Const.ValidPos.Contains(t.Title.Trim()));
         ValidationMessage = missing
-            ? "訳語の品詞を選択してください（各訳語で品詞チップを 1 つ選びます）。"
+            ? "訳語の品詞を選択してください（各訳語で品詞を 1 つ選びます）。"
             : "";
         return !missing;
     }
@@ -137,7 +131,7 @@ public sealed class WordEditViewModel : OverlayViewModel
     public ObservableCollection<VariationRow> Variations { get; } = new();
     public ObservableCollection<RelationRow> Relations { get; } = new();
 
-    /// <summary>訳語の品詞チップに並べる固定語彙（Const.ValidPos）。</summary>
+    /// <summary>訳語の品詞プルダウンに並べる固定語彙（Const.ValidPos）。</summary>
     public IReadOnlyList<string> PosTitles { get; } = Const.ValidPos;
 
     /// <summary>まだ追加していない内容欄の種類。追加済みの種類はここから消える。</summary>
@@ -170,7 +164,6 @@ public sealed class WordEditViewModel : OverlayViewModel
     public ICommand RemoveVariationCommand { get; }
     public ICommand RemoveRelationCommand { get; }
     public ICommand AddRelationCommand { get; }
-    public ICommand SetRelationTitleCommand { get; }
     public ICommand SaveCommand { get; }
 
     private string HintFor(string title) => _relations.Counterpart(title) ?? "";

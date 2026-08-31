@@ -107,31 +107,14 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- 出典。ComboBox のドロップダウンは別 HWND で配信に映らないため chip で選ぶ -->
+                    <!-- 出典。ComboBox は一覧が別 HWND になって配信に映らないため、自前の v:DropDown を使う -->
                     <Border Style="{StaticResource FilterCard}" Margin="0,14,0,16">
                         <StackPanel>
                             <TextBlock Text="出典" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
 
-                            <ItemsControl ItemsSource="{Binding Catalogs}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <ToggleButton Style="{StaticResource Chip}" Content="{Binding Label}"
-                                                      Margin="0,0,5,5"
-                                                      Command="{Binding DataContext.SetCatalogCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                      CommandParameter="{Binding Api}">
-                                            <ToggleButton.IsChecked>
-                                                <MultiBinding Converter="{StaticResource EqualsMulti}" Mode="OneWay">
-                                                    <Binding Path="Api" />
-                                                    <Binding Path="DataContext.Catalog" RelativeSource="{RelativeSource AncestorType=UserControl}" />
-                                                </MultiBinding>
-                                            </ToggleButton.IsChecked>
-                                        </ToggleButton>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
+                            <!-- 保存するのは API 名（Catalog）だけなので、選択肢の実体は SelectedCatalog で受ける -->
+                            <v:DropDown ItemsSource="{Binding Catalogs}" SelectedItem="{Binding SelectedCatalog}"
+                                        DisplayMemberPath="Label" Placeholder="出典を選ぶ" />
 
                             <!-- 「自作」は照会先が無いので、番号と照会ボタンごと隠す -->
                             <StackPanel Visibility="{Binding IsOnlineCatalog, Converter={StaticResource BoolVis}}">

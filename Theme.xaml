@@ -532,4 +532,94 @@
         <Setter Property="Margin" Value="2,8" />
     </Style>
 
+    <!-- プルダウン（v:DropDown）。一覧は Popup ではなくウィンドウの AdornerLayer に描くため、
+         OBS のウィンドウキャプチャにも映る。DropDownPanel / DropDownList はコントロール側が
+         キー名で引くので、名前を変えるときは DropDown.cs も合わせること。 -->
+    <Style TargetType="{x:Type v:DropDown}">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="Background" Value="{StaticResource Field}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="9,6" />
+        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="Focusable" Value="True" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type v:DropDown}">
+                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <!-- 暗黙の TextBlock スタイル（Wrap）が効くと、選んだ値が折り返して
+                                 行の高さが揺れるため、どちらも 1 行に固定する -->
+                            <TextBlock x:Name="txt" Grid.Column="0" Text="{TemplateBinding SelectionText}"
+                                       Foreground="{TemplateBinding Foreground}"
+                                       Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                            <TextBlock x:Name="ph" Grid.Column="0" Text="{TemplateBinding Placeholder}"
+                                       Foreground="{StaticResource Muted}"
+                                       Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                       Visibility="Collapsed" />
+                            <!-- 一覧に無い値も打てる形。枠は外側の Border が描くので、ここは面と枠を消す。
+                                 TextBox はクリックを自分で握るので、開閉は矢印側の余白で受ける。 -->
+                            <TextBox x:Name="edit" Grid.Column="0" Visibility="Collapsed"
+                                     Text="{Binding Text, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     v:Placeholder.Text="{TemplateBinding Placeholder}"
+                                     Background="Transparent" BorderThickness="0"
+                                     Padding="{TemplateBinding Padding}" VerticalAlignment="Center" />
+                            <Path x:Name="arrow" Grid.Column="1" Data="M 0,0 L 9,0 L 4.5,5.5 Z"
+                                  Fill="{StaticResource Muted}" Margin="6,0,10,0" VerticalAlignment="Center" />
+                        </Grid>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="HasSelection" Value="False">
+                            <Setter TargetName="ph" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsEditable" Value="True">
+                            <Setter TargetName="edit" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="ph" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="txt" Property="Visibility" Value="Collapsed" />
+                            <Setter Property="Cursor" Value="IBeam" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
+                            <Setter TargetName="arrow" Property="Fill" Value="{StaticResource Text}" />
+                        </Trigger>
+                        <Trigger Property="IsKeyboardFocused" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
+                        </Trigger>
+                        <Trigger Property="IsOpen" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
+                            <Setter TargetName="arrow" Property="Fill" Value="{StaticResource Text}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 開いた一覧の器。下地のカードからせり出して見えるよう、枠をアクセント色にする -->
+    <Style x:Key="DropDownPanel" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Raised}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="MaxWidth" Value="420" />
+    </Style>
+
+    <Style x:Key="DropDownList" TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
 </ResourceDictionary>
