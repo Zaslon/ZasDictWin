@@ -96,9 +96,6 @@ public sealed class MainViewModel : ViewModelBase
     /// <summary>中央と 4 辺ぶんのタブ束。オーバーレイはここに入って初めて画面に出る。</summary>
     public DockGroups Docks { get; }
 
-    /// <summary>ドラッグ中の状態。XAML からは {x:Static} でも同じ実体を引く。</summary>
-    public OverlayDragState Drag => OverlayDragState.Instance;
-
     private static readonly ObservableCollection<Word> EmptyWords = new();
 
     public Word? SelectedWord

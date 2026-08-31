@@ -10,9 +10,7 @@
     <v:StringToBrushConverter x:Key="StringBrush" />
     <v:EqualsMultiConverter x:Key="EqualsMulti" />
     <v:ScaleFontSizeConverter x:Key="ScaleFont" />
-    <v:DockZoneOpacityConverter x:Key="DockZoneOpacity" />
     <v:RatioConverter x:Key="Ratio" />
-    <v:EdgeInsetsConverter x:Key="EdgeInsets" />
 
     <!-- 配色トークン。キー名は据え置きで値だけ更新しているので、参照側（オーバーレイ含む）はそのまま動く。
          Ink=窓 / Panel=ヘッダ・カード / Raised=ボタン と役割で揃える。影系 Effect は一切使わない方針
@@ -37,6 +35,8 @@
     <SolidColorBrush x:Key="Field" Color="#0F141E" />
     <SolidColorBrush x:Key="RowHover" Color="#1B2333" />
     <SolidColorBrush x:Key="AccentDim" Color="#2A2450" />
+    <!-- ドロップ先として着色する枠の面。下の中身を透かして「どの枠に入るか」を見せる -->
+    <SolidColorBrush x:Key="DropFill" Color="{StaticResource AccentColor}" Opacity="0.22" />
     <SolidColorBrush x:Key="ThumbBrush" Color="#3B4763" />
     <SolidColorBrush x:Key="ThumbHover" Color="#516087" />
 
@@ -527,7 +527,7 @@
         <Setter Property="Padding" Value="0" />
     </Style>
 
-    <!-- タブの見出し。掴んで別の辺へ運ぶ取っ手も兼ねる（v:OverlayDrag.IsGrip） -->
+    <!-- タブの見出し。掴んで別の枠へ運ぶ取っ手も兼ねる（v:OverlayDrag.IsGrip） -->
     <Style x:Key="DockTab" TargetType="Border">
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Background" Value="{StaticResource Raised}" />
@@ -565,35 +565,25 @@
         </Setter>
     </Style>
 
-    <!-- ドロップ先の候補。升目そのものが当たり判定なので、大きさや余白を変えると判定も動く
-         （どの辺に収まるかは各升目の Tag に入れた DockSide で決まる） -->
-    <Style x:Key="DropZone" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource Accent}" />
+    <!-- ドロップ先の着色。枠そのものが当たり判定なので、ここは枠いっぱいに重ねるだけで
+         大きさを持たない（当たり判定を邪魔しないよう素通りさせる） -->
+    <Style x:Key="DropHighlight" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource DropFill}" />
         <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
         <Setter Property="BorderThickness" Value="2" />
-        <Setter Property="CornerRadius" Value="8" />
-        <Setter Property="Margin" Value="6" />
-        <Setter Property="Opacity">
-            <Setter.Value>
-                <MultiBinding Converter="{StaticResource DockZoneOpacity}">
-                    <Binding Source="{x:Static vm:OverlayDragState.Instance}" Path="HoverSide" />
-                    <Binding RelativeSource="{RelativeSource Self}" Path="Tag" />
-                </MultiBinding>
-            </Setter.Value>
-        </Setter>
+        <Setter Property="IsHitTestVisible" Value="False" />
     </Style>
 
-    <!-- 升目の見出しは枠と別に置く。枠ごと薄くすると狙っていない候補の文字が読めなくなる -->
-    <Style x:Key="DropZoneLabel" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource Text}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
+    <!-- 空の辺がドラッグ中だけ見せる受け皿の見出し。帯は細いので、収まらない分は折り返す -->
+    <Style x:Key="DropPlaceholderLabel" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextAlignment" Value="Center" />
+        <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="IsHitTestVisible" Value="False" />
-        <!-- 帯の幅は固定なので、文字サイズ倍率を上げたぶんは末尾を省略して押し出さない -->
-        <Setter Property="TextWrapping" Value="NoWrap" />
-        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
+        <Setter Property="Margin" Value="8" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
     </Style>
 
     <!-- 検索条件のような、面として固める小さな区切り -->

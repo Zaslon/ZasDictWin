@@ -6,7 +6,8 @@
 
     <!-- 行き先ひとつぶん。DataContext は DockGroup で、付いている辺に応じて
          つまみの位置と伸縮の向きが変わる（向きの判断は DockGroup 側が持つ）。
-         中央は仕切りが別にあるので、つまみを出さない。 -->
+         中央は仕切りが別にあるので、つまみを出さない。
+         タブを掴んでいる間はこの枠そのものがドロップ先で、カーソルが乗ると全体が着色される。 -->
     <DockPanel>
         <Thumb DockPanel.Dock="{Binding GripDock}" Cursor="{Binding GripCursor}"
                Visibility="{Binding HasGrip, Converter={StaticResource BoolVis}}"
@@ -14,49 +15,61 @@
                Style="{StaticResource GripThumb}"
                DragDelta="Grip_DragDelta" DragCompleted="Grip_DragCompleted" />
 
-        <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1">
-            <DockPanel>
-                <!-- タブ列。1 枚でも出す（掴んで別の辺へ運ぶ取っ手を兼ねるため）。 -->
-                <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}"
-                        BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="6,5">
-                    <ItemsControl ItemsSource="{Binding Items}">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type vm:OverlayViewModel}">
-                                <!-- 据え置きのタブは掴んで運べず、閉じるボタンも出さない。 -->
-                                <Border MouseLeftButtonDown="Tab_MouseDown">
-                                    <Border.Style>
-                                        <Style TargetType="Border" BasedOn="{StaticResource DockTab}">
-                                            <Setter Property="v:OverlayDrag.IsGrip" Value="True" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding IsPinned}" Value="True">
-                                                    <Setter Property="v:OverlayDrag.IsGrip" Value="False" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                    <StackPanel Orientation="Horizontal">
-                                        <!-- 見出しは 1 行。長い題は末尾を省略してタブの幅を暴れさせない -->
-                                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center" MaxWidth="150"
-                                                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
-                                        <Button Content="✕" Style="{StaticResource IconButton}" Width="20" Height="20"
-                                                Margin="6,0,0,0" Command="{Binding CloseCommand}"
-                                                Visibility="{Binding IsPinned, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
-                                    </StackPanel>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </Border>
+        <Grid>
+            <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1">
+                <DockPanel>
+                    <!-- タブ列。1 枚でも出す（掴んで別の枠へ運ぶ取っ手を兼ねるため）。
+                         受け皿として出ているだけの空の枠には、並べるタブが無いので出さない。 -->
+                    <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}"
+                            BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="6,5"
+                            Visibility="{Binding HasItems, Converter={StaticResource BoolVis}}">
+                        <ItemsControl ItemsSource="{Binding Items}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type vm:OverlayViewModel}">
+                                    <!-- 据え置きのタブは掴んで運べず、閉じるボタンも出さない。 -->
+                                    <Border MouseLeftButtonDown="Tab_MouseDown">
+                                        <Border.Style>
+                                            <Style TargetType="Border" BasedOn="{StaticResource DockTab}">
+                                                <Setter Property="v:OverlayDrag.IsGrip" Value="True" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                                                        <Setter Property="v:OverlayDrag.IsGrip" Value="False" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Border.Style>
+                                        <StackPanel Orientation="Horizontal">
+                                            <!-- 見出しは 1 行。長い題は末尾を省略してタブの幅を暴れさせない -->
+                                            <TextBlock Text="{Binding Title}" VerticalAlignment="Center" MaxWidth="150"
+                                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                                            <Button Content="✕" Style="{StaticResource IconButton}" Width="20" Height="20"
+                                                    Margin="6,0,0,0" Command="{Binding CloseCommand}"
+                                                    Visibility="{Binding IsPinned, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Border>
 
-                <!-- 中身は選択中のタブだけ。型ごとの DataTemplate は App.xaml が持つ。 -->
-                <ContentControl Content="{Binding Selected}" />
-            </DockPanel>
-        </Border>
+                    <!-- 中身は選択中のタブだけ。型ごとの DataTemplate は App.xaml が持つ。 -->
+                    <ContentControl Content="{Binding Selected}" />
+                </DockPanel>
+            </Border>
+
+            <!-- 空のままドラッグ中に現れている受け皿の見出し。何を落とせる枠なのかはこれだけで伝える。 -->
+            <TextBlock Text="{Binding PlaceholderLabel}" Style="{StaticResource DropPlaceholderLabel}"
+                       Visibility="{Binding IsDropPlaceholder, Converter={StaticResource BoolVis}}" />
+
+            <!-- カーソルが乗っている枠の着色。当たり判定は下の枠が持つので、ここは素通りさせる。 -->
+            <Border Style="{StaticResource DropHighlight}"
+                    Visibility="{Binding IsDropTarget, Converter={StaticResource BoolVis}}" />
+        </Grid>
     </DockPanel>
 </UserControl>
