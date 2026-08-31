@@ -209,11 +209,26 @@ public sealed class OtmDocument
     public ObservableCollection<Word> Words { get; }
     public string? Path { get; set; }
 
-    public OtmDocument(JsonObject root, IEnumerable<Word> words, string? path)
+    public ObservableCollection<Example> Examples { get; }
+
+    public OtmDocument(JsonObject root, IEnumerable<Word> words, string? path,
+                       IEnumerable<Example>? examples = null)
     {
         Root = root;
         Words = new ObservableCollection<Word>(words);
+        Examples = new ObservableCollection<Example>(examples ?? Array.Empty<Example>());
         Path = path;
+        ResolveExampleForms();
+    }
+
+    /// <summary>例文が指す単語の見出し語を引き直す。単語の追加・改名・削除のあとに呼ぶ。</summary>
+    public void ResolveExampleForms()
+    {
+        if (Examples.Count == 0) return;
+        // 同じ id の単語が二重にある壊れた辞書でも落ちないよう、先勝ちで辞書を組む。
+        var byId = new Dictionary<int, Word>();
+        foreach (var w in Words) byId.TryAdd(w.Id, w);
+        foreach (var e in Examples) e.ResolveForms(byId);
     }
 
     public string Name => Path is null ? "（無題）" : System.IO.Path.GetFileNameWithoutExtension(Path);
@@ -232,4 +247,9 @@ public sealed class OtmDocument
     public JsonNode? Legend => Root["legend"];
 
     public int NextId() => Words.Count == 0 ? 1 : Words.Max(w => w.Id) + 1;
+
+    public int NextExampleId() => Examples.Count == 0 ? 1 : Examples.Max(e => e.Id) + 1;
+
+    /// <summary>指定した単語を参照している例文。詳細欄の「参照例文」に出す。</summary>
+    public IEnumerable<Example> ExamplesFor(int wordId) => Examples.Where(e => e.References(wordId));
 }
