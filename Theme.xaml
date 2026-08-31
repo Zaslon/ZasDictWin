@@ -10,6 +10,9 @@
     <v:StringToBrushConverter x:Key="StringBrush" />
     <v:EqualsMultiConverter x:Key="EqualsMulti" />
     <v:ScaleFontSizeConverter x:Key="ScaleFont" />
+    <v:DockMaxWidthConverter x:Key="DockMaxWidth" />
+    <v:DockZoneOpacityConverter x:Key="DockZoneOpacity" />
+    <v:EdgeInsetsConverter x:Key="EdgeInsets" />
 
     <!-- 配色トークン。キー名は据え置きで値だけ更新しているので、参照側（オーバーレイ含む）はそのまま動く。
          Ink=窓 / Panel=ヘッダ・カード / Raised=ボタン と役割で揃える。影系 Effect は一切使わない方針
@@ -515,6 +518,68 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="20" />
+    </Style>
+
+    <!-- オーバーレイの外枠。ドッキング中は余白と角の丸みを落として、面を窓の縁にぴたりと付ける。
+         中央表示に戻したときの見え方を揃えるため、最大幅だけは呼び出し側が px で渡す。 -->
+    <Style x:Key="OverlayCard" TargetType="Border" BasedOn="{StaticResource Card}">
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="Margin" Value="40,28" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding Source={x:Static vm:OverlayDockState.Instance}, Path=IsDocked}" Value="True">
+                <Setter Property="Margin" Value="0" />
+                <Setter Property="CornerRadius" Value="0" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- 幅・高さを引っ張るつまみ。太さは呼び出し側が決め、ここは色の出し分けだけを持つ -->
+    <Style x:Key="GripThumb" TargetType="Thumb">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Thumb">
+                    <Border x:Name="grip" Background="{StaticResource Line}" />
+                    <ControlTemplate.Triggers>
+                        <!-- 太さは常に同じ。触れたときだけアクセント色にして「動かせる」ことを伝える -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="grip" Property="Background" Value="{StaticResource Accent}" />
+                        </Trigger>
+                        <Trigger Property="IsDragging" Value="True">
+                            <Setter TargetName="grip" Property="Background" Value="{StaticResource Accent}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ドロップ先の候補。升目そのものが当たり判定なので、大きさや余白を変えると判定も動く
+         （どの辺に収まるかは各升目の Tag に入れた DockSide で決まる） -->
+    <Style x:Key="DropZone" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Accent}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+        <Setter Property="BorderThickness" Value="2" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Margin" Value="6" />
+        <Setter Property="Opacity">
+            <Setter.Value>
+                <MultiBinding Converter="{StaticResource DockZoneOpacity}">
+                    <Binding Source="{x:Static vm:OverlayDockState.Instance}" Path="HoverSide" />
+                    <Binding RelativeSource="{RelativeSource Self}" Path="Tag" />
+                </MultiBinding>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 升目の見出しは枠と別に置く。枠ごと薄くすると狙っていない候補の文字が読めなくなる -->
+    <Style x:Key="DropZoneLabel" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="IsHitTestVisible" Value="False" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
     </Style>
 
     <!-- 検索条件のような、面として固める小さな区切り -->

@@ -56,6 +56,9 @@ public abstract class OverlayViewModel : ViewModelBase
     public string Title { get; protected set; } = "";
     public Action? RequestClose { get; set; }
     public ICommand CloseCommand => new RelayCommand(() => RequestClose?.Invoke());
+
+    /// <summary>ヘッダを掴んで窓の縁に寄せられるか。偽なら常に中央のモーダルとして出す。</summary>
+    public virtual bool IsDockable => true;
 }
 
 /// <summary>

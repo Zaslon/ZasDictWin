@@ -5,10 +5,12 @@
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:m="clr-namespace:ZasDictWin.Models">
 
-    <Border Style="{StaticResource Card}" MaxWidth="920" Margin="40,28" Padding="0">
+    <Border Style="{StaticResource OverlayCard}"
+            MaxWidth="{Binding Source={x:Static vm:OverlayDockState.Instance}, Path=IsDocked, Converter={StaticResource DockMaxWidth}, ConverterParameter=920}">
         <DockPanel>
 
-            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
+            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1"
+                    v:OverlayDrag.IsGrip="True">
                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
                            FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
             </Border>

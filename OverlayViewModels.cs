@@ -20,6 +20,10 @@ public sealed class ChoiceViewModel : OverlayViewModel
     public string Message { get; }
     public ObservableCollection<ChoiceItem> Choices { get; } = new();
 
+    // 確認は答えるまで先へ進めない問いなので、ドッキングさせず中央で受け止める。
+    // ドッキング中の編集画面の上にも出せるよう、専用の層に描く。
+    public override bool IsDockable => false;
+
     public ChoiceViewModel(string title, string message)
     {
         Title = title;

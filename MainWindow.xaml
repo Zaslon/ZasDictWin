@@ -25,7 +25,7 @@
     <Grid>
         <DockPanel>
 
-            <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
+            <Border x:Name="HeaderBar" DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
                     BorderThickness="0,0,0,1" Padding="12,7">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
@@ -70,7 +70,7 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                 </DockPanel>
             </Border>
 
-            <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Line}"
+            <Border x:Name="FooterBar" DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Line}"
                     BorderThickness="0,1,0,0" Padding="12,5">
                 <DockPanel>
                     <Border DockPanel.Dock="Right" Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
@@ -96,25 +96,22 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                 </Grid.ColumnDefinitions>
                 <!-- GridSplitter は行・列そのものを伸縮させるので幅バインドと衝突する。
                      ドラッグ量を VM の幅に反映する（Thumb は GridSplitter の親クラス）。 -->
-                <Thumb Grid.Column="0" Cursor="SizeWE"
-                       DragDelta="BrowserGrip_DragDelta" DragCompleted="BrowserGrip_DragCompleted">
-                    <Thumb.Template>
-                        <ControlTemplate TargetType="Thumb">
-                            <Border x:Name="grip" Background="{StaticResource Line}" />
-                            <ControlTemplate.Triggers>
-                                <!-- ガリ幅は常に同じ。触れたときだけアクセント色にして「動かせる」ことを伝える -->
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter TargetName="grip" Property="Background" Value="{StaticResource Accent}" />
-                                </Trigger>
-                                <Trigger Property="IsDragging" Value="True">
-                                    <Setter TargetName="grip" Property="Background" Value="{StaticResource Accent}" />
-                                </Trigger>
-                            </ControlTemplate.Triggers>
-                        </ControlTemplate>
-                    </Thumb.Template>
-                </Thumb>
+                <Thumb Grid.Column="0" Cursor="SizeWE" Style="{StaticResource GripThumb}"
+                       DragDelta="BrowserGrip_DragDelta" DragCompleted="BrowserGrip_DragCompleted" />
                 <v:BrowserPanel Grid.Column="1" DataContext="{Binding Browser}" />
             </Grid>
+
+            <!-- 縁にドッキングしたオーバーレイ。スクリムを敷かないので、開いたまま検索や一覧を
+                 触れる。ブラウザより内側に置いてあるので、両方出しても場所を取り合わない。 -->
+            <DockPanel DockPanel.Dock="{Binding Dock.PanelDock}"
+                       Width="{Binding Dock.PanelWidth}" Height="{Binding Dock.PanelHeight}"
+                       Visibility="{Binding IsDockedPanelOpen, Converter={StaticResource BoolVis}}">
+                <Thumb DockPanel.Dock="{Binding Dock.GripDock}" Cursor="{Binding Dock.GripCursor}"
+                       Width="{Binding Dock.GripWidth}" Height="{Binding Dock.GripHeight}"
+                       Style="{StaticResource GripThumb}"
+                       DragDelta="DockGrip_DragDelta" DragCompleted="DockGrip_DragCompleted" />
+                <ContentControl Content="{Binding DockedOverlay}" />
+            </DockPanel>
 
             <Grid>
                 <!-- 分割レイアウト: デスクトップ作業向け -->
@@ -139,10 +136,60 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
         </DockPanel>
 
         <!-- オーバーレイ層。MessageBox や ContextMenu は別 HWND になり
-             OBS のウィンドウキャプチャに映らないため、すべてここに描画する。 -->
+             OBS のウィンドウキャプチャに映らないため、すべてここに描画する。
+             中央表示のときだけスクリムを敷く。ドッキング中は上の DockPanel 側が描く。 -->
         <Border Background="{StaticResource Scrim}"
-                Visibility="{Binding IsOverlayOpen, Converter={StaticResource BoolVis}}">
-            <ContentControl Content="{Binding CurrentOverlay}" />
+                Visibility="{Binding IsFloatingPanelOpen, Converter={StaticResource BoolVis}}">
+            <ContentControl Content="{Binding FloatingOverlay}" />
         </Border>
+
+        <!-- 確認ダイアログの層。ドッキング中の編集画面を閉じずに上へ重ねるため層を分ける。 -->
+        <Border Background="{StaticResource Scrim}"
+                Visibility="{Binding ModalOverlay, Converter={StaticResource NullVis}}">
+            <ContentControl Content="{Binding ModalOverlay}" />
+        </Border>
+
+        <!-- ドロップ先の候補。ヘッダとフッタの実高さぶん内側に寄せて、ドッキングしたときに
+             本体が実際に収まる範囲と升目を一致させる。升目の Tag が当たり判定の値そのもので、
+             OverlayDrag が InputHitTest で拾う（名前 DockZoneHost もそちらから引かれる）。 -->
+        <Grid x:Name="DockZoneHost" Visibility="{Binding Dock.IsDragging, Converter={StaticResource BoolVis}}">
+            <Grid.Margin>
+                <MultiBinding Converter="{StaticResource EdgeInsets}">
+                    <Binding ElementName="HeaderBar" Path="ActualHeight" />
+                    <Binding ElementName="FooterBar" Path="ActualHeight" />
+                </MultiBinding>
+            </Grid.Margin>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*" />
+                <RowDefinition Height="2*" />
+                <RowDefinition Height="1*" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="1*" />
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
+                    Style="{StaticResource DropZone}" Tag="{x:Static vm:DockSide.Top}" />
+            <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Text="上にドッキング"
+                       Style="{StaticResource DropZoneLabel}" />
+
+            <Border Grid.Row="1" Grid.Column="0" Style="{StaticResource DropZone}" Tag="{x:Static vm:DockSide.Left}" />
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="左に&#10;ドッキング" TextAlignment="Center"
+                       Style="{StaticResource DropZoneLabel}" />
+
+            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource DropZone}" Tag="{x:Static vm:DockSide.Floating}" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="中央に戻す" Style="{StaticResource DropZoneLabel}" />
+
+            <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource DropZone}" Tag="{x:Static vm:DockSide.Right}" />
+            <TextBlock Grid.Row="1" Grid.Column="2" Text="右に&#10;ドッキング" TextAlignment="Center"
+                       Style="{StaticResource DropZoneLabel}" />
+
+            <Border Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                    Style="{StaticResource DropZone}" Tag="{x:Static vm:DockSide.Bottom}" />
+            <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Text="下にドッキング"
+                       Style="{StaticResource DropZoneLabel}" />
+        </Grid>
     </Grid>
 </Window>

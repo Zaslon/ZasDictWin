@@ -83,6 +83,48 @@ public sealed class ScaleFontSizeConverter : IValueConverter
         => Binding.DoNothing;
 }
 
+/// <summary>
+/// ドッキング中はカードの最大幅を外す。ConverterParameter は中央表示のときの上限（px）。
+/// 上下にドッキングしたときに幅だけ中途半端に絞られて、浮いたカードのように見えるのを防ぐ。
+/// </summary>
+public sealed class DockMaxWidthConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is true) return double.PositiveInfinity;
+        return parameter is string s && double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var w)
+            ? w
+            : double.PositiveInfinity;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
+
+/// <summary>ドロップ先の升目の濃さ。今カーソルが乗っている升だけ濃くする。</summary>
+public sealed class DockZoneOpacityConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
+        => values.Length >= 2 && values[0] is not null && Equals(values[0], values[1]) ? 0.34 : 0.09;
+
+    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
+/// <summary>ヘッダとフッタの実高さを Thickness にする。窓全体に敷いた層を本文の範囲だけに収めるために使う。</summary>
+public sealed class EdgeInsetsConverter : IMultiValueConverter
+{
+    public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var top = values.Length > 0 && values[0] is double t ? t : 0;
+        var bottom = values.Length > 1 && values[1] is double b ? b : 0;
+        return new Thickness(0, top, 0, bottom);
+    }
+
+    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
+}
+
 /// <summary>設定に書かれた色文字列をそのままブラシにする。不正値は透明扱い。</summary>
 public sealed class StringToBrushConverter : IValueConverter
 {

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Services;
 
@@ -20,6 +21,11 @@ public sealed class AppSettings
     public string SortOrder { get; set; } = TextProcessor.DefaultSortOrder;
 
     public LayoutMode Layout { get; set; } = LayoutMode.Split;
+
+    // 編集画面などのオーバーレイをドッキングした辺と大きさ。Floating は画面中央のモーダル表示。
+    public DockSide OverlayDock { get; set; } = DockSide.Floating;
+    public double OverlayDockWidth { get; set; } = 520;
+    public double OverlayDockHeight { get; set; } = 340;
 
     public bool StreamWindowTopmost { get; set; } = true;
     public string StreamBackground { get; set; } = "#00B140";

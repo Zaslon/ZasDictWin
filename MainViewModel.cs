@@ -23,6 +23,7 @@ public sealed class MainViewModel : ViewModelBase
     private SearchScope _scope = SearchScope.Both;
     private bool _isDirty;
     private OverlayViewModel? _overlay;
+    private OverlayViewModel? _modal;
     private int _navIndex;
     private string _status = "辞書を開いてください。";
     /// <summary>例文一覧の絞り込み文字列。編集に入って戻ってきても打ち直さずに済むよう覚えておく。</summary>
@@ -41,8 +42,17 @@ public sealed class MainViewModel : ViewModelBase
             if (e.PropertyName == nameof(BrowserViewModel.IsOpen)) Raise(nameof(IsBrowserShown));
         };
 
-        OpenCommand = new RelayCommand(OpenDictionary);
-        NewDictionaryCommand = new RelayCommand(NewDictionary);
+        Dock.Restore(Settings);
+        // ドラッグ中は書かず、辺が決まった時点だけ settings.json に落とす。
+        Dock.Persist = () => { Dock.SaveTo(Settings); Settings.Save(); };
+        Dock.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(OverlayDockState.Side)) RaiseOverlayPlacement();
+        };
+
+        // 編集中に辞書を差し替えると、保存の宛先だけが入れ替わって別の辞書に書き込まれる。
+        OpenCommand = new RelayCommand(OpenDictionary, () => !IsOverlayOpen);
+        NewDictionaryCommand = new RelayCommand(NewDictionary, () => !IsOverlayOpen);
         SaveCommand = new RelayCommand(() => Save(false), () => _doc is not null);
         SaveAsCommand = new RelayCommand(() => Save(true), () => _doc is not null);
         // ショートカットはオーバーレイの上からでも届くため、開いている間は無効にする。
@@ -52,11 +62,15 @@ public sealed class MainViewModel : ViewModelBase
         DuplicateWordCommand = new RelayCommand(o => DuplicateWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && !IsOverlayOpen);
         DeleteWordCommand = new RelayCommand(o => ConfirmDeleteWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && !IsOverlayOpen);
         WordActionsCommand = new RelayCommand(o => ShowWordActions(o as Word ?? SelectedWord), _ => SelectedWord is not null && !IsOverlayOpen);
-        ShowToolsCommand = new RelayCommand(() => ShowOverlay(new ToolsViewModel(SelectedWord?.Form)));
-        ShowSettingsCommand = new RelayCommand(ShowSettings);
-        ShowInfoCommand = new RelayCommand(ShowInfo);
-        ShowExamplesCommand = new RelayCommand(() => ShowExamples(), () => _doc is not null);
-        EditExampleCommand = new RelayCommand(o => { if (o is Example e) ShowExampleEditor(e, backToList: false); });
+        // ドッキング中はヘッダのボタンにも手が届く。オーバーレイの置き場は 1 つなので、
+        // 開いている間は他の画面を呼べないようにして書きかけの入力が飛ぶのを防ぐ。
+        ShowToolsCommand = new RelayCommand(() => ShowOverlay(new ToolsViewModel(SelectedWord?.Form)), () => !IsOverlayOpen);
+        ShowSettingsCommand = new RelayCommand(ShowSettings, () => !IsOverlayOpen);
+        ShowInfoCommand = new RelayCommand(ShowInfo, () => !IsOverlayOpen);
+        ShowExamplesCommand = new RelayCommand(() => ShowExamples(), () => _doc is not null && !IsOverlayOpen);
+        EditExampleCommand = new RelayCommand(
+            o => { if (o is Example e) ShowExampleEditor(e, backToList: false); },
+            _ => !IsOverlayOpen);
         SetModeCommand = new RelayCommand(o => { if (o is string s) SearchMode = Enum.Parse<SearchMode>(s); });
         SetScopeCommand = new RelayCommand(o => { if (o is string s) SearchScope = Enum.Parse<SearchScope>(s); });
         ToggleLayoutCommand = new RelayCommand(ToggleLayout);
@@ -78,6 +92,9 @@ public sealed class MainViewModel : ViewModelBase
 
     /// <summary>右サイドバーのブラウザ（WebView2）の状態。</summary>
     public BrowserViewModel Browser { get; }
+
+    /// <summary>オーバーレイのドッキング位置。XAML からは {x:Static} でも同じ実体を引く。</summary>
+    public OverlayDockState Dock => OverlayDockState.Instance;
 
     private static readonly ObservableCollection<Word> EmptyWords = new();
 
@@ -149,21 +166,48 @@ public sealed class MainViewModel : ViewModelBase
 
     public string CountLabel => _doc is null ? "" : $"{FilteredWords.Count} / {_doc.Words.Count} 語";
 
-    public OverlayViewModel? CurrentOverlay
+    /// <summary>
+    /// ドッキングできるオーバーレイの置き場。中央に浮かせるか窓の縁に付けるかは
+    /// <see cref="OverlayDockState"/> が決め、実際に描く側を <see cref="FloatingOverlay"/> と
+    /// <see cref="DockedOverlay"/> で振り分ける。同じ ViewModel を 2 つの ContentControl に
+    /// 同時に載せると DataTemplate が二重に実体化するので、必ず片方だけが非 null になる。
+    /// </summary>
+    public OverlayViewModel? PanelOverlay
     {
         get => _overlay;
         private set
         {
             if (!Set(ref _overlay, value)) return;
-            Raise(nameof(IsOverlayOpen));
-            Raise(nameof(IsBrowserShown));   // オーバーレイを閉じたらブラウザを見せる
+            RaiseOverlayPlacement();
         }
     }
 
-    public bool IsOverlayOpen => CurrentOverlay is not null;
+    /// <summary>確認ダイアログ専用の層。ドッキング中の編集画面を閉じずに上へ重ねる。</summary>
+    public OverlayViewModel? ModalOverlay
+    {
+        get => _modal;
+        private set
+        {
+            if (!Set(ref _modal, value)) return;
+            Raise(nameof(IsOverlayOpen));
+            Raise(nameof(IsBrowserShown));
+        }
+    }
+
+    public OverlayViewModel? DockedOverlay => Dock.IsDocked ? PanelOverlay : null;
+
+    public OverlayViewModel? FloatingOverlay => Dock.IsDocked ? null : PanelOverlay;
+
+    public bool IsDockedPanelOpen => DockedOverlay is not null;
+
+    public bool IsFloatingPanelOpen => FloatingOverlay is not null;
+
+    public bool IsOverlayOpen => PanelOverlay is not null || ModalOverlay is not null;
 
     /// <summary>ブラウザサイドバーの実表示。オーバーレイが開いている間は airspace（WebView2 が
-    /// WPF 描画より手前に出る）を避けるため強制的に false にする。</summary>
+    /// WPF 描画より手前に出る）を避けるため強制的に false にする。ドッキング中のオーバーレイは
+    /// サイドバーと場所を取り合わないが、プルダウンの一覧とドロップ先の升目は窓の最上段に描くので
+    /// サイドバーに重なりうる。ここは中央表示と同じ扱いにしておく。</summary>
     public bool IsBrowserShown => Browser.IsOpen && !IsOverlayOpen;
 
     /// <summary>遷移レイアウト時のみ意味を持つ。0=検索, 1=詳細。</summary>
@@ -218,11 +262,31 @@ public sealed class MainViewModel : ViewModelBase
 
     public void ShowOverlay(OverlayViewModel vm)
     {
-        vm.RequestClose = () => CurrentOverlay = null;
-        CurrentOverlay = vm;
+        if (vm.IsDockable)
+        {
+            vm.RequestClose = () => PanelOverlay = null;
+            PanelOverlay = vm;
+        }
+        else
+        {
+            vm.RequestClose = () => ModalOverlay = null;
+            ModalOverlay = vm;
+        }
     }
 
-    public void CloseOverlay() => CurrentOverlay = null;
+    public void CloseOverlay() => PanelOverlay = null;
+
+    public void CloseModal() => ModalOverlay = null;
+
+    private void RaiseOverlayPlacement()
+    {
+        Raise(nameof(DockedOverlay));
+        Raise(nameof(FloatingOverlay));
+        Raise(nameof(IsDockedPanelOpen));
+        Raise(nameof(IsFloatingPanelOpen));
+        Raise(nameof(IsOverlayOpen));
+        Raise(nameof(IsBrowserShown));   // オーバーレイを閉じたらブラウザを見せる
+    }
 
     // ---- dictionary -----------------------------------------------------
 
@@ -586,11 +650,10 @@ public sealed class MainViewModel : ViewModelBase
     {
         if (vm.Source is not { } example) return;
         var preview = example.SentencePreview;
-        // やめたときは編集画面へ戻す。同じ ViewModel を出し直すので書きかけの入力は残る。
-        // ［閉じる］（RequestClose）でも同じところへ戻したいので、キャンセルも明示的な選択肢にする。
+        // 確認は編集画面とは別の層に出るので、やめたときは畳むだけで書きかけの入力はそのまま残る。
         ShowOverlay(new ChoiceViewModel("例文を削除", $"「{preview}」を削除します。")
             .Add("削除する", () => DeleteExample(example, back), isDanger: true)
-            .Add("やめる", () => ShowOverlay(vm)));
+            .AddCancel("やめる"));
     }
 
     private void DeleteExample(Example example, Action back)

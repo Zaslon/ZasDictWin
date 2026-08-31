@@ -51,9 +51,20 @@ public partial class MainWindow : Window
         // プルダウンを開いている間は、Esc をオーバーレイごと閉じる操作に使わせない。
         // ここは Preview（＝ウィンドウが最初に見る段）なので、先に一覧だけを畳む。
         if (DropDown.CloseCurrent()) { e.Handled = true; return; }
-        if (_vm.IsOverlayOpen) { _vm.CloseOverlay(); e.Handled = true; return; }
+        // ドッキング先を選んでいる最中は、まずその選択だけをやめる。
+        if (OverlayDrag.Cancel()) { e.Handled = true; return; }
+        // 確認は編集画面の上に重なるので、上の層から順に閉じる。
+        if (_vm.ModalOverlay is not null) { _vm.CloseModal(); e.Handled = true; return; }
+        if (_vm.PanelOverlay is not null) { _vm.CloseOverlay(); e.Handled = true; return; }
         if (_vm.IsNavigateLayout && _vm.NavIndex == 1) { _vm.NavIndex = 0; e.Handled = true; }
     }
+
+    // ドッキングした本体の大きさ。付いている辺と反対向きに引くと広がる（向きは OverlayDockState 側）。
+    private void DockGrip_DragDelta(object sender, DragDeltaEventArgs e)
+        => OverlayDockState.Instance.Resize(e.HorizontalChange, e.VerticalChange);
+
+    private void DockGrip_DragCompleted(object sender, DragCompletedEventArgs e)
+        => OverlayDockState.Instance.Persist?.Invoke();
 
     // サイドバーの幅ドラッグ。右端に寄せているので左へ引く（負方向）と広がります。
     private void BrowserGrip_DragDelta(object sender, DragDeltaEventArgs e)
