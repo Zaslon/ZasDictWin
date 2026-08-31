@@ -47,6 +47,8 @@ public static class ZpdicApi
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
+            // 画面には「APIキーが未設定です」としか出せないので、読めなかった事実は記録に残す。
+            ErrorLog.Write($"APIキーの読み込み ({ApiKeyPath})", ex);
             return null;
         }
     }
