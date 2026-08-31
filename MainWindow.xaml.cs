@@ -48,6 +48,9 @@ public partial class MainWindow : Window
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Escape) return;
+        // プルダウンを開いている間は、Esc をオーバーレイごと閉じる操作に使わせない。
+        // ここは Preview（＝ウィンドウが最初に見る段）なので、先に一覧だけを畳む。
+        if (DropDown.CloseCurrent()) { e.Handled = true; return; }
         if (_vm.IsOverlayOpen) { _vm.CloseOverlay(); e.Handled = true; return; }
         if (_vm.IsNavigateLayout && _vm.NavIndex == 1) { _vm.NavIndex = 0; e.Handled = true; }
     }

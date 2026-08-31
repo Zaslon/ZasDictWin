@@ -113,11 +113,6 @@ public sealed class ExampleEditViewModel : OverlayViewModel
             foreach (var w in source.Words) Words.Add(new ExampleWord { Id = w.Id, Form = w.Form });
         }
 
-        SetCatalogCommand = new RelayCommand(o =>
-        {
-            if (o is not string api) return;
-            Catalog = api;
-        });
         AddWordCommand = new RelayCommand(o => { if (o is Word w) AddWord(w); });
         RemoveWordCommand = new RelayCommand(o => { if (o is ExampleWord w) Words.Remove(w); });
         FetchCommand = new RelayCommand(async () => await FetchAsync(), () => CanFetch);
@@ -152,9 +147,10 @@ public sealed class ExampleEditViewModel : OverlayViewModel
         set { if (Set(ref _wordQuery, value)) RefreshCandidates(); }
     }
 
-    public IReadOnlyList<ExampleCatalog> Catalogs { get; } = Const.ExampleCatalogs;
+    /// <summary>出典プルダウンに並べる一覧（choices.json の ExampleCatalogs）。</summary>
+    public IReadOnlyList<ExampleCatalog> Catalogs { get; } = Choices.Current.ExampleCatalogs;
 
-    /// <summary>選択中の出典カタログ（API 名）。chip の選択状態はこの値との一致で決まる。</summary>
+    /// <summary>選択中の出典カタログ（API 名）。保存されるのはこの値。</summary>
     public string Catalog
     {
         get => _catalog;
@@ -164,7 +160,15 @@ public sealed class ExampleEditViewModel : OverlayViewModel
             OfferStatus = "";
             Raise(nameof(CanFetch));
             Raise(nameof(IsOnlineCatalog));
+            Raise(nameof(SelectedCatalog));
         }
+    }
+
+    /// <summary>プルダウン用。Catalog は API 名だけを持つので、選択肢の実体はここで引き当てる。</summary>
+    public ExampleCatalog? SelectedCatalog
+    {
+        get => Catalogs.FirstOrDefault(c => c.Api == Catalog);
+        set { if (value is not null) Catalog = value.Api; }
     }
 
     /// <summary>「自作」以外＝ZpDIC に照会できる出典。</summary>
@@ -201,7 +205,6 @@ public sealed class ExampleEditViewModel : OverlayViewModel
         ? $"APIキーは保存済みです（{ZpdicApi.ApiKeyPath}）。入れ直すと上書きします。"
         : $"照会には ZpDIC Online の APIキーが必要です。保存先: {ZpdicApi.ApiKeyPath}";
 
-    public ICommand SetCatalogCommand { get; }
     public ICommand AddWordCommand { get; }
     public ICommand RemoveWordCommand { get; }
     public ICommand FetchCommand { get; }

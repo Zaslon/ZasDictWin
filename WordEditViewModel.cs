@@ -12,11 +12,6 @@ public sealed class TranslationRow : ViewModelBase
     public string Title { get => _title; set => Set(ref _title, value); }
     /// <summary>「犬, 狗」のようにカンマ区切りで編集し、確定時に forms 配列へ戻す。</summary>
     public string FormsText { get => _formsText; set => Set(ref _formsText, value); }
-
-    /// <summary>品詞チップ（ネストした ItemsControl 内）から自分の Title を書き換えるためのコマンド。</summary>
-    public ICommand SetTitleCommand { get; }
-
-    public TranslationRow() => SetTitleCommand = new RelayCommand(o => { if (o is string s) Title = s; });
 }
 
 public sealed class ContentRow : ViewModelBase
@@ -98,7 +93,6 @@ public sealed class WordEditViewModel : OverlayViewModel
         RemoveVariationCommand = new RelayCommand(o => { if (o is VariationRow r) Variations.Remove(r); });
         RemoveRelationCommand = new RelayCommand(o => { if (o is RelationRow r) Relations.Remove(r); });
         AddRelationCommand = new RelayCommand(o => { if (o is Word w) AddRelation(w); });
-        SetRelationTitleCommand = new RelayCommand(o => { if (o is string s) RelationTitle = s; });
         SaveCommand = new RelayCommand(() => { if (Validate()) _commit(this); });
     }
 
@@ -118,14 +112,14 @@ public sealed class WordEditViewModel : OverlayViewModel
     }
 
     /// <summary>訳語は品詞の選択が必須。何らかの内容がある行（訳語または品詞が入力済み）に、
-    /// ValidPos の品詞が選ばれていない場合は保存を止める。完全に空の行は従来どおり無視して保存する。</summary>
+    /// 選択肢にある品詞が選ばれていない場合は保存を止める。完全に空の行は無視して保存する。</summary>
     private bool Validate()
     {
         var missing = Translations.Any(t =>
             (!string.IsNullOrWhiteSpace(t.FormsText) || !string.IsNullOrWhiteSpace(t.Title)) &&
-            !Const.ValidPos.Contains(t.Title.Trim()));
+            !PosTitles.Contains(t.Title.Trim()));
         ValidationMessage = missing
-            ? "訳語の品詞を選択してください（各訳語で品詞チップを 1 つ選びます）。"
+            ? "訳語の品詞を選択してください（各訳語で品詞を 1 つ選びます）。"
             : "";
         return !missing;
     }
@@ -137,8 +131,8 @@ public sealed class WordEditViewModel : OverlayViewModel
     public ObservableCollection<VariationRow> Variations { get; } = new();
     public ObservableCollection<RelationRow> Relations { get; } = new();
 
-    /// <summary>訳語の品詞チップに並べる固定語彙（Const.ValidPos）。</summary>
-    public IReadOnlyList<string> PosTitles { get; } = Const.ValidPos;
+    /// <summary>訳語の品詞プルダウンに並べる語彙（choices.json の Pos）。</summary>
+    public IReadOnlyList<string> PosTitles { get; } = Choices.Current.Pos;
 
     /// <summary>まだ追加していない内容欄の種類。追加済みの種類はここから消える。</summary>
     public ObservableCollection<string> AvailableContentTypes { get; } = new();
@@ -170,16 +164,16 @@ public sealed class WordEditViewModel : OverlayViewModel
     public ICommand RemoveVariationCommand { get; }
     public ICommand RemoveRelationCommand { get; }
     public ICommand AddRelationCommand { get; }
-    public ICommand SetRelationTitleCommand { get; }
     public ICommand SaveCommand { get; }
 
     private string HintFor(string title) => _relations.Counterpart(title) ?? "";
 
-    /// <summary>語法→文化→用例→語源の順。未知のタイトルは末尾に回す。</summary>
+    /// <summary>choices.json の ContentTypes に書いた順。未知のタイトルは末尾に回す。</summary>
     private static int ContentRank(string title)
     {
-        var i = Const.ContentTypes.ToList().IndexOf(title);
-        return i < 0 ? Const.ContentTypes.Count : i;
+        var types = Choices.Current.ContentTypes;
+        var i = types.IndexOf(title);
+        return i < 0 ? types.Count : i;
     }
 
     private void AddContentType(string title)
@@ -195,7 +189,7 @@ public sealed class WordEditViewModel : OverlayViewModel
     private void RefreshAvailableContentTypes()
     {
         AvailableContentTypes.Clear();
-        foreach (var t in Const.ContentTypes.Where(t => !Contents.Any(c => c.Title == t)))
+        foreach (var t in Choices.Current.ContentTypes.Where(t => !Contents.Any(c => c.Title == t)))
             AvailableContentTypes.Add(t);
     }
 
