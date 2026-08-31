@@ -25,6 +25,12 @@
             <DataTemplate DataType="{x:Type vm:InfoViewModel}">
                 <ov:InfoOverlay />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ExamplesViewModel}">
+                <ov:ExamplesOverlay />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ExampleEditViewModel}">
+                <ov:ExampleEditOverlay />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

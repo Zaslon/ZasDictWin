@@ -190,6 +190,9 @@
 
     <!-- 検索条件の切り替え。単体でも選んだ状態が分かるよう、ON は淡い紫の面＋アクセント枠にする
          （全面をアクセント色で塗ると 8 個並んだときに主張が強すぎるため）。 -->
+    <!-- chip の角は「長丸（CornerRadius=999）」ではなく角丸にする。ピルだと文字数の少ない
+         項目（「訳語」「名詞」など）がほぼ真円に見えて、隣の角丸のボタンや入力欄と形が揃わない。
+         半径はボタンの 8・カードの 12 より一段小さい 6 で、要素の大きさと段を合わせている。 -->
     <Style x:Key="Chip" TargetType="ToggleButton">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="Background" Value="Transparent" />
@@ -200,11 +203,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
-                    <Border x:Name="bd" CornerRadius="999" Background="{TemplateBinding Background}"
+                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}"
                             BorderBrush="{StaticResource Line}" BorderThickness="1">
                         <Grid>
                             <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
-                            <Border x:Name="veil" CornerRadius="999" Background="#FFFFFF" Opacity="0" IsHitTestVisible="False" />
+                            <Border x:Name="veil" CornerRadius="5" Background="#FFFFFF" Opacity="0" IsHitTestVisible="False" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -379,9 +382,13 @@
         <Setter Property="Foreground" Value="{StaticResource Text}" />
     </Style>
 
-    <!-- 選択タブは下線だけで示す（面を塗るより軽い） -->
+    <!-- 選択タブは下線だけで示す（面を塗るより軽い）。
+         文字色と太さは TabItem 本体ではなくヘッダーの Border（bd）に載せること。TabItem の
+         Content（＝タブページの中身）は論理ツリー上 TabItem の子なので、TabControl の
+         表示領域に描かれていても TabItem からの継承が届く。Foreground や FontWeight を
+         TabItem に置くと、選択中のページの中身まで丸ごとその色・太さになる。
+         とくに FlowDocument（凡例タブ）は自前で FontWeight を持たないため全文が太字になる。 -->
     <Style TargetType="TabItem">
-        <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="Padding" Value="14,7" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Template">
@@ -389,7 +396,8 @@
                 <ControlTemplate TargetType="TabItem">
                     <Grid>
                         <Border x:Name="bd" Background="Transparent" CornerRadius="8,8,0,0"
-                                Padding="{TemplateBinding Padding}">
+                                Padding="{TemplateBinding Padding}"
+                                TextElement.Foreground="{StaticResource Muted}">
                             <!-- ContentSource="Header" は必須。省略すると ContentPresenter が TabItem.Content、
                                  つまりページ本体をヘッダー枠の中に描いてしまう。TabPanel は子を無限サイズで
                                  測るため、内側の ScrollViewer に高さが渡らずスクロールできなくなり、
@@ -403,12 +411,12 @@
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Foreground" Value="{StaticResource Text}" />
+                            <Setter TargetName="bd" Property="TextElement.Foreground" Value="{StaticResource Text}" />
                             <Setter TargetName="ul" Property="Opacity" Value="0.4" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
-                            <Setter Property="Foreground" Value="{StaticResource Text}" />
-                            <Setter Property="FontWeight" Value="SemiBold" />
+                            <Setter TargetName="bd" Property="TextElement.Foreground" Value="{StaticResource Text}" />
+                            <Setter TargetName="bd" Property="TextElement.FontWeight" Value="SemiBold" />
                             <Setter TargetName="bd" Property="Background" Value="#121A28" />
                             <Setter TargetName="ul" Property="Opacity" Value="1" />
                         </Trigger>

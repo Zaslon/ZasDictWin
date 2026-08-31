@@ -38,9 +38,17 @@ public static class OtmJsonIo
                 words.Add(Word.FromJson(item.DeepClone().AsObject()));
         }
 
-        // words は Word 側が保持するので、保存時に必ず組み直す。
+        var examples = new List<Example>();
+        if (root["examples"] is JsonArray exArr)
+        {
+            foreach (var item in exArr.OfType<JsonObject>())
+                examples.Add(Example.FromJson(item.DeepClone().AsObject()));
+        }
+
+        // words / examples は Word・Example 側が保持するので、保存時に必ず組み直す。
         root.Remove("words");
-        return new OtmDocument(root, words, path);
+        root.Remove("examples");
+        return new OtmDocument(root, words, path, examples);
     }
 
     public static OtmDocument CreateEmpty() => new(new JsonObject(), Array.Empty<Word>(), null);
@@ -48,12 +56,17 @@ public static class OtmJsonIo
     public static void Save(OtmDocument doc, string path)
     {
         foreach (var w in doc.Words) w.WriteBack();
+        foreach (var e in doc.Examples) e.WriteBack();
 
         var root = doc.Root;
         root["words"] = new JsonArray(doc.Words.Select(w => (JsonNode)w.Raw.DeepClone()).ToArray());
+        // 例文が 1 つも無い辞書に空の examples を足すと、他ツールとの差分がむだに出るので書かない。
+        if (doc.Examples.Count > 0)
+            root["examples"] = new JsonArray(doc.Examples.Select(e => (JsonNode)e.Raw.DeepClone()).ToArray());
 
         var json = root.ToJsonString(WriteOptions);
         root.Remove("words");
+        root.Remove("examples");
 
         // 書き込み中の電断でも元ファイルを壊さないよう、一時ファイル経由で差し替える。
         var tmp = path + ".tmp";

@@ -56,6 +56,8 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <Button Content="別名で保存" Command="{Binding SaveAsCommand}" />
                         <Border Width="1" Background="{StaticResource Line}" Margin="4,3" />
                         <Button Content="＋ 単語" Command="{Binding NewWordCommand}" />
+                        <Button Content="例文" Command="{Binding ShowExamplesCommand}"
+                                ToolTip="辞書の例文（examples）を一覧・編集します" />
                         <Button Content="ツール" Command="{Binding ShowToolsCommand}" />
                         <Button Content="凡例・統計" Command="{Binding ShowInfoCommand}" />
                         <Button Content="設定" Command="{Binding ShowSettingsCommand}" />
@@ -72,7 +74,7 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                     BorderThickness="0,1,0,0" Padding="12,5">
                 <DockPanel>
                     <Border DockPanel.Dock="Right" Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
-                            BorderThickness="1" CornerRadius="999" Padding="10,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                            BorderThickness="1" CornerRadius="6" Padding="10,2" Margin="12,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="{Binding CountLabel}" Foreground="{StaticResource Muted}"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
                     </Border>
