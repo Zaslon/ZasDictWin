@@ -25,6 +25,8 @@ public sealed class MainViewModel : ViewModelBase
     private OverlayViewModel? _overlay;
     private int _navIndex;
     private string _status = "辞書を開いてください。";
+    /// <summary>例文一覧の絞り込み文字列。編集に入って戻ってきても打ち直さずに済むよう覚えておく。</summary>
+    private string _exampleQuery = "";
 
     public MainViewModel()
     {
@@ -53,6 +55,8 @@ public sealed class MainViewModel : ViewModelBase
         ShowToolsCommand = new RelayCommand(() => ShowOverlay(new ToolsViewModel(SelectedWord?.Form)));
         ShowSettingsCommand = new RelayCommand(ShowSettings);
         ShowInfoCommand = new RelayCommand(ShowInfo);
+        ShowExamplesCommand = new RelayCommand(() => ShowExamples(), () => _doc is not null);
+        EditExampleCommand = new RelayCommand(o => { if (o is Example e) ShowExampleEditor(e, backToList: false); });
         SetModeCommand = new RelayCommand(o => { if (o is string s) SearchMode = Enum.Parse<SearchMode>(s); });
         SetScopeCommand = new RelayCommand(o => { if (o is string s) SearchScope = Enum.Parse<SearchScope>(s); });
         ToggleLayoutCommand = new RelayCommand(ToggleLayout);
@@ -85,6 +89,7 @@ public sealed class MainViewModel : ViewModelBase
             if (!Set(ref _selected, value)) return;
             Raise(nameof(HasSelection));
             if (value is not null && Settings.Layout == LayoutMode.Navigate) NavIndex = 1;
+            RefreshRelatedExamples();
             SelectionChanged?.Invoke();
         }
     }
@@ -92,6 +97,17 @@ public sealed class MainViewModel : ViewModelBase
     public event Action? SelectionChanged;
 
     public bool HasSelection => SelectedWord is not null;
+
+    /// <summary>選択中の単語を参照している例文。詳細欄の「参照例文」に出す。</summary>
+    public ObservableCollection<Example> RelatedExamples { get; } = new();
+
+    private void RefreshRelatedExamples()
+    {
+        RelatedExamples.Clear();
+        if (_doc is null || SelectedWord is null) return;
+        _doc.ResolveExampleForms();
+        foreach (var e in _doc.ExamplesFor(SelectedWord.Id)) RelatedExamples.Add(e);
+    }
 
     public string Query
     {
@@ -192,6 +208,8 @@ public sealed class MainViewModel : ViewModelBase
     public ICommand ShowToolsCommand { get; }
     public ICommand ShowSettingsCommand { get; }
     public ICommand ShowInfoCommand { get; }
+    public ICommand ShowExamplesCommand { get; }
+    public ICommand EditExampleCommand { get; }
     public ICommand SetModeCommand { get; }
     public ICommand SetScopeCommand { get; }
     public ICommand ToggleLayoutCommand { get; }
@@ -251,6 +269,7 @@ public sealed class MainViewModel : ViewModelBase
         Settings.Save();
         SelectedWord = null;
         _pendingChanges.Clear();
+        _exampleQuery = "";
         ApplySettings();
         RebuildIndex();
         IsDirty = false;
@@ -386,6 +405,7 @@ public sealed class MainViewModel : ViewModelBase
 
     private void RaiseDocumentChanged()
     {
+        RefreshRelatedExamples();
         Raise(nameof(AllWords));
         Raise(nameof(WindowTitle));
         Raise(nameof(DictionaryName));
@@ -427,6 +447,8 @@ public sealed class MainViewModel : ViewModelBase
 
         if (isNew) _doc.Words.Add(word);
         if (formChanged && !isNew) RelationService.PropagateFormChange(_doc.Words, word);
+        // 例文が持つのは id だけなので、見出し語の表示は辞書側から引き直す。
+        _doc.ResolveExampleForms();
 
         // 更新履歴は ADD / CHANGE / DELETE。見出し語変更（リネーム）の時だけ details に旧見出し語を残す。
         var changeDetail = !isNew && formChanged ? $"旧: {oldForm}" : "";
@@ -463,6 +485,9 @@ public sealed class MainViewModel : ViewModelBase
         if (_doc is null) return;
         RelationService.RemoveReferences(_doc.Words, w);
         _doc.Words.Remove(w);
+        // 例文から参照を外すことはしない（消した単語を後で作り直すことがあるため）。
+        // 表示は「id:12」に落ちるので、例文側で消すかどうかは書き手が決められる。
+        _doc.ResolveExampleForms();
         _pendingChanges.Add(new ChangeEntry(DateTime.Now, "DELETE", w.Form, ""));
         if (SelectedWord == w) SelectedWord = null;
         RebuildIndex();
@@ -499,8 +524,6 @@ public sealed class MainViewModel : ViewModelBase
         if (Settings.AutoSave && _doc?.Path is not null) Save(false);
     }
 
-    // ---- settings / info -------------------------------------------------
-
     private void ShowSettings()
     {
         ShowOverlay(new SettingsViewModel(Settings, _doc, () =>
@@ -513,6 +536,73 @@ public sealed class MainViewModel : ViewModelBase
     }
 
     public event Action? SettingsApplied;
+
+    // ---- examples --------------------------------------------------------
+
+    /// <summary>例文の一覧を開く。編集から戻ってきたときも同じ絞り込みで開き直す。</summary>
+    private void ShowExamples()
+    {
+        if (_doc is null) { Status = "辞書を開いてください。"; return; }
+        var vm = new ExamplesViewModel(_doc, _exampleQuery);
+        vm.AddRequested = () => { _exampleQuery = vm.Query; ShowExampleEditor(null, backToList: true); };
+        vm.EditRequested = e => { _exampleQuery = vm.Query; ShowExampleEditor(e, backToList: true); };
+        ShowOverlay(vm);
+    }
+
+    /// <summary>
+    /// 例文エディタを開く。<paramref name="backToList"/> が真なら保存・削除・キャンセルのあと一覧に戻り、
+    /// 偽（詳細欄の「参照例文」から開いた場合）ならオーバーレイを閉じて詳細欄に戻る。
+    /// </summary>
+    private void ShowExampleEditor(Example? example, bool backToList)
+    {
+        if (_doc is null) return;
+        void Back()
+        {
+            if (backToList) ShowExamples();
+            else CloseOverlay();
+        }
+
+        var vm = new ExampleEditViewModel(example, _doc, _search, v => CommitExample(v, Back));
+        vm.CancelRequested = Back;
+        vm.DeleteRequested = () => ConfirmDeleteExample(vm, Back);
+        ShowOverlay(vm);
+    }
+
+    private void CommitExample(ExampleEditViewModel vm, Action back)
+    {
+        if (_doc is null) return;
+
+        var isNew = vm.Source is null;
+        var example = vm.Source ?? Example.CreateNew(_doc.NextExampleId());
+        vm.ApplyTo(example);
+        if (isNew) _doc.Examples.Add(example);
+
+        RefreshRelatedExamples();
+        back();
+        MarkDirty($"例文を{(isNew ? "追加" : "更新")}しました。");
+    }
+
+    private void ConfirmDeleteExample(ExampleEditViewModel vm, Action back)
+    {
+        if (vm.Source is not { } example) return;
+        var preview = example.SentencePreview;
+        // やめたときは編集画面へ戻す。同じ ViewModel を出し直すので書きかけの入力は残る。
+        // ［閉じる］（RequestClose）でも同じところへ戻したいので、キャンセルも明示的な選択肢にする。
+        ShowOverlay(new ChoiceViewModel("例文を削除", $"「{preview}」を削除します。")
+            .Add("削除する", () => DeleteExample(example, back), isDanger: true)
+            .Add("やめる", () => ShowOverlay(vm)));
+    }
+
+    private void DeleteExample(Example example, Action back)
+    {
+        if (_doc is null) return;
+        _doc.Examples.Remove(example);
+        RefreshRelatedExamples();
+        back();
+        MarkDirty("例文を削除しました。");
+    }
+
+    // ---- settings / info -------------------------------------------------
 
     private void ShowInfo()
     {

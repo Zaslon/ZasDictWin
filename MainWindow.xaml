@@ -56,6 +56,8 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <Button Content="別名で保存" Command="{Binding SaveAsCommand}" />
                         <Border Width="1" Background="{StaticResource Line}" Margin="4,3" />
                         <Button Content="＋ 単語" Command="{Binding NewWordCommand}" />
+                        <Button Content="例文" Command="{Binding ShowExamplesCommand}"
+                                ToolTip="辞書の例文（examples）を一覧・編集します" />
                         <Button Content="ツール" Command="{Binding ShowToolsCommand}" />
                         <Button Content="凡例・統計" Command="{Binding ShowInfoCommand}" />
                         <Button Content="設定" Command="{Binding ShowSettingsCommand}" />
