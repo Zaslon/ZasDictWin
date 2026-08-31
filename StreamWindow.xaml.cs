@@ -15,12 +15,6 @@ public partial class StreamWindow : Window
         ApplySettings();
     }
 
-    public void Refresh()
-    {
-        // SelectedWord の変更は MainViewModel の PropertyChanged で伝わるため、
-        // ここでは配信側だけの再描画トリガとして残してある。
-    }
-
     /// <summary>
     /// AppSettings は変更通知を出さないため、設定適用時は DataContext を張り直して
     /// 背景色や表示項目のバインディングを一括で読み直す。

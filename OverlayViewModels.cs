@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text.Json.Nodes;
 using System.Windows.Input;
 using System.Windows.Media;
 using ZasDictWin.Models;
@@ -132,7 +133,7 @@ public sealed class SettingsViewModel : OverlayViewModel
         if (doc is not null)
         {
             Punctuations = string.Concat(
-                (doc.ZpdicOnline["punctuations"] as System.Text.Json.Nodes.JsonArray)?
+                (doc.ZpdicOnline["punctuations"] as JsonArray)?
                     .Select(n => n?.GetValue<string>() ?? "") ?? Array.Empty<string>());
             IgnoredPattern = doc.ZpdicOnline["ignoredPattern"]?.GetValue<string>() ?? "";
         }
@@ -189,7 +190,18 @@ public sealed class SettingsViewModel : OverlayViewModel
     public string IgnoredPattern { get; set; } = "";
     public bool HasDictionary => _doc is not null;
 
-    public string StreamBackground { get; set; }
+    private string _streamBackground = "";
+
+    /// <summary>
+    /// 単語ウィンドウの背景色。隣の見本（Border.Background）が同じ値を見ているため、
+    /// 素の自動プロパティにすると打っている最中に見本が追随しない。
+    /// </summary>
+    public string StreamBackground
+    {
+        get => _streamBackground;
+        set => Set(ref _streamBackground, value);
+    }
+
     public double StreamFontScale { get; set; }
     public bool StreamTopmost { get; set; }
     public bool StreamShowTranslations { get; set; }
@@ -242,8 +254,8 @@ public sealed class SettingsViewModel : OverlayViewModel
 
         if (_doc is not null)
         {
-            _doc.ZpdicOnline["punctuations"] = new System.Text.Json.Nodes.JsonArray(
-                Punctuations.Select(c => (System.Text.Json.Nodes.JsonNode)System.Text.Json.Nodes.JsonValue.Create(c.ToString())!).ToArray());
+            _doc.ZpdicOnline["punctuations"] = new JsonArray(
+                Punctuations.Select(c => (JsonNode)JsonValue.Create(c.ToString())!).ToArray());
             _doc.ZpdicOnline["ignoredPattern"] = IgnoredPattern;
         }
 

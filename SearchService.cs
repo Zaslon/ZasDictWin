@@ -18,7 +18,12 @@ public sealed class SearchService
         if (!string.IsNullOrWhiteSpace(ignoredPattern))
         {
             try { _ignored = new Regex(ignoredPattern, RegexOptions.Compiled | RegexOptions.CultureInvariant); }
-            catch (ArgumentException) { _ignored = null; }
+            catch (ArgumentException ex)
+            {
+                // 壊れた正規表現は無視して検索自体は動かす。画面に出す先が無いので記録に残す。
+                ErrorLog.Write($"ignoredPattern の解釈 ({ignoredPattern})", ex);
+                _ignored = null;
+            }
         }
     }
 

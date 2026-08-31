@@ -3,6 +3,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using System.Windows.Media;
+using ZasDictWin.Services;
 
 namespace ZasDictWin.ViewModels;
 
@@ -103,6 +104,8 @@ public sealed class HeadwordFontState : ViewModelBase
         }
         catch (Exception ex) when (ex is IOException or UriFormatException)
         {
+            // 呼び出し側は「フォントが見つからない」としか出せないので、原因は記録に残す。
+            ErrorLog.Write($"Heksa フォントの読み込み ({path})", ex);
             return null;
         }
     }

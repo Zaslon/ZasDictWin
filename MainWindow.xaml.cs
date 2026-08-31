@@ -17,7 +17,8 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = _vm;
-        _vm.SelectionChanged += () => _stream?.Refresh();
+        // 選択の変更は MainViewModel の PropertyChanged で単語ウィンドウにも届く。
+        // 設定だけは AppSettings が変更通知を持たないので、明示的に張り直させる。
         _vm.SettingsApplied += () => _stream?.ApplySettings();
         App.UiException += ShowException;
         PreviewKeyDown += OnPreviewKeyDown;

@@ -247,10 +247,13 @@
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
                             <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
+                            <!-- 案内文字は 1 行。NoWrap を書かないと暗黙の TextBlock スタイル（Wrap）が効いて
+                                 折り返してしまい、TextTrimming が働かない -->
                             <TextBlock x:Name="ph"
                                        Text="{Binding Path=(v:Placeholder.Text), RelativeSource={RelativeSource TemplatedParent}}"
                                        Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
-                                       Foreground="{StaticResource Muted}" TextTrimming="CharacterEllipsis"
+                                       Foreground="{StaticResource Muted}"
+                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                                        IsHitTestVisible="False" Visibility="Collapsed" />
                         </Grid>
                     </Border>

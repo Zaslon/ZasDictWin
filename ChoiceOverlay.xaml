@@ -3,15 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
 
-    <Border Style="{StaticResource Card}" MaxWidth="520" VerticalAlignment="Center" HorizontalAlignment="Center"
-            Padding="24">
-        <StackPanel>
-            <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
+    <!-- 他のオーバーレイと同じく、選択肢はスクロール領域の外に固定して本文だけ流す。
+         障害の案内（App.UiException）は例外メッセージがそのまま入るうえ、文字サイズ倍率は
+         3.0 まで上げられるので、素の StackPanel だとボタンが画面外へ押し出されて押せなくなる。
+         Margin で上下に余白を残し、カードが窓の高さを超えないようにしている。 -->
+    <Border Style="{StaticResource Card}" MaxWidth="520" MaxHeight="640" Margin="40,28"
+            VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
+        <DockPanel>
+            <TextBlock DockPanel.Dock="Top" Text="{Binding Title}" FontWeight="SemiBold"
                        FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
-            <TextBlock Text="{Binding Message}" Foreground="{StaticResource Muted}" Margin="0,8,0,0"
-                       Visibility="{Binding Message, Converter={StaticResource NullVis}}" />
 
-            <ItemsControl ItemsSource="{Binding Choices}" Margin="0,20,0,0">
+            <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding Choices}" Margin="0,20,0,0">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:ChoiceItem}">
                         <Button Content="{Binding Label}" Command="{Binding Command}"
@@ -32,6 +34,12 @@
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
-        </StackPanel>
+
+            <!-- 横スクロールは他のオーバーレイと同じく封じる。長い一文は折り返しで吸収させる -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <TextBlock Text="{Binding Message}" Foreground="{StaticResource Muted}" Margin="0,8,0,0"
+                           Visibility="{Binding Message, Converter={StaticResource NullVis}}" />
+            </ScrollViewer>
+        </DockPanel>
     </Border>
 </UserControl>

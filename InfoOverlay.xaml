@@ -118,8 +118,9 @@
                                 <Button Content="CSV を選び直す" Command="{Binding RelinkChangelogCommand}" />
                                 <Button Content="書き出す" Command="{Binding ExportChangelogCommand}" Margin="0" />
                             </StackPanel>
+                            <!-- パスは 1 行。Label スタイルが Wrap を宣言しているので明示的に打ち消す -->
                             <TextBlock Text="{Binding ChangelogPath}" Style="{StaticResource Label}" Margin="0"
-                                       VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                                       VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                         </DockPanel>
 
                         <!-- 列幅は固定 px にせず、SharedSizeGroup で全行そろえて内容に合わせる。

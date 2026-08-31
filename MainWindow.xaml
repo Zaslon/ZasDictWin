@@ -78,9 +78,10 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <TextBlock Text="{Binding CountLabel}" Foreground="{StaticResource Muted}"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
                     </Border>
+                    <!-- フッタは 1 行固定。折り返すと状況によってフッタの高さが変わり、下端の位置が動く -->
                     <TextBlock Text="{Binding Status}" Foreground="{StaticResource Muted}"
                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
-                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                               VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                 </DockPanel>
             </Border>
 

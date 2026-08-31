@@ -90,11 +90,8 @@ public sealed class MainViewModel : ViewModelBase
             Raise(nameof(HasSelection));
             if (value is not null && Settings.Layout == LayoutMode.Navigate) NavIndex = 1;
             RefreshRelatedExamples();
-            SelectionChanged?.Invoke();
         }
     }
-
-    public event Action? SelectionChanged;
 
     public bool HasSelection => SelectedWord is not null;
 
@@ -260,6 +257,7 @@ public sealed class MainViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            ErrorLog.Write($"辞書の読み込み ({path})", ex);
             Status = $"読み込みに失敗しました: {ex.Message}";
             ShowOverlay(new ChoiceViewModel("読み込めません", $"{path}{Environment.NewLine}{ex.Message}").AddCancel("閉じる"));
             return;
@@ -299,6 +297,7 @@ public sealed class MainViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
+            ErrorLog.Write($"辞書の保存 ({path})", ex);
             Status = $"保存に失敗しました: {ex.Message}";
             ShowOverlay(new ChoiceViewModel("保存できません", ex.Message).AddCancel("閉じる"));
             return;
@@ -325,6 +324,7 @@ public sealed class MainViewModel : ViewModelBase
         catch (IOException ex)
         {
             // 追記に失敗しても未保存の履歴は捨てず、次回保存で再試行する。
+            ErrorLog.Write($"更新履歴の追記 ({csv})", ex);
             Status = $"更新履歴の追記に失敗しました: {ex.Message}";
         }
     }
@@ -355,7 +355,7 @@ public sealed class MainViewModel : ViewModelBase
         if (_doc is not null)
         {
             punctuations = string.Concat(
-                (_doc.ZpdicOnline["punctuations"] as System.Text.Json.Nodes.JsonArray)?
+                (_doc.ZpdicOnline["punctuations"] as JsonArray)?
                     .Select(n => n?.GetValue<string>() ?? "") ?? Array.Empty<string>());
             ignoredPattern = _doc.ZpdicOnline["ignoredPattern"]?.GetValue<string>();
         }
@@ -465,7 +465,7 @@ public sealed class MainViewModel : ViewModelBase
         if (_doc is null || w is null) return;
         var copy = w.Duplicate(_doc.NextId());
         _doc.Words.Add(copy);
-        _pendingChanges.Add(new ChangeEntry(DateTime.Now, "ADD", copy.Form, ""));
+        AddPendingChange(new ChangeEntry(DateTime.Now, "ADD", copy.Form, ""));
         RebuildIndex();
         SelectedWord = copy;
         MarkDirty($"「{w.Form}」を複製しました。");
@@ -488,7 +488,7 @@ public sealed class MainViewModel : ViewModelBase
         // 例文から参照を外すことはしない（消した単語を後で作り直すことがあるため）。
         // 表示は「id:12」に落ちるので、例文側で消すかどうかは書き手が決められる。
         _doc.ResolveExampleForms();
-        _pendingChanges.Add(new ChangeEntry(DateTime.Now, "DELETE", w.Form, ""));
+        AddPendingChange(new ChangeEntry(DateTime.Now, "DELETE", w.Form, ""));
         if (SelectedWord == w) SelectedWord = null;
         RebuildIndex();
         NavIndex = 0;
