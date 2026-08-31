@@ -29,34 +29,26 @@
                  「ラベル1行＋チップ1行」の縦積みをやめて一覧の表示件数を稼ぐ。 -->
             <Border Style="{StaticResource FilterCard}" Margin="0,10,0,0">
                 <StackPanel>
-                    <DockPanel>
-                        <TextBlock Text="一致" Style="{StaticResource Label}" Width="34" Margin="0"
-                                   VerticalAlignment="Center" />
-                        <WrapPanel>
-                            <ToggleButton Style="{StaticResource Chip}" Content="前方" Command="{Binding SetModeCommand}" CommandParameter="Forward"
-                                          IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Forward}" />
-                            <ToggleButton Style="{StaticResource Chip}" Content="部分" Command="{Binding SetModeCommand}" CommandParameter="Partial"
-                                          IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Partial}" />
-                            <ToggleButton Style="{StaticResource Chip}" Content="後方" Command="{Binding SetModeCommand}" CommandParameter="Backward"
-                                          IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Backward}" />
-                            <ToggleButton Style="{StaticResource Chip}" Content="完全" Command="{Binding SetModeCommand}" CommandParameter="Exact"
-                                          IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Exact}" />
-                        </WrapPanel>
-                    </DockPanel>
-                    <DockPanel Margin="0,7,0,0">
-                        <TextBlock Text="対象" Style="{StaticResource Label}" Width="34" Margin="0"
-                                   VerticalAlignment="Center" />
-                        <WrapPanel>
-                            <ToggleButton Style="{StaticResource Chip}" Content="見出し語" Command="{Binding SetScopeCommand}" CommandParameter="Form"
-                                          IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Form}" />
-                            <ToggleButton Style="{StaticResource Chip}" Content="訳語" Command="{Binding SetScopeCommand}" CommandParameter="Translation"
-                                          IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Translation}" />
-                            <ToggleButton Style="{StaticResource Chip}" Content="両方" Command="{Binding SetScopeCommand}" CommandParameter="Both"
-                                          IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Both}" />
-                            <ToggleButton Style="{StaticResource Chip}" Content="全文" Command="{Binding SetScopeCommand}" CommandParameter="FullText"
-                                          IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=FullText}" />
-                        </WrapPanel>
-                    </DockPanel>
+                    <WrapPanel>
+                        <ToggleButton Style="{StaticResource Chip}" Content="前方" Command="{Binding SetModeCommand}" CommandParameter="Forward"
+                                      IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Forward}" />
+                        <ToggleButton Style="{StaticResource Chip}" Content="部分" Command="{Binding SetModeCommand}" CommandParameter="Partial"
+                                      IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Partial}" />
+                        <ToggleButton Style="{StaticResource Chip}" Content="後方" Command="{Binding SetModeCommand}" CommandParameter="Backward"
+                                      IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Backward}" />
+                        <ToggleButton Style="{StaticResource Chip}" Content="完全" Command="{Binding SetModeCommand}" CommandParameter="Exact"
+                                      IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Exact}" />
+                    </WrapPanel>
+                    <WrapPanel Margin="0,7,0,0">
+                        <ToggleButton Style="{StaticResource Chip}" Content="見出し語" Command="{Binding SetScopeCommand}" CommandParameter="Form"
+                                      IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Form}" />
+                        <ToggleButton Style="{StaticResource Chip}" Content="訳語" Command="{Binding SetScopeCommand}" CommandParameter="Translation"
+                                      IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Translation}" />
+                        <ToggleButton Style="{StaticResource Chip}" Content="両方" Command="{Binding SetScopeCommand}" CommandParameter="Both"
+                                      IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Both}" />
+                        <ToggleButton Style="{StaticResource Chip}" Content="全文" Command="{Binding SetScopeCommand}" CommandParameter="FullText"
+                                      IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=FullText}" />
+                    </WrapPanel>
                 </StackPanel>
             </Border>
         </StackPanel>

@@ -53,12 +53,35 @@ public sealed class RelayCommand : ICommand
 /// <summary>画面内オーバーレイの基底。OS ダイアログは OBS のウィンドウキャプチャに映らないため使わない。</summary>
 public abstract class OverlayViewModel : ViewModelBase
 {
+    private DockSide _side = DockSide.Right;
+    private bool _isActive;
+
     public string Title { get; protected set; } = "";
     public Action? RequestClose { get; set; }
     public ICommand CloseCommand => new RelayCommand(() => RequestClose?.Invoke());
 
-    /// <summary>ヘッダを掴んで窓の縁に寄せられるか。偽なら常に中央のモーダルとして出す。</summary>
+    /// <summary>タブとして並べるか。偽なら中央のモーダルとして 1 枚だけ出す。</summary>
     public virtual bool IsDockable => true;
+
+    /// <summary>閉じることも他所へ運ぶこともできない据え置きのタブか（中央の単語詳細だけ）。</summary>
+    public virtual bool IsPinned => false;
+
+    /// <summary>同じ種類は 1 枚までしか開かない。その同一性の判定と、行き先の記憶のキーに使う。</summary>
+    public string Kind => GetType().Name;
+
+    /// <summary>今どの辺に付いているか。<see cref="DockGroups"/> だけが書き換える。</summary>
+    public DockSide Side
+    {
+        get => _side;
+        set => Set(ref _side, value);
+    }
+
+    /// <summary>その辺で今表に出ているタブか。<see cref="DockGroup.Selected"/> だけが書き換える。</summary>
+    public bool IsActive
+    {
+        get => _isActive;
+        set => Set(ref _isActive, value);
+    }
 }
 
 /// <summary>

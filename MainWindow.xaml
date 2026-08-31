@@ -23,7 +23,7 @@
     </Window.InputBindings>
 
     <Grid>
-        <DockPanel>
+        <DockPanel x:Name="Root">
 
             <Border x:Name="HeaderBar" DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
                     BorderThickness="0,0,0,1" Padding="12,7">
@@ -35,10 +35,6 @@
                             <TextBlock Text="Z" FontSize="13" FontWeight="Bold" Foreground="#170F28"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="NoWrap" />
                         </Border>
-                        <Button Content="←" Style="{StaticResource GhostButton}"
-                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}"
-                                Command="{Binding BackCommand}"
-                                Visibility="{Binding IsBackVisible, Converter={StaticResource BoolVis}}" />
                         <TextBlock Text="{Binding DictionaryName}" FontWeight="SemiBold"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=15}"
                                    VerticalAlignment="Center" Margin="0,0,8,0" />
@@ -62,7 +58,6 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <Button Content="凡例・統計" Command="{Binding ShowInfoCommand}" />
                         <Button Content="設定" Command="{Binding ShowSettingsCommand}" />
                         <Border Width="1" Background="{StaticResource Line}" Margin="4,3" />
-                        <Button x:Name="LayoutButton" Content="レイアウト切替" Command="{Binding ToggleLayoutCommand}" />
                         <Button x:Name="BrowserButton" Content="{Binding Browser.ToggleLabel}"
                                 Command="{Binding Browser.ToggleCommand}" ToolTip="右にウェブブラウザのサイドバーを開閉します" />
                         <Button x:Name="StreamButton" Content="単語ウィンドウ" Click="ToggleStreamWindow_Click" Margin="0" />
@@ -88,7 +83,7 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
             <!-- 右サイドバーのブラウザ。WebView2 はメインウィンドウの子 HWND なので OBS の
                  ウィンドウキャプチャにそのまま映るが、airspace のため WPF 描画より手前に出る。
                  オーバーレイ開期中は IsBrowserShown が隠す。 -->
-            <Grid DockPanel.Dock="Right" Width="{Binding Browser.Width}"
+            <Grid x:Name="BrowserHost" DockPanel.Dock="Right" Width="{Binding Browser.Width}"
                   Visibility="{Binding IsBrowserShown, Converter={StaticResource BoolVis}}">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="5" />
@@ -101,73 +96,75 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                 <v:BrowserPanel Grid.Column="1" DataContext="{Binding Browser}" />
             </Grid>
 
-            <!-- 縁にドッキングしたオーバーレイ。スクリムを敷かないので、開いたまま検索や一覧を
-                 触れる。ブラウザより内側に置いてあるので、両方出しても場所を取り合わない。 -->
-            <DockPanel DockPanel.Dock="{Binding Dock.PanelDock}"
-                       Width="{Binding Dock.PanelWidth}" Height="{Binding Dock.PanelHeight}"
-                       Visibility="{Binding IsDockedPanelOpen, Converter={StaticResource BoolVis}}">
-                <Thumb DockPanel.Dock="{Binding Dock.GripDock}" Cursor="{Binding Dock.GripCursor}"
-                       Width="{Binding Dock.GripWidth}" Height="{Binding Dock.GripHeight}"
-                       Style="{StaticResource GripThumb}"
-                       DragDelta="DockGrip_DragDelta" DragCompleted="DockGrip_DragCompleted" />
-                <ContentControl Content="{Binding DockedOverlay}" />
-            </DockPanel>
+            <!-- 縁に寄せたオーバーレイ。スクリムを敷かないので、開いたまま検索や一覧を触れる。
+                 ブラウザより内側に置いてあるので、両方出しても場所を取り合わない。
+                 上下を先に宣言してあるので、上下の帯が横いっぱいに伸び、左右はその内側に入る。
+                 幅と高さは DockGroup が付いている辺に応じて片方だけ返し、もう片方は NaN（＝Auto）。 -->
+            <!-- 上限は窓の 35%。DockPanel は最後の子（検索と詳細）に「残り」しか渡さないので、
+                 上限が無いと 4 辺に広げたときに本体が 0 幅まで潰れて操作できなくなる。 -->
+            <v:DockGroupPanel DockPanel.Dock="Top" DataContext="{Binding Docks.Top}"
+                              Width="{Binding Width}" Height="{Binding Height}"
+                              MaxHeight="{Binding ElementName=Root, Path=ActualHeight, Converter={StaticResource Ratio}, ConverterParameter=0.35}"
+                              Visibility="{Binding HasItems, Converter={StaticResource BoolVis}}" />
+            <v:DockGroupPanel DockPanel.Dock="Bottom" DataContext="{Binding Docks.Bottom}"
+                              Width="{Binding Width}" Height="{Binding Height}"
+                              MaxHeight="{Binding ElementName=Root, Path=ActualHeight, Converter={StaticResource Ratio}, ConverterParameter=0.35}"
+                              Visibility="{Binding HasItems, Converter={StaticResource BoolVis}}" />
+            <v:DockGroupPanel DockPanel.Dock="Left" DataContext="{Binding Docks.Left}"
+                              Width="{Binding Width}" Height="{Binding Height}"
+                              MaxWidth="{Binding ElementName=Root, Path=ActualWidth, Converter={StaticResource Ratio}, ConverterParameter=0.35}"
+                              Visibility="{Binding HasItems, Converter={StaticResource BoolVis}}" />
+            <v:DockGroupPanel DockPanel.Dock="Right" DataContext="{Binding Docks.Right}"
+                              Width="{Binding Width}" Height="{Binding Height}"
+                              MaxWidth="{Binding ElementName=Root, Path=ActualWidth, Converter={StaticResource Ratio}, ConverterParameter=0.35}"
+                              Visibility="{Binding HasItems, Converter={StaticResource BoolVis}}" />
 
             <Grid>
-                <!-- 分割レイアウト: デスクトップ作業向け -->
-                <Grid Visibility="{Binding IsSplitLayout, Converter={StaticResource BoolVis}}">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="400" MinWidth="300" />
-                        <ColumnDefinition Width="4" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-                    <v:SearchPanel Grid.Column="0" />
-                    <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch"
-                                  Background="{StaticResource Line}" />
-                    <v:DetailPanel Grid.Column="2" />
-                </Grid>
-
-                <!-- 遷移レイアウト: 配信向け。1画面ずつ大きく見せる -->
-                <Grid Visibility="{Binding IsNavigateLayout, Converter={StaticResource BoolVis}}">
-                    <v:SearchPanel Visibility="{Binding IsSearchVisible, Converter={StaticResource BoolVis}}" />
-                    <v:DetailPanel Visibility="{Binding IsBackVisible, Converter={StaticResource BoolVis}}" />
-                </Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="400" MinWidth="300" />
+                    <ColumnDefinition Width="4" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <v:SearchPanel Grid.Column="0" />
+                <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch"
+                              Background="{StaticResource Line}" />
+                <!-- 中央もタブ束。単語詳細が据え置きの 1 枚目で、運んできたオーバーレイが隣に並ぶ。 -->
+                <v:DockGroupPanel Grid.Column="2" DataContext="{Binding Docks.Center}" />
             </Grid>
         </DockPanel>
 
-        <!-- オーバーレイ層。MessageBox や ContextMenu は別 HWND になり
-             OBS のウィンドウキャプチャに映らないため、すべてここに描画する。
-             中央表示のときだけスクリムを敷く。ドッキング中は上の DockPanel 側が描く。 -->
-        <Border Background="{StaticResource Scrim}"
-                Visibility="{Binding IsFloatingPanelOpen, Converter={StaticResource BoolVis}}">
-            <ContentControl Content="{Binding FloatingOverlay}" />
-        </Border>
-
-        <!-- 確認ダイアログの層。ドッキング中の編集画面を閉じずに上へ重ねるため層を分ける。 -->
+        <!-- 確認ダイアログの層。MessageBox は別 HWND になり OBS のウィンドウキャプチャに映らない
+             ため、ここに描く。辺に寄せた画面を閉じずに上へ重ねられるよう層を分けてある。 -->
         <Border Background="{StaticResource Scrim}"
                 Visibility="{Binding ModalOverlay, Converter={StaticResource NullVis}}">
             <ContentControl Content="{Binding ModalOverlay}" />
         </Border>
 
-        <!-- ドロップ先の候補。ヘッダとフッタの実高さぶん内側に寄せて、ドッキングしたときに
-             本体が実際に収まる範囲と升目を一致させる。升目の Tag が当たり判定の値そのもので、
-             OverlayDrag が InputHitTest で拾う（名前 DockZoneHost もそちらから引かれる）。 -->
-        <Grid x:Name="DockZoneHost" Visibility="{Binding Dock.IsDragging, Converter={StaticResource BoolVis}}">
+        <!-- ドロップ先の候補。ヘッダ・フッタの高さとブラウザサイドバーの幅ぶん内側に寄せて、
+             ドッキングしたときに本体が実際に収まる範囲と升目を一致させる。サイドバーに掛からない
+             ので、WebView2 が升目を覆い隠す（airspace）ことも起きない。
+             升目そのものが当たり判定で、OverlayDrag が InputHitTest で拾う
+             （名前 DockZoneHost もそちらから引かれる）。
+             どの升目も行き先なので、取りやめは Esc。 -->
+        <Grid x:Name="DockZoneHost" Visibility="{Binding Drag.IsDragging, Converter={StaticResource BoolVis}}">
             <Grid.Margin>
                 <MultiBinding Converter="{StaticResource EdgeInsets}">
                     <Binding ElementName="HeaderBar" Path="ActualHeight" />
                     <Binding ElementName="FooterBar" Path="ActualHeight" />
+                    <Binding ElementName="BrowserHost" Path="ActualWidth" />
                 </MultiBinding>
             </Grid.Margin>
+            <!-- 縁の帯は窓の大きさによらず一定。割合にすると窓を広げたときに画面の
+                 4 分の 1 が反応してしまい、中央に置いたつもりで端に吸い込まれる。 -->
             <Grid.RowDefinitions>
-                <RowDefinition Height="1*" />
-                <RowDefinition Height="2*" />
-                <RowDefinition Height="1*" />
+                <RowDefinition Height="90" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="90" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="1*" />
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="1*" />
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="150" />
             </Grid.ColumnDefinitions>
 
             <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3"
@@ -179,8 +176,9 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
             <TextBlock Grid.Row="1" Grid.Column="0" Text="左に&#10;ドッキング" TextAlignment="Center"
                        Style="{StaticResource DropZoneLabel}" />
 
-            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource DropZone}" Tag="{x:Static vm:DockSide.Floating}" />
-            <TextBlock Grid.Row="1" Grid.Column="1" Text="中央に戻す" Style="{StaticResource DropZoneLabel}" />
+            <Border Grid.Row="1" Grid.Column="1" Style="{StaticResource DropZone}" Tag="{x:Static vm:DockSide.Center}" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Text="中央にドッキング"
+                       Style="{StaticResource DropZoneLabel}" />
 
             <Border Grid.Row="1" Grid.Column="2" Style="{StaticResource DropZone}" Tag="{x:Static vm:DockSide.Right}" />
             <TextBlock Grid.Row="1" Grid.Column="2" Text="右に&#10;ドッキング" TextAlignment="Center"

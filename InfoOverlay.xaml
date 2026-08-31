@@ -4,11 +4,9 @@
              xmlns:v="clr-namespace:ZasDictWin.Views"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
 
-    <Border Style="{StaticResource OverlayCard}"
-            MaxWidth="{Binding Source={x:Static vm:OverlayDockState.Instance}, Path=IsDocked, Converter={StaticResource DockMaxWidth}, ConverterParameter=900}">
+    <Border Style="{StaticResource OverlayCard}">
         <DockPanel>
-            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1"
-                    v:OverlayDrag.IsGrip="True">
+            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
                 <DockPanel>
                     <Button DockPanel.Dock="Right" Content="閉じる" Style="{StaticResource GhostButton}"
                             Command="{Binding CloseCommand}" Margin="0" />

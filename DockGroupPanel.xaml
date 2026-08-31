@@ -1,0 +1,62 @@
+<UserControl x:Class="ZasDictWin.Views.DockGroupPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="clr-namespace:ZasDictWin.Views"
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+
+    <!-- 行き先ひとつぶん。DataContext は DockGroup で、付いている辺に応じて
+         つまみの位置と伸縮の向きが変わる（向きの判断は DockGroup 側が持つ）。
+         中央は仕切りが別にあるので、つまみを出さない。 -->
+    <DockPanel>
+        <Thumb DockPanel.Dock="{Binding GripDock}" Cursor="{Binding GripCursor}"
+               Visibility="{Binding HasGrip, Converter={StaticResource BoolVis}}"
+               Width="{Binding GripWidth}" Height="{Binding GripHeight}"
+               Style="{StaticResource GripThumb}"
+               DragDelta="Grip_DragDelta" DragCompleted="Grip_DragCompleted" />
+
+        <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1">
+            <DockPanel>
+                <!-- タブ列。1 枚でも出す（掴んで別の辺へ運ぶ取っ手を兼ねるため）。 -->
+                <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}"
+                        BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="6,5">
+                    <ItemsControl ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type vm:OverlayViewModel}">
+                                <!-- 据え置きのタブは掴んで運べず、閉じるボタンも出さない。 -->
+                                <Border MouseLeftButtonDown="Tab_MouseDown">
+                                    <Border.Style>
+                                        <Style TargetType="Border" BasedOn="{StaticResource DockTab}">
+                                            <Setter Property="v:OverlayDrag.IsGrip" Value="True" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsPinned}" Value="True">
+                                                    <Setter Property="v:OverlayDrag.IsGrip" Value="False" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+                                    <StackPanel Orientation="Horizontal">
+                                        <!-- 見出しは 1 行。長い題は末尾を省略してタブの幅を暴れさせない -->
+                                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center" MaxWidth="150"
+                                                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                                        <Button Content="✕" Style="{StaticResource IconButton}" Width="20" Height="20"
+                                                Margin="6,0,0,0" Command="{Binding CloseCommand}"
+                                                Visibility="{Binding IsPinned, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Border>
+
+                <!-- 中身は選択中のタブだけ。型ごとの DataTemplate は App.xaml が持つ。 -->
+                <ContentControl Content="{Binding Selected}" />
+            </DockPanel>
+        </Border>
+    </DockPanel>
+</UserControl>

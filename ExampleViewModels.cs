@@ -8,7 +8,7 @@ namespace ZasDictWin.ViewModels;
 
 /// <summary>
 /// 例文の一覧。文と訳で絞り込み、行を押すと編集オーバーレイに移る。
-/// 一覧と編集は別オーバーレイに分ける（オーバーレイ層は 1 枚しか出せないため）。
+/// 一覧と編集は別オーバーレイなので、編集を開いても一覧は隣のタブとして残る。
 /// </summary>
 public sealed class ExamplesViewModel : OverlayViewModel
 {

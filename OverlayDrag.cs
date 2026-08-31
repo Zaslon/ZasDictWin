@@ -6,14 +6,15 @@ using ZasDictWin.ViewModels;
 namespace ZasDictWin.Views;
 
 /// <summary>
-/// オーバーレイのヘッダを掴んでドッキング先を選ばせる添付ビヘイビア。
+/// タブを掴んで別の辺へ運ばせる添付ビヘイビア。付ける相手の DataContext が
+/// <see cref="OverlayViewModel"/> であることが前提（タブの見出しに付ける）。
 /// ドロップ先の当たり判定は MainWindow の <c>DockZoneHost</c>（升目に DockSide を Tag で持たせた
-/// Grid）を InputHitTest して拾う。判定は画面に描いている升目そのものなので、XAML 側の割合を
+/// Grid）を InputHitTest して拾う。判定は画面に描いている升目そのものなので XAML 側の割合を
 /// 変えれば判定も追従するが、この名前を変えるとドラッグしても何も起きなくなる。
 /// </summary>
 public static class OverlayDrag
 {
-    // 同時に動かせるオーバーレイは 1 枚なので、掴んでいる要素は静的に 1 つだけ覚える。
+    // 同時に運べるタブは 1 枚なので、掴んでいる要素は静的に 1 つだけ覚える。
     private static UIElement? _grip;
     private static Point _origin;
     private static bool _dragging;
@@ -31,7 +32,7 @@ public static class OverlayDrag
         if (_grip is null) return false;
         var wasDragging = _dragging;
         Release();
-        if (wasDragging) OverlayDockState.Instance.CancelDrag();
+        if (wasDragging) OverlayDragState.Instance.Cancel();
         return wasDragging;
     }
 
@@ -44,9 +45,14 @@ public static class OverlayDrag
         element.MouseLeftButtonUp -= OnMouseUp;
         element.LostMouseCapture -= OnLostCapture;
 
-        if (e.NewValue is not true) return;
+        // 掴めなくなった要素に「動かせる」カーソルを残さない（据え置きのタブが該当する）。
+        if (e.NewValue is not true)
+        {
+            element.ClearValue(FrameworkElement.CursorProperty);
+            return;
+        }
 
-        // ボタン類は Cursor=Hand を自前で持つので、ここで掴める見た目にしても潰さない。
+        // タブに載せた［✕］は Cursor=Hand を自前で持つので、ここで掴める見た目にしても潰さない。
         element.Cursor = Cursors.SizeAll;
         element.MouseLeftButtonDown += OnMouseDown;
         element.MouseMove += OnMouseMove;
@@ -56,7 +62,7 @@ public static class OverlayDrag
 
     private static void OnMouseDown(object sender, MouseButtonEventArgs e)
     {
-        // ヘッダに載っている［閉じる］などが先に処理した押下は掴みに使わない。
+        // タブに載っている［✕］が先に処理した押下は掴みに使わない。
         if (e.Handled || sender is not UIElement element) return;
         _grip = element;
         _dragging = false;
@@ -74,29 +80,30 @@ public static class OverlayDrag
         {
             if (Math.Abs(delta.X) < SystemParameters.MinimumHorizontalDragDistance &&
                 Math.Abs(delta.Y) < SystemParameters.MinimumVerticalDragDistance) return;
+            if ((_grip as FrameworkElement)?.DataContext is not OverlayViewModel vm) return;
             _dragging = true;
-            OverlayDockState.Instance.BeginDrag();
+            OverlayDragState.Instance.BeginDrag(vm);
             // 候補の升目はここで初めて可視になる。測り直すまで InputHitTest が当たらない。
             ZoneHost()?.UpdateLayout();
         }
 
-        if (HitZone(e) is { } side) OverlayDockState.Instance.HoverSide = side;
+        if (HitZone(e) is { } side) OverlayDragState.Instance.HoverSide = side;
     }
 
     private static void OnMouseUp(object sender, MouseButtonEventArgs e)
     {
         if (!ReferenceEquals(sender, _grip)) return;
-        var side = OverlayDockState.Instance.HoverSide;
+        var side = OverlayDragState.Instance.HoverSide;
         var wasDragging = _dragging;
         // 先に掴みを解く。LostMouseCapture は _dragging を見て中止するので、順序を変えると確定が消える。
         Release();
-        if (wasDragging) OverlayDockState.Instance.CompleteDrag(side);
+        if (wasDragging) OverlayDragState.Instance.CompleteDrag(side);
     }
 
     private static void OnLostCapture(object sender, MouseEventArgs e)
     {
         if (!ReferenceEquals(sender, _grip)) return;
-        if (_dragging) OverlayDockState.Instance.CancelDrag();
+        if (_dragging) OverlayDragState.Instance.Cancel();
         _grip = null;
         _dragging = false;
     }
@@ -123,7 +130,7 @@ public static class OverlayDrag
     }
 
     private static FrameworkElement? ZoneHost()
-        => _grip is DependencyObject o
-            ? Window.GetWindow(o)?.FindName("DockZoneHost") as FrameworkElement
+        => _grip is { } grip
+            ? Window.GetWindow(grip)?.FindName("DockZoneHost") as FrameworkElement
             : null;
 }

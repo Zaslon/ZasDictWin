@@ -27,6 +27,8 @@ public static class Markdown
             PagePadding = new Thickness(0),
             ColumnWidth = double.PositiveInfinity,
             Background = Brushes.Transparent,
+            // FlowDocument は載せた先から文字色を継がず、既定の黒のままになる。暗い面に描くので明示する。
+            Foreground = Res("Text", 0xEAEDF6),
             FontSize = S(14, scale),
         };
         foreach (var block in RenderBlocks(MarkdownParser.Parse(source), 0.0, scale))

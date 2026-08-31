@@ -22,9 +22,7 @@ public sealed class MainViewModel : ViewModelBase
     private SearchMode _mode = SearchMode.Forward;
     private SearchScope _scope = SearchScope.Both;
     private bool _isDirty;
-    private OverlayViewModel? _overlay;
     private OverlayViewModel? _modal;
-    private int _navIndex;
     private string _status = "辞書を開いてください。";
     /// <summary>例文一覧の絞り込み文字列。編集に入って戻ってきても打ち直さずに済むよう覚えておく。</summary>
     private string _exampleQuery = "";
@@ -42,39 +40,41 @@ public sealed class MainViewModel : ViewModelBase
             if (e.PropertyName == nameof(BrowserViewModel.IsOpen)) Raise(nameof(IsBrowserShown));
         };
 
-        Dock.Restore(Settings);
-        // ドラッグ中は書かず、辺が決まった時点だけ settings.json に落とす。
-        Dock.Persist = () => { Dock.SaveTo(Settings); Settings.Save(); };
-        Dock.PropertyChanged += (_, e) =>
+        Docks = new DockGroups(Settings);
+        OverlayDragState.Instance.Move = Docks.Move;
+        foreach (var group in Docks.All)
         {
-            if (e.PropertyName == nameof(OverlayDockState.Side)) RaiseOverlayPlacement();
-        };
+            group.PropertyChanged += (s, e) =>
+            {
+                // タブを選び直すのも「触った」うち。Esc はここで一番新しいものを閉じる。
+                if (e.PropertyName == nameof(DockGroup.Selected) && s is DockGroup g) Touch(g.Selected);
+            };
+        }
+        // 単語詳細は中央の据え置きタブ。中央へ運んだオーバーレイはこの隣に並ぶ。
+        Docks.Pin(new WordDetailViewModel(this));
 
         // 編集中に辞書を差し替えると、保存の宛先だけが入れ替わって別の辞書に書き込まれる。
-        OpenCommand = new RelayCommand(OpenDictionary, () => !IsOverlayOpen);
-        NewDictionaryCommand = new RelayCommand(NewDictionary, () => !IsOverlayOpen);
+        OpenCommand = new RelayCommand(OpenDictionary, () => !IsEditorOpen);
+        NewDictionaryCommand = new RelayCommand(NewDictionary, () => !IsEditorOpen);
         SaveCommand = new RelayCommand(() => Save(false), () => _doc is not null);
         SaveAsCommand = new RelayCommand(() => Save(true), () => _doc is not null);
-        // ショートカットはオーバーレイの上からでも届くため、開いている間は無効にする。
-        // 編集中に Ctrl+N を押すと入力中のオーバーレイが差し替わって内容が消えるのを防ぐ。
-        NewWordCommand = new RelayCommand(NewWord, () => _doc is not null && !IsOverlayOpen);
-        EditWordCommand = new RelayCommand(o => EditWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && !IsOverlayOpen);
-        DuplicateWordCommand = new RelayCommand(o => DuplicateWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && !IsOverlayOpen);
-        DeleteWordCommand = new RelayCommand(o => ConfirmDeleteWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && !IsOverlayOpen);
-        WordActionsCommand = new RelayCommand(o => ShowWordActions(o as Word ?? SelectedWord), _ => SelectedWord is not null && !IsOverlayOpen);
-        // ドッキング中はヘッダのボタンにも手が届く。オーバーレイの置き場は 1 つなので、
-        // 開いている間は他の画面を呼べないようにして書きかけの入力が飛ぶのを防ぐ。
-        ShowToolsCommand = new RelayCommand(() => ShowOverlay(new ToolsViewModel(SelectedWord?.Form)), () => !IsOverlayOpen);
-        ShowSettingsCommand = new RelayCommand(ShowSettings, () => !IsOverlayOpen);
-        ShowInfoCommand = new RelayCommand(ShowInfo, () => !IsOverlayOpen);
-        ShowExamplesCommand = new RelayCommand(() => ShowExamples(), () => _doc is not null && !IsOverlayOpen);
+        // 同じ画面は 1 枚まで。開いている種類のボタンは無効にして、書きかけの入力が
+        // 差し替えで飛ぶのを防ぐ（ショートカットはオーバーレイの上からでも届くため）。
+        NewWordCommand = new RelayCommand(NewWord, () => _doc is not null && CanOpen<WordEditViewModel>());
+        EditWordCommand = new RelayCommand(o => EditWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && CanOpen<WordEditViewModel>());
+        DuplicateWordCommand = new RelayCommand(o => DuplicateWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && CanOpen<WordEditViewModel>());
+        // 編集中の単語を消せると、開いたままのエディタが宙に浮く。
+        DeleteWordCommand = new RelayCommand(o => ConfirmDeleteWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && CanOpen<WordEditViewModel>());
+        WordActionsCommand = new RelayCommand(o => ShowWordActions(o as Word ?? SelectedWord), _ => SelectedWord is not null && CanOpen<WordEditViewModel>());
+        ShowToolsCommand = new RelayCommand(() => ShowOverlay(new ToolsViewModel(SelectedWord?.Form)), CanOpen<ToolsViewModel>);
+        ShowSettingsCommand = new RelayCommand(ShowSettings, CanOpen<SettingsViewModel>);
+        ShowInfoCommand = new RelayCommand(ShowInfo, CanOpen<InfoViewModel>);
+        ShowExamplesCommand = new RelayCommand(() => ShowExamples(), () => _doc is not null && CanOpen<ExamplesViewModel>());
         EditExampleCommand = new RelayCommand(
-            o => { if (o is Example e) ShowExampleEditor(e, backToList: false); },
-            _ => !IsOverlayOpen);
+            o => { if (o is Example e) ShowExampleEditor(e); },
+            _ => CanOpen<ExampleEditViewModel>());
         SetModeCommand = new RelayCommand(o => { if (o is string s) SearchMode = Enum.Parse<SearchMode>(s); });
         SetScopeCommand = new RelayCommand(o => { if (o is string s) SearchScope = Enum.Parse<SearchScope>(s); });
-        ToggleLayoutCommand = new RelayCommand(ToggleLayout);
-        BackCommand = new RelayCommand(() => NavIndex = 0);
         FollowRelationCommand = new RelayCommand(o => FollowRelation(o as Relation));
         ClearQueryCommand = new RelayCommand(() => Query = "");
 
@@ -93,8 +93,11 @@ public sealed class MainViewModel : ViewModelBase
     /// <summary>右サイドバーのブラウザ（WebView2）の状態。</summary>
     public BrowserViewModel Browser { get; }
 
-    /// <summary>オーバーレイのドッキング位置。XAML からは {x:Static} でも同じ実体を引く。</summary>
-    public OverlayDockState Dock => OverlayDockState.Instance;
+    /// <summary>中央と 4 辺ぶんのタブ束。オーバーレイはここに入って初めて画面に出る。</summary>
+    public DockGroups Docks { get; }
+
+    /// <summary>ドラッグ中の状態。XAML からは {x:Static} でも同じ実体を引く。</summary>
+    public OverlayDragState Drag => OverlayDragState.Instance;
 
     private static readonly ObservableCollection<Word> EmptyWords = new();
 
@@ -105,7 +108,6 @@ public sealed class MainViewModel : ViewModelBase
         {
             if (!Set(ref _selected, value)) return;
             Raise(nameof(HasSelection));
-            if (value is not null && Settings.Layout == LayoutMode.Navigate) NavIndex = 1;
             RefreshRelatedExamples();
         }
     }
@@ -166,68 +168,21 @@ public sealed class MainViewModel : ViewModelBase
 
     public string CountLabel => _doc is null ? "" : $"{FilteredWords.Count} / {_doc.Words.Count} 語";
 
-    /// <summary>
-    /// ドッキングできるオーバーレイの置き場。中央に浮かせるか窓の縁に付けるかは
-    /// <see cref="OverlayDockState"/> が決め、実際に描く側を <see cref="FloatingOverlay"/> と
-    /// <see cref="DockedOverlay"/> で振り分ける。同じ ViewModel を 2 つの ContentControl に
-    /// 同時に載せると DataTemplate が二重に実体化するので、必ず片方だけが非 null になる。
-    /// </summary>
-    public OverlayViewModel? PanelOverlay
-    {
-        get => _overlay;
-        private set
-        {
-            if (!Set(ref _overlay, value)) return;
-            RaiseOverlayPlacement();
-        }
-    }
-
-    /// <summary>確認ダイアログ専用の層。ドッキング中の編集画面を閉じずに上へ重ねる。</summary>
+    /// <summary>確認ダイアログ専用の層。窓全体を覆い、ドッキング中の画面を閉じずに上へ重ねる。</summary>
     public OverlayViewModel? ModalOverlay
     {
         get => _modal;
         private set
         {
             if (!Set(ref _modal, value)) return;
-            Raise(nameof(IsOverlayOpen));
             Raise(nameof(IsBrowserShown));
         }
     }
 
-    public OverlayViewModel? DockedOverlay => Dock.IsDocked ? PanelOverlay : null;
-
-    public OverlayViewModel? FloatingOverlay => Dock.IsDocked ? null : PanelOverlay;
-
-    public bool IsDockedPanelOpen => DockedOverlay is not null;
-
-    public bool IsFloatingPanelOpen => FloatingOverlay is not null;
-
-    public bool IsOverlayOpen => PanelOverlay is not null || ModalOverlay is not null;
-
-    /// <summary>ブラウザサイドバーの実表示。オーバーレイが開いている間は airspace（WebView2 が
-    /// WPF 描画より手前に出る）を避けるため強制的に false にする。ドッキング中のオーバーレイは
-    /// サイドバーと場所を取り合わないが、プルダウンの一覧とドロップ先の升目は窓の最上段に描くので
-    /// サイドバーに重なりうる。ここは中央表示と同じ扱いにしておく。</summary>
-    public bool IsBrowserShown => Browser.IsOpen && !IsOverlayOpen;
-
-    /// <summary>遷移レイアウト時のみ意味を持つ。0=検索, 1=詳細。</summary>
-    public int NavIndex
-    {
-        get => _navIndex;
-        set
-        {
-            if (!Set(ref _navIndex, value)) return;
-            Raise(nameof(IsSearchVisible));
-            Raise(nameof(IsDetailVisible));
-            Raise(nameof(IsBackVisible));
-        }
-    }
-
-    public bool IsNavigateLayout => Settings.Layout == LayoutMode.Navigate;
-    public bool IsSplitLayout => Settings.Layout == LayoutMode.Split;
-    public bool IsSearchVisible => IsSplitLayout || NavIndex == 0;
-    public bool IsDetailVisible => IsSplitLayout || NavIndex == 1;
-    public bool IsBackVisible => IsNavigateLayout && NavIndex == 1;
+    /// <summary>ブラウザサイドバーの実表示。窓全体を覆う確認ダイアログの間は
+    /// airspace（WebView2 が WPF 描画より手前に出る）を避けるため強制的に false にする。
+    /// ドッキングしたオーバーレイとはサイドバーと場所を取り合わないので出したままにする。</summary>
+    public bool IsBrowserShown => Browser.IsOpen && ModalOverlay is null;
 
     public double BaseFontSize => 14 * Settings.FontScale;
     public double HeadwordFontSize => 30 * Settings.FontScale;
@@ -253,39 +208,54 @@ public sealed class MainViewModel : ViewModelBase
     public ICommand EditExampleCommand { get; }
     public ICommand SetModeCommand { get; }
     public ICommand SetScopeCommand { get; }
-    public ICommand ToggleLayoutCommand { get; }
-    public ICommand BackCommand { get; }
     public ICommand FollowRelationCommand { get; }
     public ICommand ClearQueryCommand { get; }
 
     // ---- overlays -------------------------------------------------------
 
+    /// <summary>Esc で閉じる相手。触った順に前へ来る（開いた・タブを選んだ順）。</summary>
+    private readonly List<OverlayViewModel> _recent = new();
+
+    public OverlayViewModel? ActiveOverlay => _recent.Count > 0 ? _recent[0] : null;
+
+    /// <summary>その種類がまだ開いていないか。確認ダイアログ中はどれも開かせない。</summary>
+    public bool CanOpen<T>() where T : OverlayViewModel
+        => ModalOverlay is null && !Docks.Overlays.Any(o => o is T);
+
+    /// <summary>編集中は辞書の差し替えを止める。保存の宛先だけが入れ替わるのを防ぐため。</summary>
+    private bool IsEditorOpen
+        => ModalOverlay is not null
+           || Docks.Overlays.Any(o => o is WordEditViewModel or ExampleEditViewModel);
+
     public void ShowOverlay(OverlayViewModel vm)
     {
-        if (vm.IsDockable)
-        {
-            vm.RequestClose = () => PanelOverlay = null;
-            PanelOverlay = vm;
-        }
-        else
+        if (!vm.IsDockable)
         {
             vm.RequestClose = () => ModalOverlay = null;
             ModalOverlay = vm;
+            return;
         }
+        vm.RequestClose = () => CloseOverlay(vm);
+        Docks.Add(vm);
+        Touch(vm);
     }
 
-    public void CloseOverlay() => PanelOverlay = null;
+    public void CloseOverlay(OverlayViewModel vm)
+    {
+        Docks.Remove(vm);
+        _recent.Remove(vm);
+        Raise(nameof(ActiveOverlay));
+    }
 
     public void CloseModal() => ModalOverlay = null;
 
-    private void RaiseOverlayPlacement()
+    private void Touch(OverlayViewModel? vm)
     {
-        Raise(nameof(DockedOverlay));
-        Raise(nameof(FloatingOverlay));
-        Raise(nameof(IsDockedPanelOpen));
-        Raise(nameof(IsFloatingPanelOpen));
-        Raise(nameof(IsOverlayOpen));
-        Raise(nameof(IsBrowserShown));   // オーバーレイを閉じたらブラウザを見せる
+        // 据え置きのタブは閉じられないので、Esc の行き先（＝最後に触ったタブ）にも入れない。
+        if (vm is null || vm.IsPinned) return;
+        _recent.Remove(vm);
+        _recent.Insert(0, vm);
+        Raise(nameof(ActiveOverlay));
     }
 
     // ---- dictionary -----------------------------------------------------
@@ -439,10 +409,6 @@ public sealed class MainViewModel : ViewModelBase
         Raise(nameof(StreamBodySize));
         Raise(nameof(StreamLabelSize));
         Raise(nameof(StreamPlaceholderSize));
-        Raise(nameof(IsNavigateLayout));
-        Raise(nameof(IsSplitLayout));
-        Raise(nameof(IsSearchVisible));
-        Raise(nameof(IsDetailVisible));
     }
 
     public void RebuildIndex()
@@ -518,7 +484,7 @@ public sealed class MainViewModel : ViewModelBase
         var changeDetail = !isNew && formChanged ? $"旧: {oldForm}" : "";
         AddPendingChange(new ChangeEntry(DateTime.Now, isNew ? "ADD" : "CHANGE", word.Form, changeDetail));
 
-        CloseOverlay();
+        CloseOverlay(vm);
         RebuildIndex();
         SelectedWord = word;
         MarkDirty($"「{word.Form}」を{(isNew ? "追加" : "更新")}しました。");
@@ -555,7 +521,6 @@ public sealed class MainViewModel : ViewModelBase
         AddPendingChange(new ChangeEntry(DateTime.Now, "DELETE", w.Form, ""));
         if (SelectedWord == w) SelectedWord = null;
         RebuildIndex();
-        NavIndex = 0;
         MarkDirty($"「{w.Form}」を削除しました。");
     }
 
@@ -603,30 +568,31 @@ public sealed class MainViewModel : ViewModelBase
 
     // ---- examples --------------------------------------------------------
 
-    /// <summary>例文の一覧を開く。編集から戻ってきたときも同じ絞り込みで開き直す。</summary>
+    /// <summary>例文の一覧を開く。閉じて開き直したときも同じ絞り込みで始まる。</summary>
     private void ShowExamples()
     {
         if (_doc is null) { Status = "辞書を開いてください。"; return; }
         var vm = new ExamplesViewModel(_doc, _exampleQuery);
-        vm.AddRequested = () => { _exampleQuery = vm.Query; ShowExampleEditor(null, backToList: true); };
-        vm.EditRequested = e => { _exampleQuery = vm.Query; ShowExampleEditor(e, backToList: true); };
+        vm.AddRequested = () => { _exampleQuery = vm.Query; ShowExampleEditor(null); };
+        vm.EditRequested = e => { _exampleQuery = vm.Query; ShowExampleEditor(e); };
         ShowOverlay(vm);
     }
 
     /// <summary>
-    /// 例文エディタを開く。<paramref name="backToList"/> が真なら保存・削除・キャンセルのあと一覧に戻り、
-    /// 偽（詳細欄の「参照例文」から開いた場合）ならオーバーレイを閉じて詳細欄に戻る。
+    /// 例文エディタを開く。一覧は別のタブとして開いたままなので、閉じれば元の並びがそのまま出る。
+    /// 一覧が開いていれば中身を引き直して、追加・削除をその場で反映する。
     /// </summary>
-    private void ShowExampleEditor(Example? example, bool backToList)
+    private void ShowExampleEditor(Example? example)
     {
         if (_doc is null) return;
+        ExampleEditViewModel? vm = null;
         void Back()
         {
-            if (backToList) ShowExamples();
-            else CloseOverlay();
+            if (vm is not null) CloseOverlay(vm);
+            foreach (var list in Docks.Overlays.OfType<ExamplesViewModel>().ToList()) list.Refresh();
         }
 
-        var vm = new ExampleEditViewModel(example, _doc, _search, v => CommitExample(v, Back));
+        vm = new ExampleEditViewModel(example, _doc, _search, v => CommitExample(v, Back));
         vm.CancelRequested = Back;
         vm.DeleteRequested = () => ConfirmDeleteExample(vm, Back);
         ShowOverlay(vm);
@@ -684,9 +650,12 @@ public sealed class MainViewModel : ViewModelBase
         foreach (var e in _pendingChanges)
             rows.Add(new[] { "*" + e.At.ToString("yyyy-MM-dd"), e.Operation, e.Form, e.Detail });
 
-        ShowOverlay(new InfoViewModel(_doc, legend, rows, csv,
+        InfoViewModel? vm = null;
+        vm = new InfoViewModel(_doc, legend, rows, csv,
             new RelayCommand(() => ExportChangelog(csv)),
-            new RelayCommand(RelinkChangelog)));
+            // CSV を選び直すと一覧の中身が変わるので、この画面はいったん閉じて開き直させる。
+            new RelayCommand(() => { if (RelinkChangelog() && vm is not null) CloseOverlay(vm); }));
+        ShowOverlay(vm);
     }
 
     private void ExportChangelog(string csv)
@@ -698,23 +667,14 @@ public sealed class MainViewModel : ViewModelBase
         Status = $"{dlg.FileName} に書き出しました。";
     }
 
-    private void RelinkChangelog()
+    private bool RelinkChangelog()
     {
         var dlg = new OpenFileDialog { Title = "更新履歴 CSV を選択", Filter = "CSV (*.csv)|*.csv|すべてのファイル (*.*)|*.*" };
-        if (dlg.ShowDialog() != true) return;
+        if (dlg.ShowDialog() != true) return false;
         Settings.ChangelogPath = dlg.FileName;
         Settings.Save();
         Status = $"更新履歴を {Path.GetFileName(dlg.FileName)} に連携しました。";
-        CloseOverlay();
-    }
-
-    private void ToggleLayout()
-    {
-        Settings.Layout = Settings.Layout == LayoutMode.Split ? LayoutMode.Navigate : LayoutMode.Split;
-        Settings.Save();
-        NavIndex = SelectedWord is null ? 0 : NavIndex;
-        ApplySettings();
-        Status = Settings.Layout == LayoutMode.Split ? "分割レイアウト" : "遷移レイアウト（配信向け）";
+        return true;
     }
 
     public bool ConfirmCloseIfDirty(Action proceed)

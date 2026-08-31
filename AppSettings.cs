@@ -5,8 +5,6 @@ using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Services;
 
-public enum LayoutMode { Split, Navigate }
-
 public sealed class AppSettings
 {
     public string? LastDictionaryPath { get; set; }
@@ -20,12 +18,14 @@ public sealed class AppSettings
 
     public string SortOrder { get; set; } = TextProcessor.DefaultSortOrder;
 
-    public LayoutMode Layout { get; set; } = LayoutMode.Split;
+    // オーバーレイを寄せた辺。種類名（OverlayViewModel.Kind）で引く。
+    public Dictionary<string, DockSide> OverlayDocks { get; set; } = new();
 
-    // 編集画面などのオーバーレイをドッキングした辺と大きさ。Floating は画面中央のモーダル表示。
-    public DockSide OverlayDock { get; set; } = DockSide.Floating;
-    public double OverlayDockWidth { get; set; } = 520;
-    public double OverlayDockHeight { get; set; } = 340;
+    // 辺ごとの大きさ。タブを跨いでも変わらないので、辺の数だけ持てば足りる。
+    public double DockLeftWidth { get; set; } = 420;
+    public double DockRightWidth { get; set; } = 420;
+    public double DockTopHeight { get; set; } = 340;
+    public double DockBottomHeight { get; set; } = 340;
 
     public bool StreamWindowTopmost { get; set; } = true;
     public string StreamBackground { get; set; } = "#00B140";

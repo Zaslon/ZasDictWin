@@ -84,17 +84,18 @@ public sealed class ScaleFontSizeConverter : IValueConverter
 }
 
 /// <summary>
-/// ドッキング中はカードの最大幅を外す。ConverterParameter は中央表示のときの上限（px）。
-/// 上下にドッキングしたときに幅だけ中途半端に絞られて、浮いたカードのように見えるのを防ぐ。
+/// 窓の実寸に ConverterParameter の係数を掛ける。辺に寄せた画面が広がりすぎて
+/// 検索と詳細（＝最後に残りを受け取る側）が 0 幅に潰れるのを防ぐ上限に使う。
 /// </summary>
-public sealed class DockMaxWidthConverter : IValueConverter
+public sealed class RatioConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is true) return double.PositiveInfinity;
-        return parameter is string s && double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var w)
-            ? w
-            : double.PositiveInfinity;
+        if (value is not double size || double.IsNaN(size) || size <= 0) return double.PositiveInfinity;
+        var ratio = parameter is string s && double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var r)
+            ? r
+            : 1.0;
+        return size * ratio;
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
@@ -111,14 +112,18 @@ public sealed class DockZoneOpacityConverter : IMultiValueConverter
         => throw new NotSupportedException();
 }
 
-/// <summary>ヘッダとフッタの実高さを Thickness にする。窓全体に敷いた層を本文の範囲だけに収めるために使う。</summary>
+/// <summary>
+/// ヘッダ・フッタの実高さとブラウザサイドバーの実幅を Thickness にする。窓全体に敷いた層を、
+/// ドッキングした本体が実際に収まる範囲（＝それらを除いた残り）だけに合わせるために使う。
+/// </summary>
 public sealed class EdgeInsetsConverter : IMultiValueConverter
 {
     public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
     {
         var top = values.Length > 0 && values[0] is double t ? t : 0;
         var bottom = values.Length > 1 && values[1] is double b ? b : 0;
-        return new Thickness(0, top, 0, bottom);
+        var right = values.Length > 2 && values[2] is double r ? r : 0;
+        return new Thickness(0, top, right, bottom);
     }
 
     public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)

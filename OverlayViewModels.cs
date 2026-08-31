@@ -48,6 +48,23 @@ public sealed class ChoiceViewModel : OverlayViewModel
     }
 }
 
+/// <summary>
+/// 中央に据え置く単語詳細のタブ。選択中の単語も操作も MainViewModel がそのまま持つので、
+/// ここはタブ束に並ぶための器で、中身は <see cref="Main"/> を DataContext にして描く。
+/// </summary>
+public sealed class WordDetailViewModel : OverlayViewModel
+{
+    public WordDetailViewModel(MainViewModel main)
+    {
+        Main = main;
+        Title = "単語詳細";
+    }
+
+    public MainViewModel Main { get; }
+
+    public override bool IsPinned => true;
+}
+
 public sealed class ToolsViewModel : OverlayViewModel
 {
     private string _input = "";

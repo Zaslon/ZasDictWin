@@ -10,8 +10,8 @@
     <v:StringToBrushConverter x:Key="StringBrush" />
     <v:EqualsMultiConverter x:Key="EqualsMulti" />
     <v:ScaleFontSizeConverter x:Key="ScaleFont" />
-    <v:DockMaxWidthConverter x:Key="DockMaxWidth" />
     <v:DockZoneOpacityConverter x:Key="DockZoneOpacity" />
+    <v:RatioConverter x:Key="Ratio" />
     <v:EdgeInsetsConverter x:Key="EdgeInsets" />
 
     <!-- 配色トークン。キー名は据え置きで値だけ更新しているので、参照側（オーバーレイ含む）はそのまま動く。
@@ -520,15 +520,27 @@
         <Setter Property="Padding" Value="20" />
     </Style>
 
-    <!-- オーバーレイの外枠。ドッキング中は余白と角の丸みを落として、面を窓の縁にぴたりと付ける。
-         中央表示に戻したときの見え方を揃えるため、最大幅だけは呼び出し側が px で渡す。 -->
-    <Style x:Key="OverlayCard" TargetType="Border" BasedOn="{StaticResource Card}">
+    <!-- オーバーレイの外枠。必ず辺に付くので、枠と角の丸みは束ねる DockGroupPanel 側に任せ、
+         ここは面の色だけを持つ。 -->
+    <Style x:Key="OverlayCard" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource Panel}" />
         <Setter Property="Padding" Value="0" />
-        <Setter Property="Margin" Value="40,28" />
+    </Style>
+
+    <!-- タブの見出し。掴んで別の辺へ運ぶ取っ手も兼ねる（v:OverlayDrag.IsGrip） -->
+    <Style x:Key="DockTab" TargetType="Border">
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Background" Value="{StaticResource Raised}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="9,2,4,2" />
+        <Setter Property="Margin" Value="0,0,5,0" />
+        <Setter Property="TextElement.Foreground" Value="{StaticResource Muted}" />
         <Style.Triggers>
-            <DataTrigger Binding="{Binding Source={x:Static vm:OverlayDockState.Instance}, Path=IsDocked}" Value="True">
-                <Setter Property="Margin" Value="0" />
-                <Setter Property="CornerRadius" Value="0" />
+            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentDim}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+                <Setter Property="TextElement.Foreground" Value="{StaticResource Text}" />
             </DataTrigger>
         </Style.Triggers>
     </Style>
@@ -564,7 +576,7 @@
         <Setter Property="Opacity">
             <Setter.Value>
                 <MultiBinding Converter="{StaticResource DockZoneOpacity}">
-                    <Binding Source="{x:Static vm:OverlayDockState.Instance}" Path="HoverSide" />
+                    <Binding Source="{x:Static vm:OverlayDragState.Instance}" Path="HoverSide" />
                     <Binding RelativeSource="{RelativeSource Self}" Path="Tag" />
                 </MultiBinding>
             </Setter.Value>
@@ -578,7 +590,9 @@
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="IsHitTestVisible" Value="False" />
+        <!-- 帯の幅は固定なので、文字サイズ倍率を上げたぶんは末尾を省略して押し出さない -->
         <Setter Property="TextWrapping" Value="NoWrap" />
+        <Setter Property="TextTrimming" Value="CharacterEllipsis" />
         <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
     </Style>
 
