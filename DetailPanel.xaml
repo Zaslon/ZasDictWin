@@ -47,8 +47,9 @@
                         </ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
+                                <!-- 半径は Chip と同じ 6。1 文字のタグでもピルのように丸まらないようにする -->
                                 <Border Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
-                                        BorderThickness="1" CornerRadius="999" Padding="10,3" Margin="0,0,6,6">
+                                        BorderThickness="1" CornerRadius="6" Padding="10,3" Margin="0,0,6,6">
                                     <TextBlock Text="{Binding}" Foreground="{StaticResource Muted}"
                                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
                                 </Border>
