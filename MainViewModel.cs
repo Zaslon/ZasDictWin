@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using System.IO;
 using System.Text.Json.Nodes;
 using System.Windows.Input;
@@ -32,7 +32,7 @@ public sealed class MainViewModel : ViewModelBase
     {
         Settings = AppSettings.Load();
         _search = new SearchService(_text, null);
-        _relations = new RelationService(Settings.ReciprocalMap);
+        _relations = new RelationService(Choices.Current.Relations);
         Browser = new BrowserViewModel(Settings);
 
         // サイドバーの開閉はオーバーレイとの排他表示（IsBrowserShown）に効く。
@@ -362,7 +362,7 @@ public sealed class MainViewModel : ViewModelBase
 
         _text = new TextProcessor(Settings.SortOrder, punctuations);
         _search = new SearchService(_text, ignoredPattern);
-        _relations = new RelationService(Settings.ReciprocalMap);
+        _relations = new RelationService(Choices.Current.Relations);
 
         var heksa = Settings.HeksaEnabled ? HeadwordFontState.Load(Settings.HeksaFontPath) : null;
         HeadwordFontState.Instance.Family = heksa ?? HeadwordFontState.Fallback;

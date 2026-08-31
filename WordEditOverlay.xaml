@@ -83,7 +83,7 @@
                                         <Button DockPanel.Dock="Right" Content="✕" Style="{StaticResource GhostButton}" Margin="0"
                                                 Command="{Binding DataContext.RemoveContentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}" />
-                                        <!-- 内容欄の種類は固定語彙（Const.ContentTypes）から選ぶため、既存行のタイトルは編集不可にする -->
+                                        <!-- 内容欄の種類は選択肢（choices.json の ContentTypes）から選ぶため、既存行のタイトルは編集不可にする -->
                                         <TextBlock Text="{Binding Title}" Style="{StaticResource Label}" Margin="0" VerticalAlignment="Center" />
                                     </DockPanel>
                                     <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"

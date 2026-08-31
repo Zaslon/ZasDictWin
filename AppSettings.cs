@@ -18,7 +18,6 @@ public sealed class AppSettings
     public string? HeksaFontPath { get; set; }
 
     public string SortOrder { get; set; } = TextProcessor.DefaultSortOrder;
-    public Dictionary<string, string> ReciprocalMap { get; set; } = RelationService.DefaultMap;
 
     public LayoutMode Layout { get; set; } = LayoutMode.Split;
 

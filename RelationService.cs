@@ -12,7 +12,7 @@ public sealed class RelationService
 
     public RelationService(IReadOnlyDictionary<string, string> reciprocalMap) => _reciprocal = reciprocalMap;
 
-    public static Dictionary<string, string> DefaultMap => new(Const.ReciprocalMap);
+    public static Dictionary<string, string> DefaultMap => new(Choices.Defaults.Relations);
 
     public IEnumerable<string> Titles => _reciprocal.Keys;
 

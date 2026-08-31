@@ -147,7 +147,8 @@ public sealed class ExampleEditViewModel : OverlayViewModel
         set { if (Set(ref _wordQuery, value)) RefreshCandidates(); }
     }
 
-    public IReadOnlyList<ExampleCatalog> Catalogs { get; } = Const.ExampleCatalogs;
+    /// <summary>出典プルダウンに並べる一覧（choices.json の ExampleCatalogs）。</summary>
+    public IReadOnlyList<ExampleCatalog> Catalogs { get; } = Choices.Current.ExampleCatalogs;
 
     /// <summary>選択中の出典カタログ（API 名）。保存されるのはこの値。</summary>
     public string Catalog

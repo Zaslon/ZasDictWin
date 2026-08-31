@@ -119,7 +119,7 @@ public sealed class SettingsViewModel : OverlayViewModel
         AutoSave = settings.AutoSave;
         HeksaEnabled = settings.HeksaEnabled;
         HeksaFontPath = settings.HeksaFontPath ?? "";
-        ReciprocalText = FormatReciprocal(settings.ReciprocalMap);
+        ReciprocalText = FormatReciprocal(Choices.Current.Relations);
 
         StreamBackground = settings.StreamBackground;
         StreamFontScale = settings.StreamFontScale;
@@ -241,7 +241,12 @@ public sealed class SettingsViewModel : OverlayViewModel
             if (i <= 0) continue;
             map[t[..i].Trim()] = t[(i + 1)..].Trim();
         }
-        if (map.Count > 0) _settings.ReciprocalMap = map;
+        // 対照表だけは choices.json 側の持ち物なので、設定の保存とは別に書き戻す。
+        if (map.Count > 0)
+        {
+            Choices.Current.Relations = map;
+            Choices.Current.Save();
+        }
 
         _settings.StreamBackground = StreamBackground;
         _settings.StreamFontScale = Math.Clamp(StreamFontScale, 1.0, 6.0);
