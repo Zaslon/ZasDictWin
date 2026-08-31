@@ -8,8 +8,10 @@ OBS で画面を配信しながら編集することを前提に、ダイアロ�
 OBS の［ウィンドウキャプチャ］は対象ウィンドウの HWND だけを取り込むため、別ウィンドウとして
 生成される UI 要素は配信に映りません。本アプリはそれを避けるため次の構成を取っています。
 
-- `MessageBox` / `ContextMenu` / `ToolTip` / `ComboBox` のドロップダウンを使わない。
+- `MessageBox` / `ContextMenu` / `ComboBox` のドロップダウンを使わない。
   確認・警告・単語ごとの操作メニューはすべてメインウィンドウ内のオーバーレイ層に描画する
+- `ToolTip` も別 HWND なので配信には映らない。補助説明にだけ使い、それが唯一の手掛かりになる情報は
+  必ず画面上の文字でも示す（例: 未保存はヘッダのドットに加えてタイトルバーの `*` でも分かるようにする）
 - 検索モード、検索対象、関係の種類の選択は chip 型トグル（`Themes/Theme.xaml` の `Chip` スタイル）
 - レイアウトを 2 種類から選べる
   - **分割**: 左に検索と一覧、右に詳細。デスクトップでの編集作業向け
@@ -41,10 +43,11 @@ OBS の［ウィンドウキャプチャ］は対象ウィンドウの HWND だ�
 - `TabItem` のカスタムテンプレートでは、ヘッダー用 `ContentPresenter` に `ContentSource="Header"` を必ず付ける。省略すると `TabItem.Content`（ページ本体）がヘッダー枠の中に描かれ、TabPanel が子を無限サイズで測るため内側の ScrollViewer に高さが渡らずスクロール不能になる。加えて FlowDocument が無限幅で Arrange され、WPF 内部の PtsHost が FailFast（try/catch 不能）でプロセスを落とす
 - オーバーレイ類の ScrollViewer は `HorizontalScrollBarVisibility="Disabled"` に統一する。横方向のはみ出しは折り返しと末尾省略で吸収させ、横スクロールで行順が入れ替わる状態を作らない
 - 既定（暗黙）の TextBlock スタイルは明示的な `Style` 指定で打ち消される。`Label` / `SectionHeading` などキースタイル側で `TextWrapping="Wrap"` を宣言し直さないと、長い案内文が幅を超えて末尾が切れる
+- 逆に `TextTrimming="CharacterEllipsis"` は `TextWrapping="NoWrap"` とセットで書く。既定スタイルも `Label` も `Wrap` なので、`NoWrap` を書かないと折り返しが優先されて省略記号が一生出ない。1 行に収めたい欄（見出し語の一覧、フッタのステータス、パス表示、入力欄の案内文字）は両方を明示する
 
 ## 障害ログ
 
-キャッチできた例外は `%APPDATA%\ZasDictWin\error.log` にスタックトレースを追記し、アプリは落とさずにオーバーレイで案内する（MessageBox は別 HWND なので OBS に映らない）。レポート時にはこのファイルを添付する。Markdown 描画が原因の PtsHost FailFast はキャッチ不能なため、ログには残らずプロセスが終了する。
+キャッチできた例外は `%APPDATA%\ZasDictWin\error.log` にスタックトレースを追記し、アプリは落とさずにオーバーレイで案内する（MessageBox は別 HWND なので OBS に映らない）。画面に出す先が無い失敗（設定の読み書き、Heksa フォントの読み込み、`ignoredPattern` の解釈）も、黙って既定値に戻る理由が後から追えるよう記録だけは残す。レポート時にはこのファイルを添付する。Markdown 描画が原因の PtsHost FailFast はキャッチ不能なため、ログには残らずプロセスが終了する。
 
 ## ビルド
 

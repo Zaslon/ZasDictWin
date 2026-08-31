@@ -13,7 +13,6 @@
             <Grid>
                 <TextBox x:Name="QueryBox"
                          Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=80}"
-                         FontSize="{Binding BaseFontSize}"
                          FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}"
                          v:Placeholder.Text="見出し語を入力"
                          Padding="30,6,32,6" />
@@ -63,10 +62,12 @@
         </StackPanel>
 
         <Grid Margin="0,8,0,12">
+            <!-- 横スクロールは封じる。1 行に収まらない見出し語は末尾を … で省略する -->
             <ListBox x:Name="ResultList"
                      ItemsSource="{Binding FilteredWords}"
                      SelectedItem="{Binding SelectedWord}"
                      MouseDoubleClick="ResultList_MouseDoubleClick"
+                     ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      VirtualizingPanel.IsVirtualizing="True"
                      VirtualizingPanel.VirtualizationMode="Recycling">
                 <ListBox.ItemTemplate>
@@ -77,12 +78,13 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
+                                <!-- 見出し語・訳語とも 1 行に収める。既定スタイルの Wrap のままだと
+                                     折り返しが優先されて TextTrimming が働かず、行の高さも一定にならない
+                                     （MaxHeight で切ると文字サイズ倍率を上げたときに字が縦に欠ける） -->
                                 <TextBlock Text="{Binding DisplayForm}"
                                            FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}"
                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}"
-                                           TextTrimming="CharacterEllipsis" />
-                                <!-- MaxHeight で切ると文字サイズ倍率を上げたときに字が縦に欠けるため、
-                                     折り返しを止めて 1 行に収める（既定スタイルの Wrap を上書きする） -->
+                                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="{Binding TranslationSummary}" Foreground="{StaticResource Muted}"
                                            FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />

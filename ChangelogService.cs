@@ -54,7 +54,7 @@ public static class ChangelogService
     }
 
     /// <summary>
-    /// CSV の 1 行目が見出し行かどうか。このアプリは必ず先頭に見出すを書きますが、
+    /// CSV の 1 行目が見出し行かどうか。このアプリは必ず先頭に見出し行を書きますが、
     /// 手作業で作った CSV でも判別できるよう「日付（yyyy-MM-dd）で始まらない行」を見出しとみなします。
     /// </summary>
     public static bool IsHeaderRow(string[] cells) => cells.Length == 0 || !StartsWithDate(cells[0]);

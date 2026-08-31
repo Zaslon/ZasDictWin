@@ -51,9 +51,11 @@ public sealed class AppSettings
             if (File.Exists(FilePath))
                 return JsonSerializer.Deserialize<AppSettings>(File.ReadAllText(FilePath), Options) ?? new AppSettings();
         }
-        catch (Exception ex) when (ex is IOException or JsonException)
+        catch (Exception ex) when (ex is IOException or JsonException or UnauthorizedAccessException)
         {
             // 設定が壊れていても起動は続行する。既定値で上書き保存される。
+            // 起動直後に既定値へ戻る理由が後から追えるよう、記録だけは残す。
+            ErrorLog.Write("設定の読み込み", ex);
         }
         return new AppSettings();
     }
@@ -65,8 +67,11 @@ public sealed class AppSettings
             Directory.CreateDirectory(Dir);
             File.WriteAllText(FilePath, JsonSerializer.Serialize(this, Options));
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
+            // 保存できなくてもアプリは続行する（次に触った設定でまた試みる）。
+            // %APPDATA% が書けない環境では毎回ここに来るので、握りつぶさず記録に残す。
+            ErrorLog.Write("設定の保存", ex);
         }
     }
 }
