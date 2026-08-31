@@ -39,6 +39,10 @@ public static class Const
     /// <summary>発音記号を保存する内容欄の title。ContentTypes の先頭要素と同じ値にする。</summary>
     public const string PronContentTitle = "発音記号";
 
+    /// <summary>語源を保存する内容欄の title。ContentTypes の末尾要素と同じ値にする。
+    /// この欄だけ表示時に <see cref="Etymology"/> で語幹を切り出し、イジェール文字で描く。</summary>
+    public const string EtymologyContentTitle = "語源";
+
     /// <summary>内容欄の「発音記号」にテキストが入っている単語に自動で付くタグ（空になったら自動で外す）。</summary>
     public const string SpecialPronTag = "特殊発音";
 }

@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="clr-namespace:ZasDictWin.Models"
+             xmlns:v="clr-namespace:ZasDictWin.Views"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
 
     <Grid Margin="16,12">
@@ -111,7 +112,9 @@
                                         <StackPanel Margin="0,0,0,10">
                                             <TextBlock Text="{Binding Title}" Foreground="{StaticResource Accent}"
                                                        FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
-                                            <TextBlock Text="{Binding Text}" Margin="0,3,0,0" LineHeight="22" />
+                                            <!-- 語源欄はイジェール語の語幹だけ Heksa で描くため Inlines を組み立てる。
+                                                 他の内容欄は素のテキストとして 1 本の Run で置かれる。 -->
+                                            <TextBlock v:EtymologyText.Content="{Binding}" Margin="0,3,0,0" LineHeight="22" />
                                         </StackPanel>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>

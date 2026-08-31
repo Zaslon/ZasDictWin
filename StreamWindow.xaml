@@ -2,6 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:m="clr-namespace:ZasDictWin.Models"
+        xmlns:v="clr-namespace:ZasDictWin.Views"
         xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
         Title="ZasDict 単語ウィンドウ"
         Width="960" Height="360" MinWidth="480" MinHeight="200"
@@ -45,7 +46,8 @@
                             <StackPanel Margin="0,0,0,8">
                                 <TextBlock Text="{Binding Title}" Foreground="#CCFFFFFF"
                                            FontSize="{Binding DataContext.StreamLabelSize, RelativeSource={RelativeSource AncestorType=Window}}" />
-                                <TextBlock Text="{Binding Text}" Foreground="White"
+                                <!-- 語源欄は詳細欄と同じくイジェール語の語幹だけ Heksa で描く -->
+                                <TextBlock v:EtymologyText.Content="{Binding}" Foreground="White"
                                            FontSize="{Binding DataContext.StreamBodySize, RelativeSource={RelativeSource AncestorType=Window}}" />
                             </StackPanel>
                         </DataTemplate>
