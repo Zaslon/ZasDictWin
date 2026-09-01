@@ -54,6 +54,9 @@
             <DataTemplate DataType="{x:Type vm:ExampleEditViewModel}">
                 <ov:ExampleEditOverlay />
             </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:CommitViewModel}">
+                <ov:CommitOverlay />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

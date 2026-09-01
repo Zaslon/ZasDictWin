@@ -193,6 +193,17 @@
         </Style.Triggers>
     </Style>
 
+    <!-- ウィンドウを閉じるボタン。hover で他の IconButton と違い赤面にして、押すと閉じる操作だと
+         強調する（最小化・最大化と誤って隣接クリックしないための視覚差） -->
+    <Style x:Key="CloseIconButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource DangerFill}" />
+                <Setter Property="Foreground" Value="#1D0C0C" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <!-- 検索条件の切り替え。単体でも選んだ状態が分かるよう、ON は淡い紫の面＋アクセント枠にする
          （全面をアクセント色で塗ると 8 個並んだときに主張が強すぎるため）。 -->
     <!-- chip の角は「長丸（CornerRadius=999）」ではなく角丸にする。ピルだと文字数の少ない
@@ -712,5 +723,79 @@
     <Style x:Key="DropDownList" TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
         <Setter Property="Padding" Value="0" />
     </Style>
+
+    <!-- 階層メニューのボタン（v:MenuButton）。見た目は通常の Button に合わせ、末尾に開閉の三角だけ足す。
+         中身（v:MenuAction の列）は DropDownPanel と同じ器で AdornerLayer に描く。 -->
+    <Style TargetType="{x:Type v:MenuButton}">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="Background" Value="{StaticResource Raised}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type v:MenuButton}">
+                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
+                        <StackPanel Orientation="Horizontal" Margin="{TemplateBinding Padding}">
+                            <TextBlock Text="{TemplateBinding Header}" Foreground="{TemplateBinding Foreground}"
+                                       VerticalAlignment="Center" TextWrapping="NoWrap" />
+                            <Path Data="M 0,0 L 8,0 L 4,5 Z" Fill="{TemplateBinding Foreground}"
+                                  Opacity="0.6" Margin="7,0,0,0" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
+                        </Trigger>
+                        <Trigger Property="IsOpen" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.45" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 開いた一覧の中身。DropDownPanel（面・枠）を外側に被せるので、ここは項目を縦に並べるだけ -->
+    <Style x:Key="MenuActionList" TargetType="ItemsControl">
+        <Setter Property="ItemsPanel">
+            <Setter.Value>
+                <ItemsPanelTemplate>
+                    <StackPanel />
+                </ItemsPanelTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 項目 1 つぶん。保存など IsPrimary の項目だけ、元のツールバーにあった PrimaryButton と
+         同じアクセント面で強調する（並びの中で見失わないように）。 -->
+    <DataTemplate x:Key="MenuActionTemplate" DataType="{x:Type v:MenuAction}">
+        <Button Content="{Binding Header}" ToolTip="{Binding ToolTip}" Command="{Binding Command}"
+                Visibility="{Binding IsVisible, Converter={StaticResource BoolVis}}"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                Margin="0,1" Padding="10,7">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding IsPrimary}" Value="True">
+                            <Setter Property="Background" Value="{StaticResource AccentFill}" />
+                            <Setter Property="Foreground" Value="#170F28" />
+                            <Setter Property="BorderBrush" Value="Transparent" />
+                            <Setter Property="FontWeight" Value="SemiBold" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+    </DataTemplate>
 
 </ResourceDictionary>

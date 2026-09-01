@@ -26,7 +26,6 @@
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="*" />
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0">
                                     <TextBlock Text="{Binding WordCount}"
@@ -34,14 +33,9 @@
                                     <TextBlock Text="見出し語" Style="{StaticResource Label}" />
                                 </StackPanel>
                                 <StackPanel Grid.Column="1">
-                                    <TextBlock Text="{Binding TranslationCount}"
+                                    <TextBlock Text="{Binding ExampleCount}"
                                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=34}" />
-                                    <TextBlock Text="訳語" Style="{StaticResource Label}" />
-                                </StackPanel>
-                                <StackPanel Grid.Column="2">
-                                    <TextBlock Text="{Binding RelationCount}"
-                                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=34}" />
-                                    <TextBlock Text="関連語" Style="{StaticResource Label}" />
+                                    <TextBlock Text="例文" Style="{StaticResource Label}" />
                                 </StackPanel>
                             </Grid>
 

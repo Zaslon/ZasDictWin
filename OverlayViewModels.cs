@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Text.Json.Nodes;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -184,6 +185,13 @@ public sealed class SettingsViewModel : OverlayViewModel
         HeksaFontPath = settings.HeksaFontPath ?? "";
         ReciprocalText = FormatReciprocal(Choices.Current.Relations);
 
+        _mode = settings.Mode;
+        GitHubOwner = settings.GitHubOwner ?? "";
+        GitHubRepo = settings.GitHubRepo ?? "";
+        GitHubBranch = string.IsNullOrWhiteSpace(settings.GitHubBranch) ? "main" : settings.GitHubBranch;
+        GitHubJsonPath = settings.GitHubJsonPath ?? "";
+        GitHubChangelogPath = settings.GitHubChangelogPath ?? "";
+
         StreamBackground = settings.StreamBackground;
         StreamFontScale = settings.StreamFontScale;
         StreamTopmost = settings.StreamWindowTopmost;
@@ -204,6 +212,9 @@ public sealed class SettingsViewModel : OverlayViewModel
         ApplyCommand = new RelayCommand(ApplyAll);
         PickFontCommand = new RelayCommand(PickFont);
         ResetReciprocalCommand = new RelayCommand(() => ReciprocalText = FormatReciprocal(RelationService.DefaultMap));
+        SetModeCommand = new RelayCommand(o => { if (o is string s) Mode = Enum.Parse<EditMode>(s); });
+        SaveGitHubTokenCommand = new RelayCommand(SaveGitHubToken, () => GitHubTokenInput.Trim().Length > 0);
+        DeleteGitHubTokenCommand = new RelayCommand(DeleteGitHubToken, () => HasGitHubToken);
     }
 
     private static string FormatReciprocal(IEnumerable<KeyValuePair<string, string>> map)
@@ -273,9 +284,70 @@ public sealed class SettingsViewModel : OverlayViewModel
     public bool BrowserVisible { get; set; }
     public string BrowserStartUrl { get; set; } = "";
 
+    // ---- GitHub モード ----------------------------------------------------
+
+    private EditMode _mode;
+    public EditMode Mode
+    {
+        get => _mode;
+        set
+        {
+            if (!Set(ref _mode, value)) return;
+            Raise(nameof(IsGitHubMode));
+        }
+    }
+
+    public bool IsGitHubMode => Mode == EditMode.GitHub;
+
+    public string GitHubOwner { get; set; } = "";
+    public string GitHubRepo { get; set; } = "";
+    public string GitHubBranch { get; set; } = "main";
+    public string GitHubJsonPath { get; set; } = "";
+    public string GitHubChangelogPath { get; set; } = "";
+
+    private string _gitHubTokenInput = "";
+    /// <summary>トークンの入力欄。保存すると空に戻す（画面にキーを残さない）。</summary>
+    public string GitHubTokenInput { get => _gitHubTokenInput; set => Set(ref _gitHubTokenInput, value); }
+
+    public bool HasGitHubToken => GitHubApi.LoadToken() is not null;
+
+    public string GitHubTokenHint => HasGitHubToken
+        ? $"トークンは保存済みです（{GitHubApi.TokenPath}）。入れ直すと上書きします。"
+        : $"repo の Contents 読み書き権限を持つトークンが必要です。保存先: {GitHubApi.TokenPath}";
+
+    private string _gitHubTokenStatus = "";
+    public string GitHubTokenStatus { get => _gitHubTokenStatus; private set => Set(ref _gitHubTokenStatus, value); }
+
     public ICommand ApplyCommand { get; }
     public ICommand PickFontCommand { get; }
     public ICommand ResetReciprocalCommand { get; }
+    public ICommand SetModeCommand { get; }
+    public ICommand SaveGitHubTokenCommand { get; }
+    public ICommand DeleteGitHubTokenCommand { get; }
+
+    private void SaveGitHubToken()
+    {
+        try
+        {
+            GitHubApi.SaveToken(GitHubTokenInput);
+            GitHubTokenInput = "";
+            GitHubTokenStatus = "トークンを保存しました。";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            GitHubTokenStatus = $"トークンを保存できませんでした: {ex.Message}";
+        }
+        Raise(nameof(HasGitHubToken));
+        Raise(nameof(GitHubTokenHint));
+    }
+
+    private void DeleteGitHubToken()
+    {
+        GitHubApi.DeleteToken();
+        GitHubTokenStatus = "トークンを削除しました。";
+        Raise(nameof(HasGitHubToken));
+        Raise(nameof(GitHubTokenHint));
+    }
 
     private void PickFont()
     {
@@ -294,6 +366,13 @@ public sealed class SettingsViewModel : OverlayViewModel
         _settings.AutoSave = AutoSave;
         _settings.HeksaEnabled = HeksaEnabled;
         _settings.HeksaFontPath = string.IsNullOrWhiteSpace(HeksaFontPath) ? null : HeksaFontPath;
+
+        _settings.Mode = Mode;
+        _settings.GitHubOwner = string.IsNullOrWhiteSpace(GitHubOwner) ? null : GitHubOwner.Trim();
+        _settings.GitHubRepo = string.IsNullOrWhiteSpace(GitHubRepo) ? null : GitHubRepo.Trim();
+        _settings.GitHubBranch = string.IsNullOrWhiteSpace(GitHubBranch) ? "main" : GitHubBranch.Trim();
+        _settings.GitHubJsonPath = string.IsNullOrWhiteSpace(GitHubJsonPath) ? null : GitHubJsonPath.Trim();
+        _settings.GitHubChangelogPath = string.IsNullOrWhiteSpace(GitHubChangelogPath) ? null : GitHubChangelogPath.Trim();
 
         var map = new Dictionary<string, string>();
         foreach (var line in ReciprocalText.Split('\n'))
@@ -333,6 +412,42 @@ public sealed class SettingsViewModel : OverlayViewModel
     }
 }
 
+/// <summary>
+/// GitHubへコミットする前の確認。コミットメッセージは保留中の更新履歴から自動生成した既定値を
+/// 出すが、送信直前まで自由に書き換えられる。中央のモーダルとして出すため <see cref="IsDockable"/> は偽。
+/// </summary>
+public sealed class CommitViewModel : OverlayViewModel
+{
+    private readonly Action<string> _commit;
+    private string _message;
+
+    public override bool IsDockable => false;
+
+    public CommitViewModel(string summary, string defaultMessage, Action<string> commit)
+    {
+        Title = "GitHubへコミット";
+        Summary = summary;
+        _message = defaultMessage;
+        _commit = commit;
+
+        CommitCommand = new RelayCommand(() =>
+        {
+            var msg = Message.Trim();
+            RequestClose?.Invoke();
+            _commit(msg.Length == 0 ? defaultMessage : msg);
+        });
+        CancelCommand = new RelayCommand(() => RequestClose?.Invoke());
+    }
+
+    /// <summary>今回コミットに含める更新の一覧（保留中の変更が無ければその旨の案内）。</summary>
+    public string Summary { get; }
+
+    public string Message { get => _message; set => Set(ref _message, value); }
+
+    public ICommand CommitCommand { get; }
+    public ICommand CancelCommand { get; }
+}
+
 /// <summary>統計タブの品詞・タグ内訳をグリッド表示するための 1 セル分データ。</summary>
 public sealed record BreakdownItem(string Name, int Count);
 
@@ -355,8 +470,7 @@ public sealed class InfoViewModel : OverlayViewModel
         WordCount = doc.Words.Count;
         var forms = doc.Words.Select(w => w.Form).ToList();
         HomonymCount = forms.GroupBy(f => f, StringComparer.Ordinal).Count(g => g.Count() > 1);
-        TranslationCount = doc.Words.Sum(w => w.Translations.Sum(t => t.Forms.Count));
-        RelationCount = doc.Words.Sum(w => w.Relations.Count);
+        ExampleCount = doc.Examples.Count;
         AverageFormLength = forms.Count == 0 ? 0 : Math.Round(forms.Average(f => f.Length), 2);
         TagItems = doc.Words.SelectMany(w => w.Tags)
             .GroupBy(t => t, StringComparer.Ordinal)
@@ -385,8 +499,7 @@ public sealed class InfoViewModel : OverlayViewModel
 
     public int WordCount { get; }
     public int HomonymCount { get; }
-    public int TranslationCount { get; }
-    public int RelationCount { get; }
+    public int ExampleCount { get; }
     public double AverageFormLength { get; }
     /// <summary>タグ内訳（件数の多い順）。WrapPanel + SharedSizeGroup でグリッド状に整列表示する。</summary>
     public IReadOnlyList<BreakdownItem> TagItems { get; } = Array.Empty<BreakdownItem>();

@@ -326,7 +326,8 @@ public class DropDown : Control
 
     private void OnScrolled(object sender, ScrollChangedEventArgs e) => Close();
 
-    private static bool IsInside(DependencyObject? node, DependencyObject? root)
+    /// <summary>MenuButton も同じ「外側クリックで閉じる」判定に使うため internal にしてある。</summary>
+    internal static bool IsInside(DependencyObject? node, DependencyObject? root)
     {
         if (root is null) return false;
         for (; node is not null; node = ParentOf(node))
@@ -348,8 +349,9 @@ public class DropDown : Control
             : LogicalTreeHelper.GetParent(node);
 
     /// <summary>ウィンドウ最上段の AdornerDecorator の層。ScrollViewer が持つ層に載せると
-    /// ビューポートの外に出た部分が切り取られるため、いちばん外側まで登り切る。</summary>
-    private static AdornerLayer? TopLayer(Visual element)
+    /// ビューポートの外に出た部分が切り取られるため、いちばん外側まで登り切る。
+    /// MenuButton も同じ層を使うため internal にしてある。</summary>
+    internal static AdornerLayer? TopLayer(Visual element)
     {
         AdornerDecorator? outermost = null;
         for (DependencyObject? d = element; d is not null; d = VisualTreeHelper.GetParent(d))

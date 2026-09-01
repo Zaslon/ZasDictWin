@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using System.IO;
+using System.Text;
 using System.Text.Json.Nodes;
 using System.Windows.Input;
 using Microsoft.Win32;
@@ -26,6 +27,9 @@ public sealed class MainViewModel : ViewModelBase
     private string _status = "辞書を開いてください。";
     /// <summary>例文一覧の絞り込み文字列。編集に入って戻ってきても打ち直さずに済むよう覚えておく。</summary>
     private string _exampleQuery = "";
+
+    // ---- GitHub モード ------------------------------------------------------
+    private bool _isGitHubBusy;
 
     public MainViewModel()
     {
@@ -55,6 +59,9 @@ public sealed class MainViewModel : ViewModelBase
         NewDictionaryCommand = new RelayCommand(NewDictionary, () => !IsEditorOpen);
         SaveCommand = new RelayCommand(() => Save(false), () => _doc is not null);
         SaveAsCommand = new RelayCommand(() => Save(true), () => _doc is not null);
+        // GitHubモードだけの操作。編集画面が開いている間は辞書の差し替えを止める（開く／新規辞書と同じ理由）。
+        LoadFromGitHubCommand = new RelayCommand(async () => await LoadFromGitHubAsync(), () => IsGitHubMode && !IsGitHubBusy && !IsEditorOpen);
+        CommitToGitHubCommand = new RelayCommand(ShowCommitDialog, () => IsGitHubMode && !IsGitHubBusy && _doc is not null);
         // 同じ画面は 1 枚まで。開いている種類のボタンは無効にして、書きかけの入力が
         // 差し替えで飛ぶのを防ぐ（ショートカットはオーバーレイの上からでも届くため）。
         NewWordCommand = new RelayCommand(NewWord, () => _doc is not null && CanOpen<WordEditViewModel>());
@@ -163,6 +170,15 @@ public sealed class MainViewModel : ViewModelBase
 
     public string CountLabel => _doc is null ? "" : $"{FilteredWords.Count} / {_doc.Words.Count} 語";
 
+    public bool IsGitHubMode => Settings.Mode == EditMode.GitHub;
+
+    /// <summary>GitHubへの通信中。連打で二重コミットにならないよう、この間はボタンを無効にする。</summary>
+    public bool IsGitHubBusy
+    {
+        get => _isGitHubBusy;
+        private set => Set(ref _isGitHubBusy, value);
+    }
+
     /// <summary>確認ダイアログ専用の層。窓全体を覆い、ドッキング中の画面を閉じずに上へ重ねる。</summary>
     public OverlayViewModel? ModalOverlay
     {
@@ -190,6 +206,8 @@ public sealed class MainViewModel : ViewModelBase
     public ICommand NewDictionaryCommand { get; }
     public ICommand SaveCommand { get; }
     public ICommand SaveAsCommand { get; }
+    public ICommand LoadFromGitHubCommand { get; }
+    public ICommand CommitToGitHubCommand { get; }
     public ICommand NewWordCommand { get; }
     public ICommand EditWordCommand { get; }
     public ICommand DuplicateWordCommand { get; }
@@ -394,6 +412,176 @@ public sealed class MainViewModel : ViewModelBase
         _pendingChanges.Add(entry);
     }
 
+    // ---- GitHub モード ----------------------------------------------------
+
+    private readonly record struct GitHubConfig(string Owner, string Repo, string Branch, string JsonPath, string ChangelogPath, string Token);
+
+    private bool TryGetGitHubConfig(out GitHubConfig cfg, out string error)
+    {
+        var owner = Settings.GitHubOwner?.Trim() ?? "";
+        var repo = Settings.GitHubRepo?.Trim() ?? "";
+        var branch = string.IsNullOrWhiteSpace(Settings.GitHubBranch) ? "main" : Settings.GitHubBranch.Trim();
+        var jsonPath = Settings.GitHubJsonPath?.Trim() ?? "";
+        var changelogPath = Settings.GitHubChangelogPath?.Trim() ?? "";
+        var token = GitHubApi.LoadToken();
+
+        if (owner.Length == 0 || repo.Length == 0 || jsonPath.Length == 0)
+        {
+            cfg = default;
+            error = "設定 → GitHub でリポジトリと辞書ファイルのパスを入力してください。";
+            return false;
+        }
+        if (token is null)
+        {
+            cfg = default;
+            error = "設定 → GitHub でアクセストークンを保存してください。";
+            return false;
+        }
+
+        cfg = new GitHubConfig(owner, repo, branch, jsonPath, changelogPath, token);
+        error = "";
+        return true;
+    }
+
+    /// <summary>GitHub から取得した辞書の置き場所。owner/repo/branch ごとに分けておき、
+    /// 別のリポジトリへ切り替えても前のローカルコピーを踏まないようにする。</summary>
+    private static string GitHubLocalCachePath(GitHubConfig cfg)
+    {
+        var dir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZasDictWin", "github",
+            $"{SanitizeFileName(cfg.Owner)}__{SanitizeFileName(cfg.Repo)}__{SanitizeFileName(cfg.Branch)}");
+        Directory.CreateDirectory(dir);
+        return Path.Combine(dir, Path.GetFileName(cfg.JsonPath));
+    }
+
+    private static string SanitizeFileName(string s)
+        => string.Concat(s.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
+
+    private async Task LoadFromGitHubAsync()
+    {
+        if (!TryGetGitHubConfig(out var cfg, out var error)) { Status = error; return; }
+
+        if (IsDirty)
+        {
+            // 直接は上書きしない。保存されていない変更を確認なしで消さないための確認。
+            ShowOverlay(new ChoiceViewModel("保存されていない変更があります",
+                    $"GitHubから読み込むと、{DictionaryName} の保存されていない変更は失われます。")
+                .Add("読み込む", () => _ = LoadFromGitHubCoreAsync(cfg), isDanger: true)
+                .AddCancel("やめる"));
+            return;
+        }
+        await LoadFromGitHubCoreAsync(cfg);
+    }
+
+    private async Task LoadFromGitHubCoreAsync(GitHubConfig cfg)
+    {
+        IsGitHubBusy = true;
+        Status = "GitHubから読み込み中…";
+        try
+        {
+            var jsonResult = await GitHubApi.GetFileAsync(cfg.Owner, cfg.Repo, cfg.JsonPath, cfg.Branch, cfg.Token).ConfigureAwait(true);
+            if (!jsonResult.Ok)
+            {
+                if (jsonResult.AuthFailed) GitHubApi.DeleteToken();
+                Status = $"GitHubからの読み込みに失敗しました: {jsonResult.Message}";
+                return;
+            }
+
+            var localPath = GitHubLocalCachePath(cfg);
+            File.WriteAllText(localPath, jsonResult.Content, new UTF8Encoding(false));
+
+            if (cfg.ChangelogPath.Length > 0)
+            {
+                var csvResult = await GitHubApi.GetFileAsync(cfg.Owner, cfg.Repo, cfg.ChangelogPath, cfg.Branch, cfg.Token).ConfigureAwait(true);
+                if (csvResult.Ok)
+                {
+                    File.WriteAllText(ChangelogService.DefaultPathFor(localPath), csvResult.Content, new UTF8Encoding(true));
+                    Settings.ChangelogPath = ChangelogService.DefaultPathFor(localPath);
+                }
+                else if (!csvResult.NotFound)
+                {
+                    // 辞書自体は読み込めたので続行する。履歴だけ最初のコミットで新規作成させる。
+                    Status = $"更新履歴の読み込みに失敗しました: {csvResult.Message}";
+                }
+            }
+
+            LoadDictionary(localPath);
+            Status = $"GitHubから読み込みました（{cfg.Owner}/{cfg.Repo} @ {cfg.Branch}）。";
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            ErrorLog.Write("GitHubから取得したファイルの書き込み", ex);
+            Status = $"ローカルへの書き込みに失敗しました: {ex.Message}";
+        }
+        finally
+        {
+            IsGitHubBusy = false;
+        }
+    }
+
+    private void ShowCommitDialog()
+    {
+        if (!TryGetGitHubConfig(out var cfg, out var error)) { Status = error; return; }
+        if (_doc is null) { Status = "辞書を開いてください。"; return; }
+
+        var forms = _pendingChanges.Select(e => e.Form).Distinct().ToList();
+        var summary = _pendingChanges.Count == 0
+            ? "保留中の更新はありません。辞書ファイルの現在の内容をそのままコミットします。"
+            : string.Join(Environment.NewLine, _pendingChanges.Select(e => $"{e.Operation} {e.Form}"));
+        var defaultMessage = _pendingChanges.Count == 0
+            ? "ZasDict: 更新"
+            : $"ZasDict: {string.Join(", ", forms.Take(5))}{(forms.Count > 5 ? " ほか" : "")}";
+
+        ShowOverlay(new CommitViewModel(summary, defaultMessage, message => _ = CommitToGitHubAsync(cfg, message)));
+    }
+
+    private async Task CommitToGitHubAsync(GitHubConfig cfg, string message)
+    {
+        if (_doc is null) return;
+
+        // コミットの対象は常にローカルの最新内容。保存は自動保存（または手動保存）が担うが、
+        // それがオフの環境でも古い内容をコミットしないよう、念のためここでも確定させる。
+        if (IsDirty) Save(false);
+        if (_doc.Path is null) { Status = "保存先が決まっていません。"; return; }
+
+        IsGitHubBusy = true;
+        Status = "コミット中…";
+        try
+        {
+            var files = new List<GitHubFileChange> { new(cfg.JsonPath, File.ReadAllText(_doc.Path)) };
+
+            var csvPath = Settings.ChangelogPath ?? ChangelogService.DefaultPathFor(_doc.Path);
+            if (cfg.ChangelogPath.Length > 0 && File.Exists(csvPath))
+            {
+                var csvText = File.ReadAllText(csvPath);
+                if (!csvText.StartsWith(string.Join(',', ChangelogService.DefaultHeader)))
+                    csvText = string.Join(',', ChangelogService.DefaultHeader) + "\n" + csvText;
+                files.Add(new GitHubFileChange(cfg.ChangelogPath, csvText));
+            }
+
+            // 辞書と更新履歴は Git Data API で 1 コミットにまとめる（Contents API のように
+            // ファイルごとの sha は要らない。ブランチ先端から毎回作り直すため）。
+            var result = await GitHubApi.CommitFilesAsync(cfg.Owner, cfg.Repo, cfg.Branch, cfg.Token, files, message).ConfigureAwait(true);
+            if (!result.Ok)
+            {
+                if (result.AuthFailed) GitHubApi.DeleteToken();
+                Status = $"コミットに失敗しました: {result.Message}";
+                return;
+            }
+
+            Status = "GitHubへコミットしました。";
+        }
+        catch (IOException ex)
+        {
+            ErrorLog.Write("コミット対象ファイルの読み込み", ex);
+            Status = $"コミットに失敗しました: {ex.Message}";
+        }
+        finally
+        {
+            IsGitHubBusy = false;
+        }
+    }
+
     // ---- indexing / filtering -------------------------------------------
 
     private void ApplySettings()
@@ -423,6 +611,7 @@ public sealed class MainViewModel : ViewModelBase
         Raise(nameof(StreamBodySize));
         Raise(nameof(StreamLabelSize));
         Raise(nameof(StreamPlaceholderSize));
+        Raise(nameof(IsGitHubMode));
     }
 
     public void RebuildIndex()
@@ -564,6 +753,8 @@ public sealed class MainViewModel : ViewModelBase
     {
         IsDirty = true;
         Status = status;
+        // 自動保存はモードに関係なく機能する（GitHubモードでもローカルファイルへの保存は通常どおり）。
+        // コミットはこの保存結果を対象にするだけで、保存自体はコミットボタンの役割ではない。
         if (Settings.AutoSave && _doc?.Path is not null) Save(false);
     }
 

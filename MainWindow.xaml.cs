@@ -21,6 +21,23 @@ public partial class MainWindow : Window
         _vm.SettingsApplied += () => _stream?.ApplySettings();
         App.UiException += ShowException;
         PreviewKeyDown += OnPreviewKeyDown;
+
+        // バーが手狭なので、開く・新規辞書・保存・別名で保存は階層メニューにまとめてある。
+        // Command は ViewModel の RelayCommand をそのまま渡すだけなので、Binding は使わずここで詰める。
+        FileMenuButton.Items = new[]
+        {
+            new MenuAction { Header = "開く", ToolTip = "Ctrl+O", Command = _vm.OpenCommand },
+            new MenuAction { Header = "新規辞書", Command = _vm.NewDictionaryCommand },
+            new MenuAction { Header = "保存", ToolTip = "Ctrl+S", Command = _vm.SaveCommand, IsPrimary = true },
+            new MenuAction { Header = "別名で保存", ToolTip = "Ctrl+Shift+S", Command = _vm.SaveAsCommand },
+        };
+
+        // 枠を消したので OS は大きさを覚えてくれない。前回閉じたときの大きさをここで復元する。
+        Width = _vm.Settings.WindowWidth;
+        Height = _vm.Settings.WindowHeight;
+        if (_vm.Settings.WindowMaximized) WindowState = WindowState.Maximized;
+        StateChanged += (_, _) => UpdateMaximizeRestoreIcon();
+        UpdateMaximizeRestoreIcon();
     }
 
     // UI スレッドで漏れた例外はアプリを落とさず、OBS に映るオーバーレイで知らせます。
@@ -50,6 +67,7 @@ public partial class MainWindow : Window
         // プルダウンを開いている間は、Esc をオーバーレイごと閉じる操作に使わせない。
         // ここは Preview（＝ウィンドウが最初に見る段）なので、先に一覧だけを畳む。
         if (DropDown.CloseCurrent()) { e.Handled = true; return; }
+        if (MenuButton.CloseCurrent()) { e.Handled = true; return; }
         // 枠を割り直している最中と、タブの運び先を選んでいる最中は、まずその操作だけをやめる。
         if (AreaDrag.Cancel()) { e.Handled = true; return; }
         if (OverlayDrag.Cancel()) { e.Handled = true; return; }
@@ -57,6 +75,39 @@ public partial class MainWindow : Window
         if (_vm.ModalOverlay is not null) { _vm.CloseModal(); e.Handled = true; return; }
         // 複数開いていても閉じる相手は 1 枚。最後に触ったタブから畳む。
         if (_vm.ActiveOverlay is { } active) { _vm.CloseOverlay(active); e.Handled = true; }
+    }
+
+    // 枠を消した代わりに、ヘッダの余白（ボタンの無い部分）をドラッグでの移動とダブルクリックでの
+    // 最大化トグルに使う。ボタンは ButtonBase が MouseLeftButtonDown を Handled 済みにするので、
+    // ここまでは届かず衝突しない。
+    private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            ToggleMaximizeRestore();
+            return;
+        }
+        // 最大化中に掴んだ場合、WPF が自動で解除してカーソル位置に応じた大きさへ戻す。
+        DragMove();
+    }
+
+    private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    private void MaximizeRestore_Click(object sender, RoutedEventArgs e) => ToggleMaximizeRestore();
+
+    private void Close_Click(object sender, RoutedEventArgs e) => Close();
+
+    private void ToggleMaximizeRestore()
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    }
+
+    private void UpdateMaximizeRestoreIcon()
+    {
+        var maximized = WindowState == WindowState.Maximized;
+        // MDL2 Assets: ChromeMaximize (E922) / ChromeRestore (E923)
+        MaximizeRestoreButton.Content = maximized ? "\uE923" : "\uE922";
+        MaximizeRestoreButton.ToolTip = maximized ? "元のサイズに戻す" : "最大化";
     }
 
     private void ToggleStreamWindow_Click(object sender, RoutedEventArgs e)
@@ -82,7 +133,29 @@ public partial class MainWindow : Window
             e.Cancel = true;
             return;
         }
+        SaveWindowBounds();
         _stream?.Close();
         base.OnClosing(e);
+    }
+
+    // 最大化中は Width/Height が画面いっぱいの値になるため、次に元へ戻したときの大きさが
+    // 分かるよう RestoreBounds（最小化・最大化する前の通常時の矩形）を使う。最小化したまま
+    // 閉じた場合も同様（RestoreBounds はその前の通常時の矩形を保ったまま）。
+    private void SaveWindowBounds()
+    {
+        var settings = _vm.Settings;
+        if (WindowState == WindowState.Normal)
+        {
+            settings.WindowWidth = Width;
+            settings.WindowHeight = Height;
+            settings.WindowMaximized = false;
+        }
+        else
+        {
+            settings.WindowWidth = RestoreBounds.Width;
+            settings.WindowHeight = RestoreBounds.Height;
+            settings.WindowMaximized = WindowState == WindowState.Maximized;
+        }
+        settings.Save();
     }
 }

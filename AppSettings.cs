@@ -1,16 +1,37 @@
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace ZasDictWin.Services;
+
+/// <summary>辞書の編集元。<see cref="GitHub"/> のときは MainViewModel が自動保存を強制的に無効化する
+/// （唯一の書き込みタイミングをコミットに一本化するため）。</summary>
+public enum EditMode { Local, GitHub }
 
 public sealed class AppSettings
 {
     public string? LastDictionaryPath { get; set; }
     public string? ChangelogPath { get; set; }
 
+    // 枠を消したぶん OS が覚えてくれないので、最後に閉じたときのウィンドウの大きさを自前で持つ。
+    // 最大化して閉じた場合は、次に元へ戻したときの大きさが分かるよう最大化前の大きさを保つ。
+    public double WindowWidth { get; set; } = 1280;
+    public double WindowHeight { get; set; } = 800;
+    public bool WindowMaximized { get; set; }
+
     public double FontScale { get; set; } = 1.0;
     public bool AutoSave { get; set; }
+
+    public EditMode Mode { get; set; } = EditMode.Local;
+
+    // GitHub モードの接続先。アクセストークンは秘密情報のため settings.json には含めず、
+    // GitHubApi.TokenPath（%APPDATA%\ZasDictWin\github_token）に別置きする。
+    public string? GitHubOwner { get; set; }
+    public string? GitHubRepo { get; set; }
+    public string GitHubBranch { get; set; } = "main";
+    public string? GitHubJsonPath { get; set; }
+    public string? GitHubChangelogPath { get; set; }
 
     public bool HeksaEnabled { get; set; }
     public string? HeksaFontPath { get; set; }
@@ -40,7 +61,9 @@ public sealed class AppSettings
     private static readonly JsonSerializerOptions Options = new()
     {
         WriteIndented = true,
-        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        // Mode を数値ではなく "Local" / "GitHub" のまま書く。settings.json は手で直すこともあるため。
+        Converters = { new JsonStringEnumConverter() }
     };
 
     public static AppSettings Load()
