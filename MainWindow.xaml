@@ -1,7 +1,6 @@
 <Window x:Class="ZasDictWin.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:v="clr-namespace:ZasDictWin.Views"
         xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
         Title="{Binding WindowTitle}"
         Width="1280" Height="800" MinWidth="900" MinHeight="600"
@@ -59,7 +58,7 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <Button Content="設定" Command="{Binding ShowSettingsCommand}" />
                         <Border Width="1" Background="{StaticResource Line}" Margin="4,3" />
                         <Button x:Name="BrowserButton" Content="{Binding Browser.ToggleLabel}"
-                                Command="{Binding Browser.ToggleCommand}" ToolTip="右にウェブブラウザのサイドバーを開閉します" />
+                                Command="{Binding ToggleBrowserCommand}" ToolTip="ウェブブラウザのタブを開閉します" />
                         <Button x:Name="StreamButton" Content="単語ウィンドウ" Click="ToggleStreamWindow_Click" Margin="0" />
                     </WrapPanel>
                 </DockPanel>
@@ -80,63 +79,16 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                 </DockPanel>
             </Border>
 
-            <!-- 右サイドバーのブラウザ。WebView2 はメインウィンドウの子 HWND なので OBS の
-                 ウィンドウキャプチャにそのまま映るが、airspace のため WPF 描画より手前に出る。
-                 オーバーレイ開期中は IsBrowserShown が隠す。 -->
-            <Grid DockPanel.Dock="Right" Width="{Binding Browser.Width}"
-                  Visibility="{Binding IsBrowserShown, Converter={StaticResource BoolVis}}">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="5" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <!-- GridSplitter は行・列そのものを伸縮させるので幅バインドと衝突する。
-                     ドラッグ量を VM の幅に反映する（Thumb は GridSplitter の親クラス）。 -->
-                <Thumb Grid.Column="0" Cursor="SizeWE" Style="{StaticResource GripThumb}"
-                       DragDelta="BrowserGrip_DragDelta" DragCompleted="BrowserGrip_DragCompleted" />
-                <v:BrowserPanel Grid.Column="1" DataContext="{Binding Browser}" />
-            </Grid>
-
-            <!-- 縁に寄せたオーバーレイ。スクリムを敷かないので、開いたまま検索や一覧を触れる。
-                 ブラウザより内側に置いてあるので、両方出しても場所を取り合わない。
-                 上下を先に宣言してあるので、上下の帯が横いっぱいに伸び、左右はその内側に入る。
-                 幅と高さは DockGroup が付いている辺に応じて片方だけ返し、もう片方は NaN（＝Auto）。
-                 タブを掴んでいる間は、空の辺もここに細い受け皿として現れる（IsShown）。
-                 ドロップ先はこの枠そのもので、カーソルが乗った枠が着色される。 -->
-            <!-- 上限は窓の 35%。DockPanel は最後の子（検索と詳細）に「残り」しか渡さないので、
-                 上限が無いと 4 辺に広げたときに本体が 0 幅まで潰れて操作できなくなる。 -->
-            <v:DockGroupPanel DockPanel.Dock="Top" DataContext="{Binding Docks.Top}"
-                              Width="{Binding Width}" Height="{Binding Height}"
-                              MaxHeight="{Binding ElementName=Root, Path=ActualHeight, Converter={StaticResource Ratio}, ConverterParameter=0.35}"
-                              Visibility="{Binding IsShown, Converter={StaticResource BoolVis}}" />
-            <v:DockGroupPanel DockPanel.Dock="Bottom" DataContext="{Binding Docks.Bottom}"
-                              Width="{Binding Width}" Height="{Binding Height}"
-                              MaxHeight="{Binding ElementName=Root, Path=ActualHeight, Converter={StaticResource Ratio}, ConverterParameter=0.35}"
-                              Visibility="{Binding IsShown, Converter={StaticResource BoolVis}}" />
-            <v:DockGroupPanel DockPanel.Dock="Left" DataContext="{Binding Docks.Left}"
-                              Width="{Binding Width}" Height="{Binding Height}"
-                              MaxWidth="{Binding ElementName=Root, Path=ActualWidth, Converter={StaticResource Ratio}, ConverterParameter=0.35}"
-                              Visibility="{Binding IsShown, Converter={StaticResource BoolVis}}" />
-            <v:DockGroupPanel DockPanel.Dock="Right" DataContext="{Binding Docks.Right}"
-                              Width="{Binding Width}" Height="{Binding Height}"
-                              MaxWidth="{Binding ElementName=Root, Path=ActualWidth, Converter={StaticResource Ratio}, ConverterParameter=0.35}"
-                              Visibility="{Binding IsShown, Converter={StaticResource BoolVis}}" />
-
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="400" MinWidth="300" />
-                    <ColumnDefinition Width="4" />
-                    <ColumnDefinition Width="*" />
-                </Grid.ColumnDefinitions>
-                <v:SearchPanel Grid.Column="0" />
-                <GridSplitter Grid.Column="1" Width="4" HorizontalAlignment="Stretch"
-                              Background="{StaticResource Line}" />
-                <!-- 中央もタブ束。単語詳細が据え置きの 1 枚目で、運んできたオーバーレイが隣に並ぶ。 -->
-                <v:DockGroupPanel Grid.Column="2" DataContext="{Binding Docks.Center}" />
-            </Grid>
+            <!-- 画面の割り付け。枠（タブ束）と、それを 2 つに割った境目の入れ子をそのまま描く。
+                 上下左右の決め打ちは持たず、枠の四隅を引いて割ったり結合したりする（Blender と同じ操作）。
+                 検索もブラウザも他のオーバーレイと同じ 1 枚のタブで、どの枠にも置ける。
+                 描き分けは App.xaml の DataTemplate（DockSplit / DockLeaf）が持つ。 -->
+            <ContentControl Content="{Binding Layout.Root}"
+                            HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
         </DockPanel>
 
         <!-- 確認ダイアログの層。MessageBox は別 HWND になり OBS のウィンドウキャプチャに映らない
-             ため、ここに描く。辺に寄せた画面を閉じずに上へ重ねられるよう層を分けてある。 -->
+             ため、ここに描く。枠に並べた画面を閉じずに上へ重ねられるよう層を分けてある。 -->
         <Border Background="{StaticResource Scrim}"
                 Visibility="{Binding ModalOverlay, Converter={StaticResource NullVis}}">
             <ContentControl Content="{Binding ModalOverlay}" />

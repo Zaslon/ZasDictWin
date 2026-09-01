@@ -1,7 +1,6 @@
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Services;
 
@@ -18,14 +17,9 @@ public sealed class AppSettings
 
     public string SortOrder { get; set; } = TextProcessor.DefaultSortOrder;
 
-    // オーバーレイを寄せた辺。種類名（OverlayViewModel.Kind）で引く。
-    public Dictionary<string, DockSide> OverlayDocks { get; set; } = new();
-
-    // 辺ごとの大きさ。タブを跨いでも変わらないので、辺の数だけ持てば足りる。
-    public double DockLeftWidth { get; set; } = 420;
-    public double DockRightWidth { get; set; } = 420;
-    public double DockTopHeight { get; set; } = 340;
-    public double DockBottomHeight { get; set; } = 340;
+    // 画面の割り付け。枠の入れ子と、枠ごとに住む種類名（OverlayViewModel.Kind）を丸ごと持つ。
+    // 読めないときは既定の割り付け（左に検索、右に単語詳細）から始める。
+    public DockNodeSettings? Layout { get; set; }
 
     public bool StreamWindowTopmost { get; set; } = true;
     public string StreamBackground { get; set; } = "#00B140";
@@ -33,9 +27,9 @@ public sealed class AppSettings
     public bool StreamShowTranslations { get; set; } = true;
     public bool StreamShowContents { get; set; }
 
-    // 右サイドバーのブラウザ（WebView2）
+    // ブラウザ（WebView2）のタブ。開いているかどうかと開始 URL だけを覚える。
+    // 大きさは枠の割り付けが持つので、ここには持たない。
     public bool BrowserVisible { get; set; }
-    public double BrowserWidth { get; set; } = 420;
     public string BrowserStartUrl { get; set; } = "https://www.google.com/";
 
     private static string Dir =>
@@ -79,4 +73,27 @@ public sealed class AppSettings
             ErrorLog.Write("設定の保存", ex);
         }
     }
+}
+
+/// <summary>
+/// 画面の割り付けを settings.json に写したもの。<see cref="Axis"/> があれば境目の節、
+/// 無ければタブ束ひとつぶんの枠を表す。枠には「そこに住む種類名」を並び順で持たせ、
+/// 閉じているタブも次に開いたとき同じ枠へ出せるようにしている。
+/// </summary>
+public sealed class DockNodeSettings
+{
+    /// <summary>"Columns"（左右に並べる）か "Rows"（上下に並べる）。枠なら null。</summary>
+    public string? Axis { get; set; }
+
+    /// <summary>境目の位置。First 側の取り分。</summary>
+    public double Ratio { get; set; } = 0.5;
+
+    public DockNodeSettings? First { get; set; }
+    public DockNodeSettings? Second { get; set; }
+
+    /// <summary>枠の通し番号。種類ごとの行き先を引き当てる鍵。</summary>
+    public int Id { get; set; }
+
+    /// <summary>この枠に住む種類名。並び順がそのままタブの並び。</summary>
+    public List<string> Tabs { get; set; } = new();
 }

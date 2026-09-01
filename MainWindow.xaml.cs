@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Windows;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using ZasDictWin.Services;
 using ZasDictWin.ViewModels;
@@ -51,20 +50,14 @@ public partial class MainWindow : Window
         // プルダウンを開いている間は、Esc をオーバーレイごと閉じる操作に使わせない。
         // ここは Preview（＝ウィンドウが最初に見る段）なので、先に一覧だけを畳む。
         if (DropDown.CloseCurrent()) { e.Handled = true; return; }
-        // ドッキング先を選んでいる最中は、まずその選択だけをやめる。
+        // 枠を割り直している最中と、タブの運び先を選んでいる最中は、まずその操作だけをやめる。
+        if (AreaDrag.Cancel()) { e.Handled = true; return; }
         if (OverlayDrag.Cancel()) { e.Handled = true; return; }
         // 確認は他の画面の上に重なるので、上の層から順に閉じる。
         if (_vm.ModalOverlay is not null) { _vm.CloseModal(); e.Handled = true; return; }
         // 複数開いていても閉じる相手は 1 枚。最後に触ったタブから畳む。
         if (_vm.ActiveOverlay is { } active) { _vm.CloseOverlay(active); e.Handled = true; }
     }
-
-    // サイドバーの幅ドラッグ。右端に寄せているので左へ引く（負方向）と広がります。
-    private void BrowserGrip_DragDelta(object sender, DragDeltaEventArgs e)
-        => _vm.Browser.Width -= e.HorizontalChange;
-
-    private void BrowserGrip_DragCompleted(object sender, DragCompletedEventArgs e)
-        => _vm.Browser.CommitWidth();
 
     private void ToggleStreamWindow_Click(object sender, RoutedEventArgs e)
     {

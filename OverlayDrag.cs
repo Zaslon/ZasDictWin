@@ -1,6 +1,5 @@
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
@@ -10,7 +9,7 @@ namespace ZasDictWin.Views;
 /// <see cref="OverlayViewModel"/> であることが前提（タブの見出しに付ける）。
 /// ドロップ先の当たり判定は、実際に並んでいる枠（<see cref="DockGroupPanel"/>）そのものを
 /// InputHitTest して拾う。カーソルが乗った枠が着色され、そこで離せばその枠へ移る。
-/// 空の辺には枠が無いので、ドラッグ中だけ細い受け皿として現れる（<see cref="DockGroup.IsDropPlaceholder"/>）。
+/// 落とす枠が無いときは、先に角を引いて枠を増やす（<see cref="AreaDrag"/>）。
 /// </summary>
 public static class OverlayDrag
 {
@@ -83,11 +82,9 @@ public static class OverlayDrag
             if ((_grip as FrameworkElement)?.DataContext is not OverlayViewModel vm) return;
             _dragging = true;
             OverlayDragState.Instance.BeginDrag(vm);
-            // 空の辺の受け皿はここで初めて現れる。測り直すまで InputHitTest が当たらない。
-            Window.GetWindow(_grip)?.UpdateLayout();
         }
 
-        OverlayDragState.Instance.HoverGroup = HitGroup(e);
+        OverlayDragState.Instance.HoverLeaf = HitLeaf(e);
     }
 
     private static void OnMouseUp(object sender, MouseButtonEventArgs e)
@@ -119,16 +116,8 @@ public static class OverlayDrag
     /// カーソルの下にある枠。どの枠にも乗っていなければ null で、着色も消える
     /// （そのまま離しても動かさない）。
     /// </summary>
-    private static DockGroup? HitGroup(MouseEventArgs e)
-    {
-        if (_grip is null || Window.GetWindow(_grip) is not { } window) return null;
-        var hit = window.InputHitTest(e.GetPosition(window)) as DependencyObject;
-        while (hit is not null)
-        {
-            if (hit is DockGroupPanel { DataContext: DockGroup group }) return group;
-            // 当たるのは描いている要素なので、視覚ツリーだけ遡れば枠に届く。
-            hit = hit is Visual visual ? VisualTreeHelper.GetParent(visual) : null;
-        }
-        return null;
-    }
+    private static DockLeaf? HitLeaf(MouseEventArgs e)
+        => _grip is not null && Window.GetWindow(_grip) is { } window
+            ? DockHit.LeafAt(window, e.GetPosition(window))
+            : null;
 }

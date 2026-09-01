@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
 
@@ -84,22 +85,29 @@ public sealed class ScaleFontSizeConverter : IValueConverter
 }
 
 /// <summary>
-/// 窓の実寸に ConverterParameter の係数を掛ける。辺に寄せた画面が広がりすぎて
-/// 検索と詳細（＝最後に残りを受け取る側）が 0 幅に潰れるのを防ぐ上限に使う。
+/// 分割の下見の位置。枠の実寸と <see cref="SplitPreview"/> から、これから新しくできる側だけが
+/// 残るような余白を返す。枠いっぱいに敷いた着色を、この余白で割る位置まで削って見せる。
 /// </summary>
-public sealed class RatioConverter : IValueConverter
+public sealed class SplitMarginConverter : IMultiValueConverter
 {
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is not double size || double.IsNaN(size) || size <= 0) return double.PositiveInfinity;
-        var ratio = parameter is string s && double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var r)
-            ? r
-            : 1.0;
-        return size * ratio;
+        if (values.Length < 3 || values[0] is not double width || values[1] is not double height
+            || values[2] is not SplitPreview preview)
+            return new Thickness(0);
+
+        if (preview.Axis == DockAxis.Columns)
+        {
+            var line = width * preview.Ratio;
+            return preview.NewIsSecond ? new Thickness(line, 0, 0, 0) : new Thickness(0, 0, width - line, 0);
+        }
+
+        var y = height * preview.Ratio;
+        return preview.NewIsSecond ? new Thickness(0, y, 0, 0) : new Thickness(0, 0, 0, height - y);
     }
 
-    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-        => Binding.DoNothing;
+    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)
+        => throw new NotSupportedException();
 }
 
 /// <summary>設定に書かれた色文字列をそのままブラシにする。不正値は透明扱い。</summary>

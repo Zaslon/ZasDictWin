@@ -10,7 +10,7 @@
     <v:StringToBrushConverter x:Key="StringBrush" />
     <v:EqualsMultiConverter x:Key="EqualsMulti" />
     <v:ScaleFontSizeConverter x:Key="ScaleFont" />
-    <v:RatioConverter x:Key="Ratio" />
+    <v:SplitMarginConverter x:Key="SplitMargin" />
 
     <!-- 配色トークン。キー名は据え置きで値だけ更新しているので、参照側（オーバーレイ含む）はそのまま動く。
          Ink=窓 / Panel=ヘッダ・カード / Raised=ボタン と役割で揃える。影系 Effect は一切使わない方針
@@ -37,6 +37,8 @@
     <SolidColorBrush x:Key="AccentDim" Color="#2A2450" />
     <!-- ドロップ先として着色する枠の面。下の中身を透かして「どの枠に入るか」を見せる -->
     <SolidColorBrush x:Key="DropFill" Color="{StaticResource AccentColor}" Opacity="0.22" />
+    <!-- 結合で消える側の面。タブは残る枠へ移るが、枠そのものは無くなるので色を分ける -->
+    <SolidColorBrush x:Key="JoinFill" Color="#EE6A66" Opacity="0.20" />
     <SolidColorBrush x:Key="ThumbBrush" Color="#3B4763" />
     <SolidColorBrush x:Key="ThumbHover" Color="#516087" />
 
@@ -574,15 +576,35 @@
         <Setter Property="IsHitTestVisible" Value="False" />
     </Style>
 
-    <!-- 空の辺がドラッグ中だけ見せる受け皿の見出し。帯は細いので、収まらない分は折り返す -->
-    <Style x:Key="DropPlaceholderLabel" TargetType="TextBlock">
+    <!-- 結合の下見。消える側の枠を丸ごと塗る -->
+    <Style x:Key="JoinHighlight" TargetType="Border" BasedOn="{StaticResource DropHighlight}">
+        <Setter Property="Background" Value="{StaticResource JoinFill}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Danger}" />
+    </Style>
+
+    <!-- 枠の四隅のつまみ。普段は見えず、触れたときだけ「引ける角」だと分かる印を出す
+         （面は透明でも当たり判定は残るので、掴む場所は常にここにある） -->
+    <Style x:Key="AreaCorner" TargetType="Border">
+        <Setter Property="Width" Value="14" />
+        <Setter Property="Height" Value="14" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Cursor" Value="SizeAll" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentDim}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+                <Setter Property="BorderThickness" Value="1" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- まだタブの無い枠の案内 -->
+    <Style x:Key="AreaHintLabel" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="HorizontalAlignment" Value="Center" />
-        <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="TextAlignment" Value="Center" />
         <Setter Property="TextWrapping" Value="Wrap" />
-        <Setter Property="IsHitTestVisible" Value="False" />
-        <Setter Property="Margin" Value="8" />
         <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
     </Style>
 

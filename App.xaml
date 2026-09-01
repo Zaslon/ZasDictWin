@@ -11,9 +11,27 @@
                 <ResourceDictionary Source="Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
-            <!-- 中央のタブ束に並ぶ単語詳細。器は DataContext を持たないので、本体を渡し直す。 -->
+            <!-- 画面の割り付け。節と枠の入れ子をそのまま描く（再帰は ContentControl 任せ）。 -->
+            <DataTemplate DataType="{x:Type vm:DockSplit}">
+                <v:DockSplitPanel />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:DockLeaf}">
+                <v:DockGroupPanel />
+            </DataTemplate>
+
+            <!-- タブに並ぶ単語詳細と検索。器は DataContext を持たないので、本体を渡し直す。 -->
             <DataTemplate DataType="{x:Type vm:WordDetailViewModel}">
                 <v:DetailPanel DataContext="{Binding Main}" />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:SearchViewModel}">
+                <v:SearchPanel DataContext="{Binding Main}" />
+            </DataTemplate>
+            <!-- ブラウザは器ごと隠せるようにしておく。WebView2 は airspace で確認ダイアログより
+                 手前に出てしまうため、ダイアログ中は中身を出さない。 -->
+            <DataTemplate DataType="{x:Type vm:BrowserTabViewModel}">
+                <Grid Visibility="{Binding IsContentShown, Converter={StaticResource BoolVis}}">
+                    <v:BrowserPanel DataContext="{Binding Browser}" />
+                </Grid>
             </DataTemplate>
             <DataTemplate DataType="{x:Type vm:ChoiceViewModel}">
                 <ov:ChoiceOverlay />
