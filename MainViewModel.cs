@@ -34,24 +34,21 @@ public sealed class MainViewModel : ViewModelBase
         _relations = new RelationService(Choices.Current.Relations);
         Browser = new BrowserViewModel(Settings);
 
-        // サイドバーの開閉はオーバーレイとの排他表示（IsBrowserShown）に効く。
+        // タブの開閉は確認ダイアログとの排他表示（IsBrowserShown）に効く。
         Browser.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(BrowserViewModel.IsOpen)) Raise(nameof(IsBrowserShown));
         };
 
-        Docks = new DockGroups(Settings);
-        OverlayDragState.Instance.Move = Docks.Move;
-        foreach (var group in Docks.All)
-        {
-            group.PropertyChanged += (s, e) =>
-            {
-                // タブを選び直すのも「触った」うち。Esc はここで一番新しいものを閉じる。
-                if (e.PropertyName == nameof(DockGroup.Selected) && s is DockGroup g) Touch(g.Selected);
-            };
-        }
-        // 単語詳細は中央の据え置きタブ。中央へ運んだオーバーレイはこの隣に並ぶ。
-        Docks.Pin(new WordDetailViewModel(this));
+        Layout = new DockLayout(Settings);
+        OverlayDragState.Instance.Move = Layout.Move;
+        // タブを選び直すのも「触った」うち。Esc はここで一番新しいものを閉じる。
+        Layout.Touched += Touch;
+
+        // 検索も単語詳細も、他のオーバーレイと同じ 1 枚のタブ。閉じられないだけで枠は自由に選べる。
+        Layout.Add(new SearchViewModel(this));
+        Layout.Add(new WordDetailViewModel(this));
+        if (Browser.IsOpen) OpenBrowserTab();
 
         // 編集中に辞書を差し替えると、保存の宛先だけが入れ替わって別の辞書に書き込まれる。
         OpenCommand = new RelayCommand(OpenDictionary, () => !IsEditorOpen);
@@ -67,6 +64,7 @@ public sealed class MainViewModel : ViewModelBase
         DeleteWordCommand = new RelayCommand(o => ConfirmDeleteWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && CanOpen<WordEditViewModel>());
         WordActionsCommand = new RelayCommand(o => ShowWordActions(o as Word ?? SelectedWord), _ => SelectedWord is not null && CanOpen<WordEditViewModel>());
         ShowToolsCommand = new RelayCommand(() => ShowOverlay(new ToolsViewModel(SelectedWord?.Form)), CanOpen<ToolsViewModel>);
+        ToggleBrowserCommand = new RelayCommand(ToggleBrowser, () => ModalOverlay is null);
         ShowSettingsCommand = new RelayCommand(ShowSettings, CanOpen<SettingsViewModel>);
         ShowInfoCommand = new RelayCommand(ShowInfo, CanOpen<InfoViewModel>);
         ShowExamplesCommand = new RelayCommand(() => ShowExamples(), () => _doc is not null && CanOpen<ExamplesViewModel>());
@@ -90,14 +88,11 @@ public sealed class MainViewModel : ViewModelBase
 
     public ObservableCollection<Word> AllWords => _doc?.Words ?? EmptyWords;
 
-    /// <summary>右サイドバーのブラウザ（WebView2）の状態。</summary>
+    /// <summary>ブラウザのタブ（WebView2）の状態。</summary>
     public BrowserViewModel Browser { get; }
 
-    /// <summary>中央と 4 辺ぶんのタブ束。オーバーレイはここに入って初めて画面に出る。</summary>
-    public DockGroups Docks { get; }
-
-    /// <summary>ドラッグ中の状態。XAML からは {x:Static} でも同じ実体を引く。</summary>
-    public OverlayDragState Drag => OverlayDragState.Instance;
+    /// <summary>画面の割り付け。オーバーレイはここのどれかの枠に入って初めて画面に出る。</summary>
+    public DockLayout Layout { get; }
 
     private static readonly ObservableCollection<Word> EmptyWords = new();
 
@@ -179,9 +174,8 @@ public sealed class MainViewModel : ViewModelBase
         }
     }
 
-    /// <summary>ブラウザサイドバーの実表示。窓全体を覆う確認ダイアログの間は
-    /// airspace（WebView2 が WPF 描画より手前に出る）を避けるため強制的に false にする。
-    /// ドッキングしたオーバーレイとはサイドバーと場所を取り合わないので出したままにする。</summary>
+    /// <summary>ブラウザのタブの中身を出してよいか。窓全体を覆う確認ダイアログの間は
+    /// airspace（WebView2 が WPF 描画より手前に出る）を避けるため強制的に false にする。</summary>
     public bool IsBrowserShown => Browser.IsOpen && ModalOverlay is null;
 
     public double BaseFontSize => 14 * Settings.FontScale;
@@ -202,6 +196,7 @@ public sealed class MainViewModel : ViewModelBase
     public ICommand DeleteWordCommand { get; }
     public ICommand WordActionsCommand { get; }
     public ICommand ShowToolsCommand { get; }
+    public ICommand ToggleBrowserCommand { get; }
     public ICommand ShowSettingsCommand { get; }
     public ICommand ShowInfoCommand { get; }
     public ICommand ShowExamplesCommand { get; }
@@ -220,12 +215,12 @@ public sealed class MainViewModel : ViewModelBase
 
     /// <summary>その種類がまだ開いていないか。確認ダイアログ中はどれも開かせない。</summary>
     public bool CanOpen<T>() where T : OverlayViewModel
-        => ModalOverlay is null && !Docks.Overlays.Any(o => o is T);
+        => ModalOverlay is null && !Layout.Overlays.Any(o => o is T);
 
     /// <summary>編集中は辞書の差し替えを止める。保存の宛先だけが入れ替わるのを防ぐため。</summary>
     private bool IsEditorOpen
         => ModalOverlay is not null
-           || Docks.Overlays.Any(o => o is WordEditViewModel or ExampleEditViewModel);
+           || Layout.Overlays.Any(o => o is WordEditViewModel or ExampleEditViewModel);
 
     public void ShowOverlay(OverlayViewModel vm)
     {
@@ -236,18 +231,37 @@ public sealed class MainViewModel : ViewModelBase
             return;
         }
         vm.RequestClose = () => CloseOverlay(vm);
-        Docks.Add(vm);
+        Layout.Add(vm);
         Touch(vm);
     }
 
     public void CloseOverlay(OverlayViewModel vm)
     {
-        Docks.Remove(vm);
+        // ブラウザは次の起動で開き直すかどうかを覚えているので、タブを閉じたことを本体にも伝える。
+        if (vm is BrowserTabViewModel) Browser.Deactivate();
+        Layout.Remove(vm);
         _recent.Remove(vm);
         Raise(nameof(ActiveOverlay));
     }
 
     public void CloseModal() => ModalOverlay = null;
+
+    /// <summary>ブラウザのタブを開閉する（ヘッダのボタン）。閉じた枠は隣に吸収される。</summary>
+    private void ToggleBrowser()
+    {
+        if (Layout.Overlays.OfType<BrowserTabViewModel>().FirstOrDefault() is { } tab) CloseOverlay(tab);
+        else OpenBrowserTab();
+    }
+
+    /// <summary>
+    /// ブラウザのタブを開く。中身の WebView2 は初期化を遅らせてあるので、
+    /// 枠に並べてから <see cref="BrowserViewModel.Activate"/> で起こす。
+    /// </summary>
+    private void OpenBrowserTab()
+    {
+        ShowOverlay(new BrowserTabViewModel(this, Browser));
+        Browser.Activate();
+    }
 
     private void Touch(OverlayViewModel? vm)
     {
@@ -589,7 +603,7 @@ public sealed class MainViewModel : ViewModelBase
         void Back()
         {
             if (vm is not null) CloseOverlay(vm);
-            foreach (var list in Docks.Overlays.OfType<ExamplesViewModel>().ToList()) list.Refresh();
+            foreach (var list in Layout.Overlays.OfType<ExamplesViewModel>().ToList()) list.Refresh();
         }
 
         vm = new ExampleEditViewModel(example, _doc, _search, v => CommitExample(v, Back));

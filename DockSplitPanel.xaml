@@ -1,0 +1,33 @@
+<UserControl x:Class="ZasDictWin.Views.DockSplitPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- 枠を 2 つに割った境目。DataContext は DockSplit。
+         行と列は常に 3 つ宣言しておき、使わない向きは 0 に畳む。こうしておくと
+         左右割りと上下割りを同じテンプレートで描け、割り方ごとにビューを分けずに済む。
+         境目のつまみを引くと取り分（Ratio）が動く。 -->
+    <Grid x:Name="Host">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="{Binding Column0}" />
+            <ColumnDefinition Width="{Binding Column1}" />
+            <ColumnDefinition Width="{Binding Column2}" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="{Binding Row0}" />
+            <RowDefinition Height="{Binding Row1}" />
+            <RowDefinition Height="{Binding Row2}" />
+        </Grid.RowDefinitions>
+
+        <!-- 器の中で縮こまらないよう、伸ばし方は明示しておく（ContentControl の既定は左上寄せ）。 -->
+        <ContentControl Grid.Row="0" Grid.Column="0" Content="{Binding First}"
+                        HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+
+        <Thumb Grid.Row="{Binding GripRow}" Grid.Column="{Binding GripColumn}"
+               Cursor="{Binding GripCursor}" Style="{StaticResource GripThumb}"
+               DragDelta="Grip_DragDelta" DragCompleted="Grip_DragCompleted" />
+
+        <ContentControl Grid.Row="{Binding SecondRow}" Grid.Column="{Binding SecondColumn}"
+                        Content="{Binding Second}"
+                        HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" />
+    </Grid>
+</UserControl>

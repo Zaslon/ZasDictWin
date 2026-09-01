@@ -5,7 +5,8 @@
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:t="clr-namespace:ZasDictWin.Views">
 
-    <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1,0,0,0">
+    <!-- 枠線と面は枠（DockGroupPanel）が描くので、ここは中身だけを持つ -->
+    <Border Background="{StaticResource Panel}">
         <DockPanel>
 
             <!-- ツールバー。戻る／進むは履歴がないときに押せないことを明示する（打っても効かないよりマシ） -->

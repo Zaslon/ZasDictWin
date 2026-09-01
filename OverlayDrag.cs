@@ -1,16 +1,15 @@
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
 
 /// <summary>
-/// タブを掴んで別の辺へ運ばせる添付ビヘイビア。付ける相手の DataContext が
+/// タブを掴んで別の枠へ運ばせる添付ビヘイビア。付ける相手の DataContext が
 /// <see cref="OverlayViewModel"/> であることが前提（タブの見出しに付ける）。
-/// ドロップ先の当たり判定は MainWindow の <c>DockZoneHost</c>（升目に DockSide を Tag で持たせた
-/// Grid）を InputHitTest して拾う。判定は画面に描いている升目そのものなので XAML 側の割合を
-/// 変えれば判定も追従するが、この名前を変えるとドラッグしても何も起きなくなる。
+/// ドロップ先の当たり判定は、実際に並んでいる枠（<see cref="DockGroupPanel"/>）そのものを
+/// InputHitTest して拾う。カーソルが乗った枠が着色され、そこで離せばその枠へ移る。
+/// 落とす枠が無いときは、先に角を引いて枠を増やす（<see cref="AreaDrag"/>）。
 /// </summary>
 public static class OverlayDrag
 {
@@ -83,21 +82,18 @@ public static class OverlayDrag
             if ((_grip as FrameworkElement)?.DataContext is not OverlayViewModel vm) return;
             _dragging = true;
             OverlayDragState.Instance.BeginDrag(vm);
-            // 候補の升目はここで初めて可視になる。測り直すまで InputHitTest が当たらない。
-            ZoneHost()?.UpdateLayout();
         }
 
-        if (HitZone(e) is { } side) OverlayDragState.Instance.HoverSide = side;
+        OverlayDragState.Instance.HoverLeaf = HitLeaf(e);
     }
 
     private static void OnMouseUp(object sender, MouseButtonEventArgs e)
     {
         if (!ReferenceEquals(sender, _grip)) return;
-        var side = OverlayDragState.Instance.HoverSide;
         var wasDragging = _dragging;
         // 先に掴みを解く。LostMouseCapture は _dragging を見て中止するので、順序を変えると確定が消える。
         Release();
-        if (wasDragging) OverlayDragState.Instance.CompleteDrag(side);
+        if (wasDragging) OverlayDragState.Instance.CompleteDrag();
     }
 
     private static void OnLostCapture(object sender, MouseEventArgs e)
@@ -116,21 +112,12 @@ public static class OverlayDrag
         grip?.ReleaseMouseCapture();
     }
 
-    /// <summary>升目の隙間や画面外では null を返し、直前の候補を保たせる。</summary>
-    private static DockSide? HitZone(MouseEventArgs e)
-    {
-        if (ZoneHost() is not { } host) return null;
-        var hit = host.InputHitTest(e.GetPosition(host)) as DependencyObject;
-        while (hit is not null)
-        {
-            if (hit is FrameworkElement { Tag: DockSide side }) return side;
-            hit = VisualTreeHelper.GetParent(hit);
-        }
-        return null;
-    }
-
-    private static FrameworkElement? ZoneHost()
-        => _grip is { } grip
-            ? Window.GetWindow(grip)?.FindName("DockZoneHost") as FrameworkElement
+    /// <summary>
+    /// カーソルの下にある枠。どの枠にも乗っていなければ null で、着色も消える
+    /// （そのまま離しても動かさない）。
+    /// </summary>
+    private static DockLeaf? HitLeaf(MouseEventArgs e)
+        => _grip is not null && Window.GetWindow(_grip) is { } window
+            ? DockHit.LeafAt(window, e.GetPosition(window))
             : null;
 }

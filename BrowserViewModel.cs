@@ -4,15 +4,12 @@ using ZasDictWin.Services;
 namespace ZasDictWin.ViewModels;
 
 /// <summary>
-/// 右サイドバーのブラウザ（WebView2）の状態。実際の描画と履歴は View 側の WebView2 が持つため、
+/// ブラウザのタブ（WebView2）の状態。実際の描画と履歴は View 側の WebView2 が持つため、
 /// ここではアドレス・履歴状態・開閉だけを受け持つ。ナビゲーション指示はイベントで View に渡す
-/// （OverlayViewModel.RequestClose と同じ流儀）。
+/// （OverlayViewModel.RequestClose と同じ流儀）。大きさは枠の割り付けが決めるので持たない。
 /// </summary>
 public sealed class BrowserViewModel : ViewModelBase
 {
-    public const double MinWidth = 280;
-    public const double MaxWidth = 900;
-
     private const string GoogleSearch = "https://www.google.com/search?q=";
 
     /// <summary>設定が空のときの開始ページ。</summary>
@@ -21,7 +18,6 @@ public sealed class BrowserViewModel : ViewModelBase
     private readonly AppSettings _settings;
 
     private bool _isOpen;
-    private double _width = 420;
     private string _address = "";
     private string _title = "";
     private string _status = "";
@@ -33,19 +29,15 @@ public sealed class BrowserViewModel : ViewModelBase
     public BrowserViewModel(AppSettings settings)
     {
         _settings = settings;
-        _width = Math.Clamp(settings.BrowserWidth, MinWidth, MaxWidth);
         _isOpen = settings.BrowserVisible;
         _address = StartUrl;
 
-        ToggleCommand = new RelayCommand(Toggle);
         NavigateCommand = new RelayCommand(Navigate);
         BackCommand = new RelayCommand(() => BackRequested?.Invoke(), () => CanGoBack);
         ForwardCommand = new RelayCommand(() => ForwardRequested?.Invoke(), () => CanGoForward);
         ReloadCommand = new RelayCommand(() => ReloadRequested?.Invoke());
     }
 
-    /// <summary>サイドバーを開閉する（ヘッダのボタン）。</summary>
-    public ICommand ToggleCommand { get; }
     public ICommand NavigateCommand { get; }
     public ICommand BackCommand { get; }
     public ICommand ForwardCommand { get; }
@@ -63,6 +55,7 @@ public sealed class BrowserViewModel : ViewModelBase
         ? FallbackStartUrl
         : _settings.BrowserStartUrl.Trim();
 
+    /// <summary>タブが開いているか。開閉そのものは MainViewModel が行い、ここは記憶だけ持つ。</summary>
     public bool IsOpen
     {
         get => _isOpen;
@@ -77,20 +70,16 @@ public sealed class BrowserViewModel : ViewModelBase
 
     public string ToggleLabel => IsOpen ? "ブラウザを閉じる" : "ブラウザ";
 
-    /// <summary>サイドバーの幅。ドラッグ中は設定に書かず、DragCompleted で CommitWidth() する。</summary>
-    public double Width
+    /// <summary>タブを開いたときに呼ぶ。初回はここで WebView2 の初期化と最初のページ表示が走る
+    /// （起動を重くしないため遅延させている）。</summary>
+    public void Activate()
     {
-        get => _width;
-        set
-        {
-            var v = Math.Clamp(value, MinWidth, MaxWidth);
-            if (!Set(ref _width, v)) return;
-            _settings.BrowserWidth = v;
-        }
+        IsOpen = true;
+        InitializeRequested?.Invoke();
     }
 
-    /// <summary>幅ドラッグ終了時に設定へ書き出す。</summary>
-    public void CommitWidth() => _settings.Save();
+    /// <summary>タブを閉じたときに呼ぶ。次の起動で開き直すかどうかの記憶だけを落とす。</summary>
+    public void Deactivate() => IsOpen = false;
 
     /// <summary>アドレス欄の編集値。View のナビゲーションでも更新される。</summary>
     public string Address { get => _address; set => Set(ref _address, value); }
@@ -107,13 +96,6 @@ public sealed class BrowserViewModel : ViewModelBase
     public bool IsBusy { get => _isBusy; private set => Set(ref _isBusy, value); }
     public bool CanGoBack { get => _canGoBack; private set => Set(ref _canGoBack, value); }
     public bool CanGoForward { get => _canGoForward; private set => Set(ref _canGoForward, value); }
-
-    private void Toggle()
-    {
-        IsOpen = !IsOpen;
-        // 初回はここで WebView2 の初期化と最初のページ表示を行う（起動を重くしないため遅延）。
-        if (IsOpen) InitializeRequested?.Invoke();
-    }
 
     private void Navigate()
     {
@@ -139,10 +121,9 @@ public sealed class BrowserViewModel : ViewModelBase
         return "https://" + s;
     }
 
-    /// <summary>設定ダイアログの適用時。表示中のページは切り替えず、幅と開始 URL だけ反映する。</summary>
+    /// <summary>設定ダイアログの適用時。表示中のページは切り替えず、開始 URL だけ反映する。</summary>
     public void SyncWithSettings()
     {
-        Set(ref _width, Math.Clamp(_settings.BrowserWidth, MinWidth, MaxWidth));  // 設定側が正なので書き戻さない
         if (!IsOpen) Address = StartUrl;
     }
 

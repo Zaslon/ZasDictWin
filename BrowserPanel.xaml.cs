@@ -7,7 +7,7 @@ using ZasDictWin.ViewModels;
 namespace ZasDictWin.Views;
 
 /// <summary>
-/// 右サイドバーのブラウザ。WebView2 は airspace のため WPF 描画より手前に出るが、
+/// ブラウザのタブ。WebView2 は airspace のため WPF 描画より手前に出るが、
 /// メインウィンドウの子 HWND なので OBS のウィンドウキャプチャにはそのまま映る。
 /// </summary>
 public partial class BrowserPanel : UserControl
@@ -119,7 +119,7 @@ public partial class BrowserPanel : UserControl
                     ? (string.IsNullOrEmpty(title) ? core.Source?.ToString() ?? "" : title)
                     : $"読み込みに失敗しました（{e.WebErrorStatus}）");
             };
-            // target=_blank のリンクは同じサイドバーで開く（別ウィンドウは OBS に映らない）。
+            // target=_blank のリンクは同じタブで開く（別ウィンドウは OBS に映らない）。
             core.NewWindowRequested += (_, e) =>
             {
                 e.Handled = true;

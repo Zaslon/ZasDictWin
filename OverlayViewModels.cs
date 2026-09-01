@@ -65,6 +65,48 @@ public sealed class WordDetailViewModel : OverlayViewModel
     public override bool IsPinned => true;
 }
 
+/// <summary>
+/// 検索と一覧のタブ。単語詳細と同じく本体（<see cref="Main"/>）を DataContext にして描く器で、
+/// 検索条件も一覧の中身も MainViewModel がそのまま持つ。閉じられないが、枠は自由に選べる。
+/// </summary>
+public sealed class SearchViewModel : OverlayViewModel
+{
+    public SearchViewModel(MainViewModel main)
+    {
+        Main = main;
+        Title = "検索";
+    }
+
+    public MainViewModel Main { get; }
+
+    public override bool IsPinned => true;
+}
+
+/// <summary>
+/// ブラウザ（WebView2）のタブ。中身は <see cref="Browser"/> が持ち、ここは枠に並べるための器。
+/// 窓全体を覆う確認ダイアログの間だけ中身を隠す（airspace で WebView2 が上に出てしまうため）。
+/// </summary>
+public sealed class BrowserTabViewModel : OverlayViewModel
+{
+    public BrowserTabViewModel(MainViewModel main, BrowserViewModel browser)
+    {
+        Main = main;
+        Browser = browser;
+        Title = "ブラウザ";
+        Main.PropertyChanged += (_, e) =>
+        {
+            if (e.PropertyName == nameof(MainViewModel.IsBrowserShown)) Raise(nameof(IsContentShown));
+        };
+    }
+
+    public MainViewModel Main { get; }
+
+    public BrowserViewModel Browser { get; }
+
+    /// <summary>中身（WebView2）を出してよいか。確認ダイアログが出ている間は隠す。</summary>
+    public bool IsContentShown => Main.IsBrowserShown;
+}
+
 public sealed class ToolsViewModel : OverlayViewModel
 {
     private string _input = "";
