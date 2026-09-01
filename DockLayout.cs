@@ -287,13 +287,17 @@ public sealed class DockLayout : ViewModelBase
     public void Split(DockLeaf leaf, DockAxis axis, double ratio, bool newIsSecond)
     {
         if (Root.Leaves.Count() >= MaxLeaves) return;
+        // DockSplit のコンストラクタは leaf.Parent をこの新しい節へ即座に付け替えるので、
+        // 差し込み先を ReplaceNode に探させる（leaf.Parent を読む）前に元の親を控えておく。
+        var parent = leaf.Parent;
         var fresh = NewLeaf();
         var split = newIsSecond
             ? new DockSplit(axis, leaf, fresh, ratio)
             : new DockSplit(axis, fresh, leaf, ratio);
         split.Owner = this;
         fresh.Owner = this;
-        ReplaceNode(leaf, split);
+        if (parent is not null) parent.Replace(leaf, split);
+        else Root = split;
         Save();
     }
 
