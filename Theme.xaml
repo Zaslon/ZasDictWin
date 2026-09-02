@@ -175,6 +175,28 @@
         </Style.Triggers>
     </Style>
 
+    <!-- ヘッダのメニュー列。項目ごとに枠と面を持たせると、10 個近く並んだときに囲みの線が
+         文字より目立って項目名を拾えなくなるため、面は hover のときだけ出す。
+         押せることは Hand カーソルと hover の面が示す。 -->
+    <Style x:Key="ToolbarButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="Padding" Value="11,6" />
+        <Setter Property="Margin" Value="1,0" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource Raised}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- メニュー列のなかで最もよく使う項目（単語の追加）。面で塗ると囲みが戻るので、
+         文字色だけをアクセントにして他と段を付ける。 -->
+    <Style x:Key="ToolbarAccentButton" TargetType="Button" BasedOn="{StaticResource ToolbarButton}">
+        <Setter Property="Foreground" Value="{StaticResource Accent}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
     <!-- 戻る／進むなど、記号一文字を並べるツールバー用 -->
     <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Width" Value="32" />
@@ -724,15 +746,16 @@
         <Setter Property="Padding" Value="0" />
     </Style>
 
-    <!-- 階層メニューのボタン（v:MenuButton）。見た目は通常の Button に合わせ、末尾に開閉の三角だけ足す。
-         中身（v:MenuAction の列）は DropDownPanel と同じ器で AdornerLayer に描く。 -->
+    <!-- 階層メニューのボタン（v:MenuButton）。見た目は隣に並ぶ ToolbarButton に合わせ、
+         末尾に開閉の三角だけ足す。中身（v:MenuAction の列）は DropDownPanel と同じ器で
+         AdornerLayer に描く。 -->
     <Style TargetType="{x:Type v:MenuButton}">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
-        <Setter Property="Background" Value="{StaticResource Raised}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="10,6" />
-        <Setter Property="Margin" Value="0,0,4,0" />
+        <Setter Property="Padding" Value="11,6" />
+        <Setter Property="Margin" Value="1,0" />
         <Setter Property="MinHeight" Value="30" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
@@ -750,8 +773,9 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource Raised}" />
                         </Trigger>
+                        <!-- 開いている間だけ枠を出し、下に伸びた一覧（同じアクセント枠）と一続きに見せる -->
                         <Trigger Property="IsOpen" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />
                             <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
@@ -776,20 +800,33 @@
         </Setter>
     </Style>
 
-    <!-- 項目 1 つぶん。保存など IsPrimary の項目だけ、元のツールバーにあった PrimaryButton と
-         同じアクセント面で強調する（並びの中で見失わないように）。 -->
+    <!-- 開いた一覧の 1 行。枠付きのボタンを器（DropDownPanel）の中に積むと囲みが二重になり、
+         項目名より線のほうが目立つので、行は hover の面だけで示す。面の色は「選択中」を表す
+         AccentDim に合わせ、どの行に当たっているかを一目で分かるようにする。 -->
+    <Style x:Key="MenuItemButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+        <Setter Property="Padding" Value="11,7" />
+        <Setter Property="Margin" Value="0,1" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentDim}" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- 項目 1 つぶん。保存など IsPrimary の項目だけ、文字色と太さで強調する
+         （並びの中で見失わないように。面で塗ると 1 行だけ囲みが復活して浮く）。 -->
     <DataTemplate x:Key="MenuActionTemplate" DataType="{x:Type v:MenuAction}">
         <Button Content="{Binding Header}" ToolTip="{Binding ToolTip}" Command="{Binding Command}"
-                Visibility="{Binding IsVisible, Converter={StaticResource BoolVis}}"
-                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
-                Margin="0,1" Padding="10,7">
+                Visibility="{Binding IsVisible, Converter={StaticResource BoolVis}}">
             <Button.Style>
-                <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                <Style TargetType="Button" BasedOn="{StaticResource MenuItemButton}">
                     <Style.Triggers>
                         <DataTrigger Binding="{Binding IsPrimary}" Value="True">
-                            <Setter Property="Background" Value="{StaticResource AccentFill}" />
-                            <Setter Property="Foreground" Value="#170F28" />
-                            <Setter Property="BorderBrush" Value="Transparent" />
+                            <Setter Property="Foreground" Value="{StaticResource Accent}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </DataTrigger>
                     </Style.Triggers>
