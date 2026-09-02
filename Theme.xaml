@@ -789,6 +789,37 @@
         </Setter>
     </Style>
 
+    <!-- 一覧の行に付ける操作メニュー（v:MenuButton）。見た目は IconButton（⋯）そのままで、
+         中身は MenuButton の仕組みをそのまま借りる（右クリックでも同じものを開けるよう Open() を公開） -->
+    <Style x:Key="RowMenuButton" TargetType="{x:Type v:MenuButton}">
+        <Setter Property="Foreground" Value="{StaticResource Muted}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="26" />
+        <Setter Property="Height" Value="24" />
+        <Setter Property="MinHeight" Value="24" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type v:MenuButton}">
+                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}">
+                        <TextBlock x:Name="txt" Text="{TemplateBinding Header}" Foreground="{TemplateBinding Foreground}"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="txt" Property="Foreground" Value="{StaticResource Text}" />
+                        </Trigger>
+                        <Trigger Property="IsOpen" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource Raised}" />
+                            <Setter TargetName="txt" Property="Foreground" Value="{StaticResource Text}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- 開いた一覧の中身。DropDownPanel（面・枠）を外側に被せるので、ここは項目を縦に並べるだけ -->
     <Style x:Key="MenuActionList" TargetType="ItemsControl">
         <Setter Property="ItemsPanel">
@@ -821,6 +852,7 @@
          （並びの中で見失わないように。面で塗ると 1 行だけ囲みが復活して浮く）。 -->
     <DataTemplate x:Key="MenuActionTemplate" DataType="{x:Type v:MenuAction}">
         <Button Content="{Binding Header}" ToolTip="{Binding ToolTip}" Command="{Binding Command}"
+                CommandParameter="{Binding CommandParameter}"
                 Visibility="{Binding IsVisible, Converter={StaticResource BoolVis}}">
             <Button.Style>
                 <Style TargetType="Button" BasedOn="{StaticResource MenuItemButton}">

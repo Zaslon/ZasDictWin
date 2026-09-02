@@ -81,10 +81,10 @@ public static class OverlayDrag
                 Math.Abs(delta.Y) < SystemParameters.MinimumVerticalDragDistance) return;
             if ((_grip as FrameworkElement)?.DataContext is not OverlayViewModel vm) return;
             _dragging = true;
-            OverlayDragState.Instance.BeginDrag(vm);
+            OverlayDragState.Instance.BeginDrag(vm, DockHit.AncestorLeaf(_grip));
         }
 
-        OverlayDragState.Instance.HoverLeaf = HitLeaf(e);
+        UpdateHover(e);
     }
 
     private static void OnMouseUp(object sender, MouseButtonEventArgs e)
@@ -113,11 +113,28 @@ public static class OverlayDrag
     }
 
     /// <summary>
-    /// カーソルの下にある枠。どの枠にも乗っていなければ null で、着色も消える
+    /// カーソルの下にある枠へ、乗っている位置を反映する。端に寄せていれば分割の下見、
+    /// 真ん中なら枠全体の着色（タブとして合流）。どの枠にも乗っていなければ両方消える
     /// （そのまま離しても動かさない）。
     /// </summary>
-    private static DockLeaf? HitLeaf(MouseEventArgs e)
-        => _grip is not null && Window.GetWindow(_grip) is { } window
-            ? DockHit.LeafAt(window, e.GetPosition(window))
-            : null;
+    private static void UpdateHover(MouseEventArgs e)
+    {
+        if (_grip is null || Window.GetWindow(_grip) is not { } window)
+        {
+            OverlayDragState.Instance.SetHover(null, null);
+            return;
+        }
+
+        var point = e.GetPosition(window);
+        if (DockHit.PanelAt(window, point) is not { } hit)
+        {
+            OverlayDragState.Instance.SetHover(null, null);
+            return;
+        }
+
+        var (panel, leaf) = hit;
+        var local = window.TranslatePoint(point, panel);
+        var split = DockHit.EdgeSplit(panel.ActualWidth, panel.ActualHeight, local.X, local.Y);
+        OverlayDragState.Instance.SetHover(leaf, split);
+    }
 }

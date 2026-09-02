@@ -8,17 +8,58 @@ namespace ZasDictWin.Views;
 /// <summary>カーソルの下にある枠を拾う。タブの運びと角の引き回しで同じ判定を使う。</summary>
 internal static class DockHit
 {
+    /// <summary>端からこの範囲内にカーソルがあれば、タブとしての合流ではなく分割の下見を出す。</summary>
+    private const double EdgeZone = 48;
+
     /// <summary>どの枠にも乗っていなければ null。</summary>
-    public static DockLeaf? LeafAt(UIElement root, Point point)
+    public static DockLeaf? LeafAt(UIElement root, Point point) => PanelAt(root, point)?.Leaf;
+
+    /// <summary>どの枠にも乗っていなければ null。枠そのもの（座標変換に要る）とセットで返す。</summary>
+    public static (DockGroupPanel Panel, DockLeaf Leaf)? PanelAt(UIElement root, Point point)
     {
         var hit = root.InputHitTest(point) as DependencyObject;
         while (hit is not null)
         {
-            if (hit is DockGroupPanel { DataContext: DockLeaf leaf }) return leaf;
+            if (hit is DockGroupPanel { DataContext: DockLeaf leaf } panel) return (panel, leaf);
             // 当たるのは描いている要素なので、視覚ツリーだけ遡れば枠に届く。
             hit = hit is Visual visual ? VisualTreeHelper.GetParent(visual) : null;
         }
         return null;
+    }
+
+    /// <summary>要素そのものが属する枠。タブを掴んだ時点でどの枠から運び出したかを覚えるのに使う。</summary>
+    public static DockLeaf? AncestorLeaf(DependencyObject? o)
+    {
+        while (o is not null)
+        {
+            if (o is DockGroupPanel { DataContext: DockLeaf leaf }) return leaf;
+            o = o is Visual visual ? VisualTreeHelper.GetParent(visual) : null;
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// タブを運んでいるカーソルが枠のどのあたりにあるか。端に寄せていれば、
+    /// その辺へ新しい枠を割り出す下見を返す。真ん中（合流）なら null。
+    /// </summary>
+    public static SplitPreview? EdgeSplit(double width, double height, double x, double y)
+    {
+        var best = EdgeZone;
+        SplitPreview? preview = null;
+
+        void Consider(double distance, DockAxis axis, bool newIsSecond, double total)
+        {
+            if (total < DockSplit.MinLeafSize * 2 || distance >= best) return;
+            best = distance;
+            preview = new SplitPreview(axis, 0.5, newIsSecond);
+        }
+
+        Consider(x, DockAxis.Columns, false, width);          // 左端 → 左に新しい枠
+        Consider(width - x, DockAxis.Columns, true, width);   // 右端 → 右に新しい枠
+        Consider(y, DockAxis.Rows, false, height);            // 上端 → 上に新しい枠
+        Consider(height - y, DockAxis.Rows, true, height);    // 下端 → 下に新しい枠
+
+        return preview;
     }
 }
 

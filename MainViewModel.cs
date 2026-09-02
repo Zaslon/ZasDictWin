@@ -65,11 +65,12 @@ public sealed class MainViewModel : ViewModelBase
         // 同じ画面は 1 枚まで。開いている種類のボタンは無効にして、書きかけの入力が
         // 差し替えで飛ぶのを防ぐ（ショートカットはオーバーレイの上からでも届くため）。
         NewWordCommand = new RelayCommand(NewWord, () => _doc is not null && CanOpen<WordEditViewModel>());
-        EditWordCommand = new RelayCommand(o => EditWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && CanOpen<WordEditViewModel>());
-        DuplicateWordCommand = new RelayCommand(o => DuplicateWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && CanOpen<WordEditViewModel>());
+        // ツールバー・ショートカットは選択中の単語を、行のメニューは渡された単語を見る
+        // （どちらか一方だけ null でも動くように、実行側と同じ落とし先を判定にも使う）。
+        EditWordCommand = new RelayCommand(o => EditWord(o as Word ?? SelectedWord), o => (o as Word ?? SelectedWord) is not null && CanOpen<WordEditViewModel>());
+        DuplicateWordCommand = new RelayCommand(o => DuplicateWord(o as Word ?? SelectedWord), o => (o as Word ?? SelectedWord) is not null && CanOpen<WordEditViewModel>());
         // 編集中の単語を消せると、開いたままのエディタが宙に浮く。
-        DeleteWordCommand = new RelayCommand(o => ConfirmDeleteWord(o as Word ?? SelectedWord), _ => SelectedWord is not null && CanOpen<WordEditViewModel>());
-        WordActionsCommand = new RelayCommand(o => ShowWordActions(o as Word ?? SelectedWord), _ => SelectedWord is not null && CanOpen<WordEditViewModel>());
+        DeleteWordCommand = new RelayCommand(o => ConfirmDeleteWord(o as Word ?? SelectedWord), o => (o as Word ?? SelectedWord) is not null && CanOpen<WordEditViewModel>());
         ShowToolsCommand = new RelayCommand(() => ShowOverlay(new ToolsViewModel(SelectedWord?.Form)), CanOpen<ToolsViewModel>);
         ToggleBrowserCommand = new RelayCommand(ToggleBrowser, () => ModalOverlay is null);
         ShowSettingsCommand = new RelayCommand(ShowSettings, CanOpen<SettingsViewModel>);
@@ -212,7 +213,6 @@ public sealed class MainViewModel : ViewModelBase
     public ICommand EditWordCommand { get; }
     public ICommand DuplicateWordCommand { get; }
     public ICommand DeleteWordCommand { get; }
-    public ICommand WordActionsCommand { get; }
     public ICommand ShowToolsCommand { get; }
     public ICommand ToggleBrowserCommand { get; }
     public ICommand ShowSettingsCommand { get; }
@@ -457,20 +457,16 @@ public sealed class MainViewModel : ViewModelBase
     private static string SanitizeFileName(string s)
         => string.Concat(s.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
 
-    private async Task LoadFromGitHubAsync()
+    private Task LoadFromGitHubAsync()
     {
-        if (!TryGetGitHubConfig(out var cfg, out var error)) { Status = error; return; }
+        if (!TryGetGitHubConfig(out var cfg, out var error)) { Status = error; return Task.CompletedTask; }
 
-        if (IsDirty)
-        {
-            // 直接は上書きしない。保存されていない変更を確認なしで消さないための確認。
-            ShowOverlay(new ChoiceViewModel("保存されていない変更があります",
-                    $"GitHubから読み込むと、{DictionaryName} の保存されていない変更は失われます。")
-                .Add("読み込む", () => _ = LoadFromGitHubCoreAsync(cfg), isDanger: true)
-                .AddCancel("やめる"));
-            return;
-        }
-        await LoadFromGitHubCoreAsync(cfg);
+        // 押し間違いでローカルの内容を消さないよう、保存済みかどうかに関わらず確認を挟む。
+        ShowOverlay(new ChoiceViewModel("GitHubから読み込み",
+                "ローカルの変更を破棄してGitHubから再読み込みをしますか？")
+            .Add("読み込む", () => _ = LoadFromGitHubCoreAsync(cfg), isDanger: true)
+            .AddCancel("やめる"));
+        return Task.CompletedTask;
     }
 
     private async Task LoadFromGitHubCoreAsync(GitHubConfig cfg)
@@ -660,6 +656,29 @@ public sealed class MainViewModel : ViewModelBase
         ShowOverlay(new WordEditViewModel(w, _doc.Words, _relations, _search, CommitEdit));
     }
 
+    /// <summary>検索結果のダブルクリックから呼ぶ。「同じ画面は 1 枚まで」（<see cref="EditWordCommand"/> 等）
+    /// の縛りはそのままに、単語編集を開いたまま別の単語をダブルクリックしたときだけ、
+    /// そちらへ差し替える。差し替え前の内容が変わっていれば確認する（同じ単語なら前に出すだけ）。</summary>
+    public void RequestEditWord(Word? w)
+    {
+        if (_doc is null || w is null || ModalOverlay is not null) return;
+
+        var current = Layout.Overlays.OfType<WordEditViewModel>().FirstOrDefault();
+        if (current is null) { EditWord(w); return; }
+        if (current.Source == w)
+        {
+            if (Layout.LeafOf(current) is { } leaf) leaf.Selected = current;
+            return;
+        }
+
+        if (!current.HasChanges) { CloseOverlay(current); EditWord(w); return; }
+
+        ShowOverlay(new ChoiceViewModel("保存されていない変更があります",
+                $"「{current.Form}」の編集内容を保存せずに閉じますか？")
+            .Add("閉じる", () => { CloseOverlay(current); EditWord(w); }, isDanger: true)
+            .AddCancel("やめる"));
+    }
+
     private void CommitEdit(WordEditViewModel vm)
     {
         if (_doc is null) return;
@@ -725,16 +744,6 @@ public sealed class MainViewModel : ViewModelBase
         if (SelectedWord == w) SelectedWord = null;
         RebuildIndex();
         MarkDirty($"「{w.Form}」を削除しました。");
-    }
-
-    private void ShowWordActions(Word? w)
-    {
-        if (w is null) return;
-        ShowOverlay(new ChoiceViewModel(w.DisplayForm, w.TranslationSummary)
-            .Add("編集", () => EditWord(w))
-            .Add("複製", () => DuplicateWord(w))
-            .Add("削除", () => ConfirmDeleteWord(w), isDanger: true)
-            .AddCancel("閉じる"));
     }
 
     private void FollowRelation(Relation? r)

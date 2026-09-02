@@ -283,10 +283,11 @@ public sealed class DockLayout : ViewModelBase
         Save();
     }
 
-    /// <summary>枠を 2 つに割る。新しくできる側は空のままで、タブを運び込むまで案内を出す。</summary>
-    public void Split(DockLeaf leaf, DockAxis axis, double ratio, bool newIsSecond)
+    /// <summary>枠を 2 つに割る。新しくできる側は空のままで、タブを運び込むまで案内を出す。
+    /// 上限に達していて割れなければ null（呼び出し側は割らずに済ませる）。</summary>
+    public DockLeaf? Split(DockLeaf leaf, DockAxis axis, double ratio, bool newIsSecond)
     {
-        if (Root.Leaves.Count() >= MaxLeaves) return;
+        if (Root.Leaves.Count() >= MaxLeaves) return null;
         // DockSplit のコンストラクタは leaf.Parent をこの新しい節へ即座に付け替えるので、
         // 差し込み先を ReplaceNode に探させる（leaf.Parent を読む）前に元の親を控えておく。
         var parent = leaf.Parent;
@@ -299,6 +300,7 @@ public sealed class DockLayout : ViewModelBase
         if (parent is not null) parent.Replace(leaf, split);
         else Root = split;
         Save();
+        return fresh;
     }
 
     /// <summary>
@@ -439,44 +441,71 @@ public sealed class OverlayDragState : ViewModelBase
     public static OverlayDragState Instance { get; } = new();
 
     private DockLeaf? _hoverLeaf;
+    private SplitPreview? _hoverSplit;
     private OverlayViewModel? _dragged;
+    private DockLeaf? _sourceLeaf;
 
     public Action<OverlayViewModel, DockLeaf>? Move { get; set; }
 
-    /// <summary>
-    /// 今カーソルが乗っている枠。乗っている枠が着色され、離せばそこへ移る。
-    /// どの枠にも乗っていなければ null で、離しても動かさない。
-    /// </summary>
-    public DockLeaf? HoverLeaf
-    {
-        get => _hoverLeaf;
-        set
-        {
-            var previous = _hoverLeaf;
-            if (!Set(ref _hoverLeaf, value)) return;
-            if (previous is not null) previous.IsDropTarget = false;
-            if (value is not null) value.IsDropTarget = true;
-        }
-    }
+    /// <summary>今カーソルが乗っている枠。どの枠にも乗っていなければ null。</summary>
+    public DockLeaf? HoverLeaf => _hoverLeaf;
 
-    public void BeginDrag(OverlayViewModel vm)
+    /// <summary><paramref name="sourceLeaf"/> は運び出した元の枠。分割の下見はそこの端だけで出す
+    /// （よそへ乗せたときは、その辺で新しく割るのではなく、そのままタブとして合流させる）。</summary>
+    public void BeginDrag(OverlayViewModel vm, DockLeaf? sourceLeaf)
     {
         _dragged = vm;
-        HoverLeaf = null;
+        _sourceLeaf = sourceLeaf;
+        SetHover(null, null);
     }
 
-    /// <summary>乗っている枠へ移す。枠の外で離したときは何もしない。</summary>
+    /// <summary>
+    /// ドラッグ中のカーソル位置を更新する。運び出した元の枠の端に寄せていれば分割の下見（<paramref name="split"/>）を、
+    /// それ以外（よその枠、または元の枠の真ん中）は枠全体の着色（タブとして合流）を出す。
+    /// 前に乗っていた枠の下見・着色はここで消す。
+    /// </summary>
+    public void SetHover(DockLeaf? leaf, SplitPreview? split)
+    {
+        // 元の枠にこのタブしか無ければ、割ってすぐ運び出したところで空になった元の枠が
+        // 畳まれて元通りになるだけ（見た目は変わらず、枠番号だけ振り直る）なので下見を出さない。
+        var sourceHasOthers = _sourceLeaf is { } source && source.Items.Count > 1;
+        split = leaf is null || !ReferenceEquals(leaf, _sourceLeaf) || !sourceHasOthers ? null : split;
+        if (ReferenceEquals(leaf, _hoverLeaf) && Equals(split, _hoverSplit)) return;
+
+        if (_hoverLeaf is not null)
+        {
+            _hoverLeaf.IsDropTarget = false;
+            _hoverLeaf.Preview = null;
+        }
+        _hoverLeaf = leaf;
+        _hoverSplit = split;
+        if (leaf is null) return;
+        if (split is not null) leaf.Preview = split;
+        else leaf.IsDropTarget = true;
+    }
+
+    /// <summary>
+    /// 乗っている枠へ移す。端に寄せていたら先にそちら側を割ってから、できた新しい枠へ移す
+    /// （上限で割れなければ、これまで通りその枠へタブとして合流させる）。枠の外で離したときは何もしない。
+    /// </summary>
     public void CompleteDrag()
     {
         var vm = _dragged;
-        var leaf = HoverLeaf;
+        var leaf = _hoverLeaf;
+        var split = _hoverSplit;
         Cancel();
-        if (vm is not null && leaf is not null) Move?.Invoke(vm, leaf);
+        if (vm is null || leaf is null) return;
+
+        var target = split is not null && leaf.Owner is { } owner
+            ? owner.Split(leaf, split.Axis, split.Ratio, split.NewIsSecond) ?? leaf
+            : leaf;
+        Move?.Invoke(vm, target);
     }
 
     public void Cancel()
     {
-        HoverLeaf = null;
+        SetHover(null, null);
         _dragged = null;
+        _sourceLeaf = null;
     }
 }

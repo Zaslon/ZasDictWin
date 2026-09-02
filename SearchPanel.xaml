@@ -62,6 +62,14 @@
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      VirtualizingPanel.IsVirtualizing="True"
                      VirtualizingPanel.VirtualizationMode="Recycling">
+                <!-- 行のどこを右クリックしても同じ操作メニューを開く（⋯ を掴む代わりの近道）。
+                     ListBoxItem 側に付けるのが要点: DataTemplate の Grid に付けると、
+                     ListBoxItem の Padding（行の余白部分）が Grid の外側になり、そこを叩いても反応しない。 -->
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                        <EventSetter Event="MouseRightButtonUp" Handler="Row_MouseRightButtonUp" />
+                    </Style>
+                </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type m:Word}">
                         <Grid>
@@ -81,10 +89,12 @@
                                            FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                             </StackPanel>
-                            <Button Grid.Column="1" Content="⋯" Style="{StaticResource IconButton}" Width="26" Height="24"
-                                    VerticalAlignment="Center"
-                                    Command="{Binding DataContext.WordActionsCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                    CommandParameter="{Binding}" />
+                            <!-- 中身（編集・複製・削除）は開く直前に Opening で詰める。
+                                 ComboBox 等と同じく Popup は使えない（OBS のウィンドウキャプチャに映らない）ため
+                                 v:MenuButton の自前ドロップダウンを流用し、右クリックの近道もこれを開くだけにする。 -->
+                            <v:MenuButton Grid.Column="1" Header="⋯" Style="{StaticResource RowMenuButton}"
+                                          VerticalAlignment="Center"
+                                          Opening="RowMenu_Opening" />
                         </Grid>
                     </DataTemplate>
                 </ListBox.ItemTemplate>

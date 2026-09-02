@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text.Json;
 using System.Windows.Input;
 using ZasDictWin.Models;
 using ZasDictWin.Services;
@@ -51,6 +52,9 @@ public sealed class WordEditViewModel : OverlayViewModel
     private string _relationTitle = "対義語";
     private string _validationMessage = "";
 
+    /// <summary>読み込み直後（何も打っていない状態）の内容。<see cref="HasChanges"/> の基準にする。</summary>
+    private readonly string _initialSnapshot;
+
     public WordEditViewModel(Word? source, ObservableCollection<Word> allWords, RelationService relations,
                              SearchService search, Action<WordEditViewModel> commit, string initialForm = "")
     {
@@ -94,6 +98,8 @@ public sealed class WordEditViewModel : OverlayViewModel
         RemoveRelationCommand = new RelayCommand(o => { if (o is RelationRow r) Relations.Remove(r); });
         AddRelationCommand = new RelayCommand(o => { if (o is Word w) AddRelation(w); });
         SaveCommand = new RelayCommand(() => { if (Validate()) _commit(this); });
+
+        _initialSnapshot = Snapshot();
     }
 
     public Word? Source { get; }
@@ -123,6 +129,20 @@ public sealed class WordEditViewModel : OverlayViewModel
             : "";
         return !missing;
     }
+
+    /// <summary>読み込み直後から中身が変わったか。閉じずに別の単語へ差し替える前の確認に使う
+    /// （Translations 等は行の増減も含めて Build* 経由で比べる必要があるため、フィールドの単純比較では拾えない）。</summary>
+    public bool HasChanges => Snapshot() != _initialSnapshot;
+
+    private string Snapshot() => JsonSerializer.Serialize(new
+    {
+        Form = Form.Trim(),
+        Tags = BuildTags(),
+        Translations = BuildTranslations(),
+        Contents = BuildContents(),
+        Variations = BuildVariations(),
+        Relations = BuildRelations(),
+    });
 
     public string TagsText { get; set; } = "";
 

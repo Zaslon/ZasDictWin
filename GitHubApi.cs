@@ -144,8 +144,12 @@ public static class GitHubApi
         try
         {
             // 1. ブランチ先端のコミット sha
-            var refUrl = $"{repoBase}/git/ref/heads/{Uri.EscapeDataString(branch)}";
-            var (refOk, refBody, refStatus) = await SendAsync(HttpMethod.Get, refUrl, token, null).ConfigureAwait(false);
+            //    参照の取得は /git/ref/（単数）、更新は /git/refs/（複数）と別のルートになっている。
+            //    URL を使い回すと PATCH だけルート無しの 404 になり、読み込みだけ通る状態になる。
+            var branchRef = $"heads/{EscapePath(branch)}";
+            var getRefUrl = $"{repoBase}/git/ref/{branchRef}";
+            var updateRefUrl = $"{repoBase}/git/refs/{branchRef}";
+            var (refOk, refBody, refStatus) = await SendAsync(HttpMethod.Get, getRefUrl, token, null).ConfigureAwait(false);
             if (!refOk) return Failure<GitHubCommitResult>(refStatus, (msg, auth) => new GitHubCommitResult(false, $"ブランチの取得に失敗しました: {msg}") { AuthFailed = auth });
             var currentCommitSha = (JsonNode.Parse(refBody) as JsonObject)?["object"]?["sha"]?.GetValue<string>();
             if (currentCommitSha is null) return new GitHubCommitResult(false, "ブランチ情報を解釈できませんでした。");
@@ -190,7 +194,7 @@ public static class GitHubApi
             // 5. ブランチを新しいコミットへ進める。force を付けないので、他所が先に進めていたら
             //    fast-forward にならず失敗する（＝安全に弾かれる）。
             var updateRefPayload = new JsonObject { ["sha"] = newCommitSha };
-            var (updateOk, updateBody, updateStatus) = await SendAsync(HttpMethod.Patch, refUrl, token, updateRefPayload).ConfigureAwait(false);
+            var (updateOk, updateBody, updateStatus) = await SendAsync(HttpMethod.Patch, updateRefUrl, token, updateRefPayload).ConfigureAwait(false);
             if (!updateOk)
             {
                 if (updateStatus is HttpStatusCode.UnprocessableEntity or HttpStatusCode.Conflict)

@@ -15,7 +15,7 @@ public sealed class ChoiceItem
     public ICommand Command { get; init; } = new RelayCommand(() => { });
 }
 
-/// <summary>確認ダイアログと右クリックメニューの代替を兼ねる汎用オーバーレイ。</summary>
+/// <summary>確認ダイアログ用の汎用オーバーレイ。中央固定のカードで、答えるまで先へ進めない問いに使う。</summary>
 public sealed class ChoiceViewModel : OverlayViewModel
 {
     public string Message { get; }
