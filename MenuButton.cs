@@ -23,6 +23,9 @@ public sealed class MenuAction : DependencyObject
     public static readonly DependencyProperty CommandProperty =
         DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(MenuAction));
 
+    public static readonly DependencyProperty CommandParameterProperty =
+        DependencyProperty.Register(nameof(CommandParameter), typeof(object), typeof(MenuAction));
+
     public static readonly DependencyProperty IsVisibleProperty =
         DependencyProperty.Register(nameof(IsVisible), typeof(bool), typeof(MenuAction), new PropertyMetadata(true));
 
@@ -33,6 +36,7 @@ public sealed class MenuAction : DependencyObject
     public string Header { get => (string)GetValue(HeaderProperty); set => SetValue(HeaderProperty, value); }
     public string ToolTip { get => (string)GetValue(ToolTipProperty); set => SetValue(ToolTipProperty, value); }
     public ICommand? Command { get => (ICommand?)GetValue(CommandProperty); set => SetValue(CommandProperty, value); }
+    public object? CommandParameter { get => GetValue(CommandParameterProperty); set => SetValue(CommandParameterProperty, value); }
     public bool IsVisible { get => (bool)GetValue(IsVisibleProperty); set => SetValue(IsVisibleProperty, value); }
     public bool IsPrimary { get => (bool)GetValue(IsPrimaryProperty); set => SetValue(IsPrimaryProperty, value); }
 }
@@ -78,6 +82,12 @@ public class MenuButton : Control
 
     public bool IsOpen => (bool)GetValue(IsOpenProperty);
 
+    /// <summary>開く直前。中身を持たせる側はここで Items を詰める。
+    /// 行を使い回す一覧（仮想化）に置くと、生成時に詰める作りでは中身が入らない
+    /// （生成された時点のボタンには DataContextChanged が上がらない）うえ、
+    /// 使い回しで別の行のものが残るため、開くたびに組み直す。</summary>
+    public event EventHandler? Opening;
+
     /// <summary>開いているメニューがあれば閉じ、閉じたかどうかを返す。Esc がオーバーレイ全体の
     /// 閉じる操作に食われないよう、ウィンドウ側の Esc 処理から先に呼ぶ。</summary>
     public static bool CloseCurrent()
@@ -90,6 +100,10 @@ public class MenuButton : Control
     public void Open()
     {
         if (IsOpen) return;
+        Opening?.Invoke(this, EventArgs.Empty);
+        // 中身が無いなら開かない。空の器だけが出ても畳む以外にできることが無い。
+        if (IsEmpty(Items)) return;
+
         _layer = DropDown.TopLayer(this);
         if (_layer is null) return;
 
@@ -170,6 +184,14 @@ public class MenuButton : Control
     }
 
     private void OnItemClick(object sender, RoutedEventArgs e) => Close();
+
+    private static bool IsEmpty(IEnumerable? items)
+    {
+        if (items is null) return true;
+        var walker = items.GetEnumerator();
+        try { return !walker.MoveNext(); }
+        finally { (walker as IDisposable)?.Dispose(); }
+    }
 
     private void OnWindowMouseDown(object sender, MouseButtonEventArgs e)
     {

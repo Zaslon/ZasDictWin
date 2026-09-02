@@ -76,25 +76,27 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                              （コマンドを直接渡したいので、Items は XAML の Binding ではなくコード側で組む）。 -->
                         <v:MenuButton x:Name="FileMenuButton" Header="ファイル" />
                         <!-- GitHubモードのときだけ現れる。設定 → GitHub でリポジトリ・トークンを登録すると使える。 -->
-                        <Border Width="1" Background="{StaticResource Line}" Margin="4,3"
+                        <Border Width="1" Background="{StaticResource Line}" Margin="6,5"
                                 Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}" />
-                        <Button Content="GitHubから読み込む" Command="{Binding LoadFromGitHubCommand}"
+                        <Button Content="GitHubから読み込む" Style="{StaticResource ToolbarButton}" Command="{Binding LoadFromGitHubCommand}"
                                 Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}"
                                 ToolTip="GitHub の内容をローカルへ取得し、読み込み直します" />
+                        <!-- 唯一の塗りつぶし。取り消せない外向きの操作なので、押す前に他と見分けが付くようにする。 -->
                         <Button Content="コミット" Style="{StaticResource PrimaryButton}" Command="{Binding CommitToGitHubCommand}"
-                                Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}"
+                                Margin="4,0" Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}"
                                 ToolTip="ローカルの辞書・更新履歴を保存したうえで GitHub へコミットします" />
-                        <Border Width="1" Background="{StaticResource Line}" Margin="4,3" />
-                        <Button Content="＋ 単語" Command="{Binding NewWordCommand}" />
-                        <Button Content="例文" Command="{Binding ShowExamplesCommand}"
+                        <Border Width="1" Background="{StaticResource Line}" Margin="6,5" />
+                        <Button Content="＋ 単語" Style="{StaticResource ToolbarAccentButton}" Command="{Binding NewWordCommand}" />
+                        <Button Content="例文" Style="{StaticResource ToolbarButton}" Command="{Binding ShowExamplesCommand}"
                                 ToolTip="辞書の例文（examples）を一覧・編集します" />
-                        <Button Content="ツール" Command="{Binding ShowToolsCommand}" />
-                        <Button Content="凡例・統計" Command="{Binding ShowInfoCommand}" />
-                        <Button Content="設定" Command="{Binding ShowSettingsCommand}" />
-                        <Button x:Name="BrowserButton" Content="{Binding Browser.ToggleLabel}"
+                        <Button Content="ツール" Style="{StaticResource ToolbarButton}" Command="{Binding ShowToolsCommand}" />
+                        <Button Content="凡例・統計" Style="{StaticResource ToolbarButton}" Command="{Binding ShowInfoCommand}" />
+                        <Button Content="設定" Style="{StaticResource ToolbarButton}" Command="{Binding ShowSettingsCommand}" />
+                        <Button x:Name="BrowserButton" Content="{Binding Browser.ToggleLabel}" Style="{StaticResource ToolbarButton}"
                                 Command="{Binding ToggleBrowserCommand}" ToolTip="ウェブブラウザのタブを開閉します" />
-                        <Border Width="1" Background="{StaticResource Line}" Margin="4,3" />
-                        <Button x:Name="StreamButton" Content="単語ウィンドウ" Click="ToggleStreamWindow_Click" Margin="0" />
+                        <Border Width="1" Background="{StaticResource Line}" Margin="6,5" />
+                        <Button x:Name="StreamButton" Content="単語ウィンドウ" Style="{StaticResource ToolbarButton}"
+                                Click="ToggleStreamWindow_Click" />
                     </WrapPanel>
                 </DockPanel>
             </Border>

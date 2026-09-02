@@ -24,7 +24,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:OverlayViewModel}">
                                 <!-- 据え置きのタブ（検索・単語詳細）は運べるが閉じられない。 -->
-                                <Border MouseLeftButtonDown="Tab_MouseDown" Style="{StaticResource DockTab}"
+                                <Border MouseDown="Tab_MouseDown" Style="{StaticResource DockTab}"
                                         v:OverlayDrag.IsGrip="True">
                                     <StackPanel Orientation="Horizontal">
                                         <!-- 見出しは 1 行。長い題は末尾を省略してタブの幅を暴れさせない -->

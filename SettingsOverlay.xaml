@@ -4,7 +4,9 @@
              xmlns:v="clr-namespace:ZasDictWin.Views"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
 
-    <Border Style="{StaticResource OverlayCard}">
+    <!-- CommitOverlay と同じく中央固定のカード。タブは中身が多いので画面に収まる範囲で広めに取る。 -->
+    <Border Style="{StaticResource Card}" MaxWidth="760" MaxHeight="720" Margin="40,28" Padding="0"
+            VerticalAlignment="Center" HorizontalAlignment="Center">
         <DockPanel>
             <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
@@ -18,7 +20,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- スクロール領域はタブの高さいっぱいまで使う。高さを固定すると
+            <!-- スクロール領域はカードの高さいっぱいまで使う。高さを固定すると
                  文字サイズ倍率を上げたときに数行しか見えなくなる。 -->
             <TabControl Margin="24,14,24,0">
                 <TabItem Header="表示・動作">
