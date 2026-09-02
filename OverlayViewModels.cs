@@ -167,6 +167,9 @@ public sealed class ToolsViewModel : OverlayViewModel
 
 public sealed class SettingsViewModel : OverlayViewModel
 {
+    // タブ束に混ざると誤操作しやすいので、コミットと同じ中央モーダルとして出す。
+    public override bool IsDockable => false;
+
     private readonly AppSettings _settings;
     private readonly OtmDocument? _doc;
     private readonly Action _apply;
