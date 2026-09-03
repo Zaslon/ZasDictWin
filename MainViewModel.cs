@@ -157,7 +157,7 @@ public sealed class MainViewModel : ViewModelBase
         get
         {
             var name = _doc?.Name ?? "辞書なし";
-            return $"{name}{(IsDirty ? " *" : "")} — ZasDict for Windows";
+            return $"ZasDict for Windows: {name}{(IsDirty ? " *" : "")}";
         }
     }
 
@@ -197,6 +197,23 @@ public sealed class MainViewModel : ViewModelBase
 
     public double BaseFontSize => 14 * Settings.FontScale;
     public double HeadwordFontSize => 30 * Settings.FontScale;
+
+    /// <summary>Ctrl＋ホイールひと目盛りぶん文字サイズを増減する。動かす値は設定画面の倍率そのもの
+    /// なので、上下限も設定画面（SettingsViewModel.ApplyAll）と揃えてある。
+    /// ApplySettings() は通さない。あちらは Heksa フォントをファイルから読み直すため、
+    /// ホイールの連打で毎回走らせるには重い。</summary>
+    public void ZoomFont(int steps)
+    {
+        var scale = Math.Clamp(Math.Round(Settings.FontScale + steps * 0.1, 1), 0.6, 3.0);
+        if (Math.Abs(scale - Settings.FontScale) < 0.001) return;
+
+        Settings.FontScale = scale;
+        Settings.Save();
+        FontScaleState.Instance.Scale = scale;
+        Raise(nameof(BaseFontSize));
+        Raise(nameof(HeadwordFontSize));
+        Status = $"文字サイズ {scale * 100:0} %";
+    }
 
     public double StreamHeadwordSize => 30 * Settings.StreamFontScale;
     public double StreamBodySize => 15 * Settings.StreamFontScale;

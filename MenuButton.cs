@@ -129,6 +129,9 @@ public class MenuButton : Control
             MinWidth = ActualWidth,
             Child = _list
         };
+        // 一覧はウィンドウ最上段の AdornerLayer に描くので、ヘッダに指定した文字サイズは継承されず、
+        // ウィンドウ既定（本文と同じ大きさ）に戻ってしまう。項目が親のボタンより大きく見えないよう写す。
+        _panel.SetValue(TextElement.FontSizeProperty, FontSize);
 
         _adorner = new MenuAdorner(this, _panel);
         _layer.Add(_adorner);

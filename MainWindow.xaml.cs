@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media.Animation;
 using ZasDictWin.Services;
 using ZasDictWin.ViewModels;
 
@@ -19,8 +20,10 @@ public partial class MainWindow : Window
         // 選択の変更は MainViewModel の PropertyChanged で単語ウィンドウにも届く。
         // 設定だけは AppSettings が変更通知を持たないので、明示的に張り直させる。
         _vm.SettingsApplied += () => _stream?.ApplySettings();
+        _vm.PropertyChanged += Vm_PropertyChanged;
         App.UiException += ShowException;
         PreviewKeyDown += OnPreviewKeyDown;
+        PreviewMouseWheel += OnPreviewMouseWheel;
 
         // バーが手狭なので、開く・新規辞書・保存・別名で保存は階層メニューにまとめてある。
         // Command は ViewModel の RelayCommand をそのまま渡すだけなので、Binding は使わずここで詰める。
@@ -61,6 +64,14 @@ public partial class MainWindow : Window
         }
     }
 
+    // Status は差分の無い書き換え（同じ文言の再設定）でも起きうるが、ここでは変化に気づかせることが
+    // 目的なので毎回律儀に光らせる。連続で変わっても Storyboard.Begin は前回分を上書きするだけで済む。
+    private void Vm_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName != nameof(MainViewModel.Status)) return;
+        ((Storyboard)Resources["StatusFlashStoryboard"]).Begin(StatusFlashBorder);
+    }
+
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Escape) return;
@@ -75,6 +86,17 @@ public partial class MainWindow : Window
         if (_vm.ModalOverlay is not null) { _vm.CloseModal(); e.Handled = true; return; }
         // 複数開いていても閉じる相手は 1 枚。最後に触ったタブから畳む。
         if (_vm.ActiveOverlay is { } active) { _vm.CloseOverlay(active); e.Handled = true; }
+    }
+
+    // Ctrl＋ホイールで文字サイズを増減する。Preview（＝ウィンドウが最初に見る段）で拾って畳むので、
+    // ホイールを食う一覧・本文（ScrollViewer や選択できる本文）の上でも同じように効く。
+    // ブラウザのタブ（WebView2）は別 HWND なのでここには届かず、WebView2 自身の拡大縮小が働く。
+    private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (Keyboard.Modifiers != ModifierKeys.Control || e.Delta == 0) return;
+        // 目盛りの大きさ（Delta）は機種差があるので、向きだけを見て 1 段ずつ動かす。
+        _vm.ZoomFont(Math.Sign(e.Delta));
+        e.Handled = true;
     }
 
     // 枠を消した代わりに、ヘッダの余白（ボタンの無い部分）をドラッグでの移動とダブルクリックでの

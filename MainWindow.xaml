@@ -13,6 +13,19 @@
         UseLayoutRounding="True"
         WindowStyle="None" ResizeMode="CanResize">
 
+    <Window.Resources>
+        <!-- ステータス文言が変わるたびに Vm_PropertyChanged から呼ぶ。文言自体は変わったことに気づきにくいため、
+             背景を一瞬だけ光らせて変化を知らせる。 -->
+        <Storyboard x:Key="StatusFlashStoryboard">
+            <DoubleAnimation Storyboard.TargetName="StatusFlashBrush" Storyboard.TargetProperty="Opacity"
+                              From="0.4" To="0" Duration="0:0:0.9">
+                <DoubleAnimation.EasingFunction>
+                    <QuadraticEase EasingMode="EaseOut" />
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+        </Storyboard>
+    </Window.Resources>
+
     <!-- 標準の枠を消した代わりに、上のヘッダ（アプリ名＋ボタン列）自体をつまみにする。
          CaptionHeight は 0 にし、ドラッグと最大化トグルは Header_MouseLeftButtonDown で自前実装する
          （ボタンより先にヘッダ全体をキャプションにすると、ボタンの当たり判定と衝突するため）。
@@ -110,9 +123,16 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
                     </Border>
                     <!-- フッタは 1 行固定。折り返すと状況によってフッタの高さが変わり、下端の位置が動く -->
-                    <TextBlock Text="{Binding Status}" Foreground="{StaticResource Muted}"
-                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
-                               VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    <!-- Padding と負の Margin を打ち消し合わせ、光る範囲だけ広げてレイアウトへの影響を消している。
+                         StatusFlashBrush は MainWindow.xaml.cs が Status の変更ごとに StatusFlashStoryboard で光らせる。 -->
+                    <Border x:Name="StatusFlashBorder" CornerRadius="4" Padding="6,2" Margin="-6,-2,-6,-2">
+                        <Border.Background>
+                            <SolidColorBrush x:Name="StatusFlashBrush" Color="{StaticResource AccentColor}" Opacity="0" />
+                        </Border.Background>
+                        <TextBlock Text="{Binding Status}" Foreground="{StaticResource Muted}"
+                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
+                                   VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                    </Border>
                 </DockPanel>
             </Border>
 

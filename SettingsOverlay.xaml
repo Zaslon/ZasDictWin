@@ -28,15 +28,17 @@
                          上下の並びがずれて見える（横に広い内容は折り返しと末尾省略で吸収させる） -->
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,14,0,14">
-                            <TextBlock Text="文字サイズ倍率" Style="{StaticResource Label}" />
+                            <TextBlock Text="文字サイズ倍率" Style="{StaticResource FieldLabel}" />
                             <TextBox Text="{Binding FontScale}" Width="120" HorizontalAlignment="Left" />
 
-                            <TextBlock Text="カスタム字順" Style="{StaticResource Label}" Margin="0,16,0,4" />
+                            <TextBlock Text="カスタム字順" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
                             <TextBox Text="{Binding SortOrder}" FontFamily="Consolas" />
 
-                            <CheckBox Content="編集したら自動で上書き保存する" IsChecked="{Binding AutoSave}" Margin="0,16,0,0" />
+                            <CheckBox Content="編集したら自動で上書き保存する" IsChecked="{Binding AutoSave}" Margin="0,18,0,0" />
 
-                            <TextBlock Text="イジェール文字フォント（Heksa）" Style="{StaticResource SectionHeading}" />
+                            <TextBlock Style="{StaticResource SectionHeading}" Margin="0,22,0,8">
+                                <Run Text="イジェール文字フォント" /><Run Style="{StaticResource FieldNote}" Text="（Heksa）" />
+                            </TextBlock>
                             <CheckBox Content="Heksa を有効にする" IsChecked="{Binding HeksaEnabled}" />
                             <TextBlock Style="{StaticResource Label}" Margin="0,2,0,0"
                                        Text="見出し語・検索欄・単語エディタの綴り欄をイジェール文字フォントで表示します（.ttf / .otf が必要です）。" />
@@ -56,8 +58,9 @@
                             <DockPanel Margin="0,16,0,6">
                                 <Button DockPanel.Dock="Right" Content="既定に戻す" Style="{StaticResource GhostButton}"
                                         Command="{Binding ResetReciprocalCommand}" Margin="0" />
-                                <TextBlock Text="関係の対照表（1行に 見出し=相手側）" Style="{StaticResource SectionHeading}"
-                                           Margin="0" VerticalAlignment="Center" />
+                                <TextBlock Style="{StaticResource SectionHeading}" Margin="0" VerticalAlignment="Center">
+                                    <Run Text="関係の対照表" /><Run Style="{StaticResource FieldNote}" Text="（1行に 見出し=相手側）" />
+                                </TextBlock>
                             </DockPanel>
                             <TextBox Text="{Binding ReciprocalText}" AcceptsReturn="True" MinHeight="140"
                                      VerticalScrollBarVisibility="Auto" FontFamily="Consolas" />
@@ -71,10 +74,13 @@
                             <TextBlock Text="辞書が開かれていないため編集できません。" Foreground="{StaticResource Muted}"
                                        Visibility="{Binding HasDictionary, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
                             <StackPanel Visibility="{Binding HasDictionary, Converter={StaticResource BoolVis}}">
-                                <TextBlock Text="punctuations（並べ替えで無視する文字）" Style="{StaticResource Label}" />
+                                <TextBlock Style="{StaticResource FieldLabel}">
+                                    <Run Text="punctuations" /><Run Style="{StaticResource FieldNote}" Text="（並べ替えで無視する文字）" />
+                                </TextBlock>
                                 <TextBox Text="{Binding Punctuations}" FontFamily="Consolas" />
-                                <TextBlock Text="ignoredPattern（前方・後方・完全一致で見出し語から除去する正規表現）"
-                                           Style="{StaticResource Label}" Margin="0,16,0,4" />
+                                <TextBlock Style="{StaticResource FieldLabel}" Margin="0,18,0,5">
+                                    <Run Text="ignoredPattern" /><Run Style="{StaticResource FieldNote}" Text="（前方・後方・完全一致で見出し語から除去する正規表現）" />
+                                </TextBlock>
                                 <TextBox Text="{Binding IgnoredPattern}" FontFamily="Consolas" />
                                 <TextBlock Text="この 2 つは辞書ファイルの zpdicOnline に書き込まれます。"
                                            Style="{StaticResource Label}" Margin="0,10,0,0" />
@@ -86,7 +92,9 @@
                 <TabItem Header="単語ウィンドウ">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,14,0,14">
-                            <TextBlock Text="背景色（クロマキーなら #00B140 など。透過するなら Transparent）" Style="{StaticResource Label}" />
+                            <TextBlock Style="{StaticResource FieldLabel}">
+                                <Run Text="背景色" /><Run Style="{StaticResource FieldNote}" Text="（クロマキーなら #00B140 など。透過するなら Transparent）" />
+                            </TextBlock>
                             <DockPanel>
                                 <Border DockPanel.Dock="Right" Width="44" Height="32" CornerRadius="6" Margin="8,0,0,0"
                                         BorderBrush="{StaticResource Line}" BorderThickness="1"
@@ -94,10 +102,10 @@
                                 <TextBox Text="{Binding StreamBackground, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
                             </DockPanel>
 
-                            <TextBlock Text="文字サイズ倍率" Style="{StaticResource Label}" Margin="0,16,0,4" />
+                            <TextBlock Text="文字サイズ倍率" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
                             <TextBox Text="{Binding StreamFontScale}" Width="120" HorizontalAlignment="Left" />
 
-                            <CheckBox Content="常に手前に表示する" IsChecked="{Binding StreamTopmost}" Margin="0,14,0,0" />
+                            <CheckBox Content="常に手前に表示する" IsChecked="{Binding StreamTopmost}" Margin="0,16,0,0" />
                             <CheckBox Content="訳語を表示する" IsChecked="{Binding StreamShowTranslations}" />
                             <CheckBox Content="内容（語源・用例など）も表示する" IsChecked="{Binding StreamShowContents}" />
 
@@ -112,7 +120,9 @@
                         <StackPanel Margin="0,14,0,14">
                             <CheckBox Content="起動時にブラウザのタブを開く" IsChecked="{Binding BrowserVisible}" />
 
-                            <TextBlock Text="開始 URL（空にすると既定の検索ページ）" Style="{StaticResource Label}" Margin="0,16,0,4" />
+                            <TextBlock Style="{StaticResource FieldLabel}" Margin="0,18,0,5">
+                                <Run Text="開始 URL" /><Run Style="{StaticResource FieldNote}" Text="（空にすると既定の検索ページ）" />
+                            </TextBlock>
                             <TextBox Text="{Binding BrowserStartUrl, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
                         </StackPanel>
                     </ScrollViewer>
@@ -121,7 +131,7 @@
                 <TabItem Header="保存先">
                     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                         <StackPanel Margin="0,14,0,14">
-                            <TextBlock Text="編集モード" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
+                            <TextBlock Text="編集モード" Style="{StaticResource SectionHeading}" Margin="0,0,0,8" />
                             <WrapPanel>
                                 <ToggleButton Style="{StaticResource Chip}" Content="ローカル編集" Command="{Binding SetModeCommand}" CommandParameter="Local"
                                               IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Local}" />
@@ -132,7 +142,9 @@
                                        Text="GitHubモードでは自動保存が無効になり、ヘッダーに［GitHubから読み込む］［コミット］が現れます。" />
 
                             <StackPanel Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}">
-                                <TextBlock Text="リポジトリ（owner / repo）" Style="{StaticResource Label}" Margin="0,16,0,4" />
+                                <TextBlock Style="{StaticResource FieldLabel}" Margin="0,18,0,5">
+                                    <Run Text="リポジトリ" /><Run Style="{StaticResource FieldNote}" Text="（owner / repo）" />
+                                </TextBlock>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -144,16 +156,21 @@
                                     <TextBox Grid.Column="2" Text="{Binding GitHubRepo}" v:Placeholder.Text="repo" />
                                 </Grid>
 
-                                <TextBlock Text="ブランチ" Style="{StaticResource Label}" Margin="0,14,0,4" />
+                                <TextBlock Text="ブランチ" Style="{StaticResource FieldLabel}" Margin="0,16,0,5" />
                                 <TextBox Text="{Binding GitHubBranch}" Width="220" HorizontalAlignment="Left" v:Placeholder.Text="main" />
 
-                                <TextBlock Text="辞書 JSON のパス（リポジトリ内）" Style="{StaticResource Label}" Margin="0,14,0,4" />
+                                <TextBlock Style="{StaticResource FieldLabel}" Margin="0,16,0,5">
+                                    <Run Text="辞書 JSON のパス" /><Run Style="{StaticResource FieldNote}" Text="（リポジトリ内）" />
+                                </TextBlock>
                                 <TextBox Text="{Binding GitHubJsonPath}" FontFamily="Consolas" v:Placeholder.Text="例: dict/lexicon.json" />
 
-                                <TextBlock Text="更新履歴 CSV のパス（リポジトリ内。空欄なら読み書きしません）" Style="{StaticResource Label}" Margin="0,14,0,4" />
+                                <TextBlock Style="{StaticResource FieldLabel}" Margin="0,16,0,5">
+                                    <Run Text="更新履歴 CSV のパス" /><Run Style="{StaticResource FieldNote}" Text="（リポジトリ内。空欄なら読み書きしません）" />
+                                </TextBlock>
                                 <TextBox Text="{Binding GitHubChangelogPath}" FontFamily="Consolas" v:Placeholder.Text="例: dict/lexicon_changelog.csv" />
 
-                                <TextBlock Text="{Binding GitHubTokenHint}" Style="{StaticResource Label}" Margin="0,16,0,4" />
+                                <TextBlock Text="アクセストークン" Style="{StaticResource FieldLabel}" Margin="0,18,0,3" />
+                                <TextBlock Text="{Binding GitHubTokenHint}" Style="{StaticResource Label}" Margin="0,0,0,5" />
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />

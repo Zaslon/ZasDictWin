@@ -70,17 +70,34 @@
          横スクロールを封じているために末尾が切れて読めなくなる。 -->
     <Style x:Key="Label" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <!-- 入力欄・チェックボックスに付く項目名。既定の本文が 14 なので、Label（案内文）の字送りだと
+         値より小さく薄くなり、名前のほうが埋もれる。本文と同じ大きさ＋通常の文字色で前に出す。 -->
+    <Style x:Key="FieldLabel" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Margin" Value="0,0,0,5" />
+    </Style>
+
+    <!-- 項目名に添える補足（「（カンマ区切り）」など）。FieldLabel の中に Run で混ぜて使い、
+         名前だけが太く明るく残るようにする。 -->
+    <Style x:Key="FieldNote" TargetType="Run">
+        <Setter Property="Foreground" Value="{StaticResource Muted}" />
+        <Setter Property="FontWeight" Value="Normal" />
     </Style>
 
     <!-- 節の見出し。TextBlock には Border プロパティがなく、左ラインを背景で描く手も
          SpreadMethod="None" が WPF に存在しないため使えない。字ヅラと色だけで本文との階層を
          分け、かたまりの区切りはカード枠に担わせる。 -->
     <Style x:Key="SectionHeading" TargetType="TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource Muted}" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=15}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Margin" Value="0,0,0,8" />
@@ -306,6 +323,52 @@
                             <Setter Property="Opacity" Value="0.5" />
                         </Trigger>
                     </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 選択してコピーできる本文（v:SelectableText / v:SelectableRichText）。中身は読み取り専用の
+         TextBox なので、入力欄に見えないよう枠・面・余白を落として素の文字に寄せる。
+         IsTabStop を落としてあるのは、本文が Tab の巡回に割り込むと操作の順番が読めなくなるから。
+         右クリックのメニューは SelectableText.cs 側で畳んである（コピーは選んで Ctrl+C）。 -->
+    <Style x:Key="SelectableTextBase" TargetType="Control">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <Style TargetType="{x:Type v:SelectableText}" BasedOn="{StaticResource SelectableTextBase}">
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="IsUndoEnabled" Value="False" />
+        <!-- 読み取り専用でも Enter を弾かせないため。ここを既定（false）のままにすると、
+             改行を含む本文が 1 行に潰れて表示される。 -->
+        <Setter Property="AcceptsReturn" Value="True" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="SelectionBrush" Value="{StaticResource Accent}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type v:SelectableText}">
+                    <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Margin="{TemplateBinding Padding}"
+                                  Background="{TemplateBinding Background}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="{x:Type v:SelectableRichText}" BasedOn="{StaticResource SelectableTextBase}">
+        <Setter Property="IsReadOnly" Value="True" />
+        <Setter Property="IsUndoEnabled" Value="False" />
+        <Setter Property="IsDocumentEnabled" Value="False" />
+        <Setter Property="SelectionBrush" Value="{StaticResource Accent}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type v:SelectableRichText}">
+                    <ScrollViewer x:Name="PART_ContentHost" Focusable="False" Margin="{TemplateBinding Padding}"
+                                  Background="{TemplateBinding Background}" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -639,6 +702,34 @@
         <Setter Property="TextAlignment" Value="Center" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+    </Style>
+
+    <!-- 単語詳細の節。囲みを積み重ねるとカードの縁ばかりが目に付き、本文より枠が強く出るため、
+         区切りは上辺の一本線と余白だけに留める。 -->
+    <Style x:Key="DetailSection" TargetType="Border">
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+        <Setter Property="Padding" Value="0,12,0,0" />
+        <Setter Property="Margin" Value="0,12,0,0" />
+    </Style>
+
+    <!-- 単語詳細の添え字（品詞・内容の見出し・関連の種別など）。詳細面に出る文字は
+         本文＝継承の 14 と、この 13 の 2 つだけに揃えてある。欄ごとに FontSize を直書きすると
+         訳語欄と内容欄のように大きさがずれるので、必ずこの style を経由させること。 -->
+    <Style x:Key="DetailLabel" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
+    </Style>
+
+    <Style x:Key="DetailLabelText" TargetType="{x:Type v:SelectableText}" BasedOn="{StaticResource {x:Type v:SelectableText}}">
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
+    </Style>
+
+    <!-- 詳細面に残す数少ない見出し（行の添え字だけでは何の節か読めないもの）。
+         SectionHeading と役目は同じだが、詳細面では添え字と同じ 13 に合わせる。 -->
+    <Style x:Key="DetailSectionHeading" TargetType="TextBlock" BasedOn="{StaticResource DetailLabel}">
+        <Setter Property="Foreground" Value="{StaticResource Muted}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,0,7" />
     </Style>
 
     <!-- 検索条件のような、面として固める小さな区切り -->
