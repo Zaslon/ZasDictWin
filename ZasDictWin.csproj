@@ -9,7 +9,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>ZasDictWin</AssemblyName>
     <RootNamespace>ZasDictWin</RootNamespace>
-    <ApplicationIcon>DictionaryEditor.ico</ApplicationIcon>
+    <ApplicationIcon>ZasDictWin.ico</ApplicationIcon>
     <InvariantGlobalization>false</InvariantGlobalization>
   </PropertyGroup>
 

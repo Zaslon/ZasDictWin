@@ -216,8 +216,7 @@
 
     <!-- 戻る／進むなど、記号一文字を並べるツールバー用 -->
     <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Width" Value="32" />
-        <Setter Property="Height" Value="28" />
+        <Setter Property="MinWidth" Value="32" />
         <Setter Property="MinHeight" Value="28" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="0,0,4,0" />
@@ -631,7 +630,9 @@
         <Setter Property="Background" Value="{StaticResource Raised}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="9,2,4,2" />
+        <!-- 閉じるボタンの有無に関わらず左右対称。片方だけ小さくすると、閉じるボタンの無い
+             据え置きタブ（検索・単語詳細）で文字列が右へ寄って見える。 -->
+        <Setter Property="Padding" Value="9,2,9,2" />
         <Setter Property="Margin" Value="0,0,5,0" />
         <Setter Property="TextElement.Foreground" Value="{StaticResource Muted}" />
         <Style.Triggers>

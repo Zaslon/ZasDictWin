@@ -202,7 +202,56 @@ public sealed class DockSplit : DockNode
 }
 
 /// <summary>
-/// 画面の割り付け全体。根の節ひとつと、種類ごとの「前にどこへ置いたか」を持つ。
+/// 窓の外へ持ち出した枠ひとつぶん＝独立ウィンドウ 1 枚。中身は本体と同じ節の入れ子なので、
+/// 窓の中でもさらに枠を割ったり結合したりできる。
+/// 中身が空の間は窓を出さず、「その種類を前にどこへ置いたか」の記憶としてだけ残る。
+/// </summary>
+public sealed class DockFloat : ViewModelBase
+{
+    private DockNode _root;
+
+    public DockFloat(DockNode root, Rect bounds)
+    {
+        _root = root;
+        root.Parent = null;
+        Bounds = bounds;
+    }
+
+    public DockNode Root
+    {
+        get => _root;
+        internal set
+        {
+            value.Parent = null;
+            Set(ref _root, value);
+        }
+    }
+
+    /// <summary>窓の位置と大きさ（DIP）。窓を動かす・大きさを変えるたびにビューが書き戻す。</summary>
+    public Rect Bounds { get; set; }
+
+    public IEnumerable<DockLeaf> Leaves => Root.Leaves;
+
+    public IEnumerable<OverlayViewModel> Items => Leaves.SelectMany(l => l.Items);
+
+    /// <summary>窓を出してよいか。空の浮き枠は記憶だけの存在で、画面には現れない。</summary>
+    public bool HasItems => Items.Any();
+
+    /// <summary>窓の題。表に出ているタブの名前を並べる（OBS のウィンドウ一覧で見分ける手掛かり）。</summary>
+    public string Title => string.Join(" / ", Leaves
+        .Select(l => l.Selected?.Title)
+        .Where(t => !string.IsNullOrEmpty(t)));
+
+    internal void Refresh()
+    {
+        Raise(nameof(Title));
+        Raise(nameof(HasItems));
+    }
+}
+
+/// <summary>
+/// 画面の割り付け全体。本体の窓の根ひとつと、外へ持ち出した浮き枠、
+/// それに種類ごとの「前にどこへ置いたか」を持つ。
 /// 分割・結合・タブの移動はここだけが行い、そのたびに settings.json へ書き戻す。
 /// </summary>
 public sealed class DockLayout : ViewModelBase
@@ -215,14 +264,23 @@ public sealed class DockLayout : ViewModelBase
     /// <summary>種類名 → 前に置いた枠の番号。閉じたタブの行き先もここで覚えておく。</summary>
     private readonly Dictionary<string, int> _homes = new();
 
+    private readonly List<DockFloat> _floats = new();
+
     private DockNode _root;
     private int _nextId = 1;
+    private bool _notifying;
 
     public DockLayout(AppSettings settings)
     {
         _settings = settings;
         _root = _settings.Layout is { } saved ? Build(saved, 0) ?? Fresh() : Fresh();
         _root.Owner = this;
+        foreach (var host in _settings.Floats)
+        {
+            if (host.Node is not { } node || Build(node, 0) is not { } built) continue;
+            built.Owner = this;
+            _floats.Add(new DockFloat(built, new Rect(host.Left ?? double.NaN, host.Top ?? double.NaN, host.Width, host.Height)));
+        }
     }
 
     /// <summary>割り付けの根。ビューはこれ 1 つを描き、あとは節ごとの入れ子に任せる。</summary>
@@ -236,25 +294,57 @@ public sealed class DockLayout : ViewModelBase
         }
     }
 
-    /// <summary>行き先を覚えていない種類が出る枠。単語詳細のいる枠を既定とする。</summary>
+    /// <summary>本体の窓から持ち出した枠。中身のあるものだけがウィンドウとして現れる。</summary>
+    public IReadOnlyList<DockFloat> Floats => _floats;
+
+    /// <summary>行き先を覚えていない種類が出る枠。単語詳細のいる枠を既定とする。
+    /// 探すのは本体の窓の中だけ（既定の行き先が独立ウィンドウになると、本体が空のまま取り残される）。</summary>
     public DockLeaf Main
         => Root.Leaves.FirstOrDefault(l => l.Items.Any(i => i is WordDetailViewModel)) ?? Root.Leaves.First();
 
-    public IEnumerable<DockLeaf> AllLeaves => Root.Leaves;
+    /// <summary>本体と独立ウィンドウ、すべての根。</summary>
+    private IEnumerable<DockNode> Roots
+    {
+        get
+        {
+            yield return Root;
+            foreach (var host in _floats) yield return host.Root;
+        }
+    }
 
-    public IEnumerable<OverlayViewModel> Overlays => Root.Leaves.SelectMany(l => l.Items);
+    public IEnumerable<DockLeaf> AllLeaves => Roots.SelectMany(r => r.Leaves);
+
+    public IEnumerable<OverlayViewModel> Overlays => AllLeaves.SelectMany(l => l.Items);
 
     /// <summary>タブが表に出た（開いた・選び直した）ことの通知。Esc の行き先を追うのに使う。</summary>
     public event Action<OverlayViewModel?>? Touched;
 
-    public DockLeaf? LeafOf(OverlayViewModel vm) => Root.Leaves.FirstOrDefault(l => l.Items.Contains(vm));
+    /// <summary>独立ウィンドウの増減・中身の変化。実際の窓の開け閉めはビュー（MainWindow）が受け持つ。</summary>
+    public event Action? FloatsChanged;
 
-    /// <summary>覚えている枠、無ければ既定の枠にタブを足して表に出す。</summary>
+    public DockLeaf? LeafOf(OverlayViewModel vm) => AllLeaves.FirstOrDefault(l => l.Items.Contains(vm));
+
+    /// <summary>そのタブが独立ウィンドウにいるなら、その窓ぶんの浮き枠。本体にいれば null。</summary>
+    public DockFloat? FloatOf(OverlayViewModel vm) => _floats.FirstOrDefault(f => f.Items.Contains(vm));
+
+    /// <summary>その枠が独立ウィンドウの根なら、その窓ぶんの浮き枠。</summary>
+    private DockFloat? HostOf(DockNode node) => _floats.FirstOrDefault(f => ReferenceEquals(f.Root, node));
+
+    /// <summary>覚えている枠、無ければ既定の枠にタブを足して表に出す。
+    /// 行き先を覚えていない種類のうち独立ウィンドウ向きのもの（ツール類）は、新しい窓を 1 枚こしらえて出す。</summary>
     public void Add(OverlayViewModel vm)
     {
-        var leaf = _homes.TryGetValue(vm.Kind, out var id)
-            ? Root.Leaves.FirstOrDefault(l => l.Id == id) ?? Main
-            : Main;
+        if (_homes.TryGetValue(vm.Kind, out var id) && AllLeaves.FirstOrDefault(l => l.Id == id) is { } home)
+        {
+            Place(vm, home);
+            return;
+        }
+        if (vm.PrefersFloating && Float(vm, null) is not null) return;
+        Place(vm, Main);
+    }
+
+    private void Place(OverlayViewModel vm, DockLeaf leaf)
+    {
         leaf.Items.Add(vm);
         leaf.Selected = vm;
         Remember(vm, leaf);
@@ -267,6 +357,51 @@ public sealed class DockLayout : ViewModelBase
         leaf.Items.Remove(vm);
         // 最後の 1 枚を閉じた枠は隣に吸収させる。分割で作った空の枠だけが残る形にする。
         DissolveIfEmpty(leaf);
+        Save();
+    }
+
+    /// <summary>
+    /// タブを窓の外へ持ち出す。新しい独立ウィンドウを 1 枚こしらえ、そこへ移す。
+    /// <paramref name="at"/> は窓の左上に置きたい位置（DIP）で、null なら本体の中央に出す。
+    /// すでに 1 枚きりの独立ウィンドウにいるタブは、外へ落としても同じ窓が生まれ直すだけなので動かさない。
+    /// </summary>
+    public DockFloat? Float(OverlayViewModel vm, Point? at)
+    {
+        if (AllLeaves.Count() >= MaxLeaves) return null;
+        var source = LeafOf(vm);
+        if (source is not null && source.Items.Count == 1 && ReferenceEquals(HostOf(source)?.Root, source)) return null;
+
+        var leaf = NewLeaf();
+        var size = vm.FloatSize;
+        var host = new DockFloat(leaf, new Rect(at?.X ?? double.NaN, at?.Y ?? double.NaN, size.Width, size.Height));
+        _floats.Add(host);
+        source?.Items.Remove(vm);
+        leaf.Items.Add(vm);
+        leaf.Selected = vm;
+        Remember(vm, leaf);
+        if (source is not null) DissolveIfEmpty(source);
+        Save();
+        return host;
+    }
+
+    /// <summary>独立ウィンドウを割り付けから外す。窓を手で閉じたときに、中身を始末した後で呼ぶ。</summary>
+    public void Discard(DockFloat host)
+    {
+        if (!_floats.Remove(host)) return;
+        // 残っていたタブは本体へ引き取る（据え置きのタブは閉じられないので、行き場が要る）。
+        // 外した後は LeafOf で辿れないため、枠から直に取り出す。
+        // 行き先の記憶は消えた枠を指したままになるが、その枠はもう無いので次に開くときは既定の枠へ落ちる。
+        var main = Main;
+        foreach (var leaf in host.Leaves.ToList())
+        {
+            foreach (var item in leaf.Items.ToList())
+            {
+                leaf.Items.Remove(item);
+                main.Items.Add(item);
+                main.Selected = item;
+                Remember(item, main);
+            }
+        }
         Save();
     }
 
@@ -287,10 +422,12 @@ public sealed class DockLayout : ViewModelBase
     /// 上限に達していて割れなければ null（呼び出し側は割らずに済ませる）。</summary>
     public DockLeaf? Split(DockLeaf leaf, DockAxis axis, double ratio, bool newIsSecond)
     {
-        if (Root.Leaves.Count() >= MaxLeaves) return null;
+        if (AllLeaves.Count() >= MaxLeaves) return null;
         // DockSplit のコンストラクタは leaf.Parent をこの新しい節へ即座に付け替えるので、
         // 差し込み先を ReplaceNode に探させる（leaf.Parent を読む）前に元の親を控えておく。
+        // 根を割る場合も同じで、どの窓の根だったかを先に控えておく必要がある。
         var parent = leaf.Parent;
+        var host = parent is null ? HostOf(leaf) : null;
         var fresh = NewLeaf();
         var split = newIsSecond
             ? new DockSplit(axis, leaf, fresh, ratio)
@@ -298,6 +435,7 @@ public sealed class DockLayout : ViewModelBase
         split.Owner = this;
         fresh.Owner = this;
         if (parent is not null) parent.Replace(leaf, split);
+        else if (host is not null) host.Root = split;
         else Root = split;
         Save();
         return fresh;
@@ -321,9 +459,15 @@ public sealed class DockLayout : ViewModelBase
         Save();
     }
 
-    /// <summary>枠そのものを畳む。中のタブは隣の枠へ移す（空の枠を閉じる操作もここを通る）。</summary>
+    /// <summary>枠そのものを畳む。中のタブは隣の枠へ移す（空の枠を閉じる操作もここを通る）。
+    /// 独立ウィンドウに枠が 1 つしか無ければ、畳むことはその窓ごと閉じることを意味する。</summary>
     public void Dissolve(DockLeaf leaf)
     {
+        if (leaf.Parent is null && HostOf(leaf) is { } host)
+        {
+            Discard(host);
+            return;
+        }
         DissolveCore(leaf);
         Save();
     }
@@ -345,11 +489,42 @@ public sealed class DockLayout : ViewModelBase
         ReplaceNode(parent, sibling);
     }
 
-    /// <summary>割り付けと行き先の記憶を settings.json に書き戻す。</summary>
+    /// <summary>
+    /// 割り付けと行き先の記憶を settings.json に書き戻す。組み替えはすべてここを通るので、
+    /// 独立ウィンドウの開け閉めを促す通知もここから出す。
+    /// </summary>
     public void Save()
     {
+        // 中身も行き先の記憶も無くなった浮き枠は、覚えておく意味が無いので落とす。
+        _floats.RemoveAll(f => !f.HasItems && !f.Leaves.Any(l => _homes.ContainsValue(l.Id)));
         _settings.Layout = Write(Root);
+        _settings.Floats = _floats.Select(f => new DockFloatSettings
+        {
+            Left = double.IsNaN(f.Bounds.X) ? null : f.Bounds.X,
+            Top = double.IsNaN(f.Bounds.Y) ? null : f.Bounds.Y,
+            Width = f.Bounds.Width,
+            Height = f.Bounds.Height,
+            Node = Write(f.Root),
+        }).ToList();
         _settings.Save();
+        NotifyFloats();
+    }
+
+    /// <summary>浮き枠の題と中身の有無を出し直す。窓の開け閉めはこの通知を受けたビューが行う。</summary>
+    private void NotifyFloats()
+    {
+        // 窓を閉じると中のタブが動き、そこからまた Save が呼ばれる。入れ子の通知は 1 度目に任せる。
+        if (_notifying) return;
+        _notifying = true;
+        try
+        {
+            foreach (var host in _floats.ToList()) host.Refresh();
+            FloatsChanged?.Invoke();
+        }
+        finally
+        {
+            _notifying = false;
+        }
     }
 
     private void DissolveIfEmpty(DockLeaf leaf)
@@ -362,6 +537,7 @@ public sealed class DockLayout : ViewModelBase
     private void ReplaceNode(DockNode old, DockNode fresh)
     {
         if (old.Parent is { } parent) parent.Replace(old, fresh);
+        else if (HostOf(old) is { } host) host.Root = fresh;
         else Root = fresh;
     }
 
@@ -371,7 +547,10 @@ public sealed class DockLayout : ViewModelBase
         if (id is { } given && given >= _nextId) _nextId = given + 1;
         leaf.PropertyChanged += (s, e) =>
         {
-            if (e.PropertyName == nameof(DockLeaf.Selected) && s is DockLeaf l) Touched?.Invoke(l.Selected);
+            if (e.PropertyName != nameof(DockLeaf.Selected) || s is not DockLeaf l) return;
+            Touched?.Invoke(l.Selected);
+            // 独立ウィンドウの題は表に出ているタブの名前なので、選び直すたびに付け直す。
+            foreach (var host in _floats) host.Refresh();
         };
         return leaf;
     }
@@ -444,8 +623,12 @@ public sealed class OverlayDragState : ViewModelBase
     private SplitPreview? _hoverSplit;
     private OverlayViewModel? _dragged;
     private DockLeaf? _sourceLeaf;
+    private Point? _outside;
 
     public Action<OverlayViewModel, DockLeaf>? Move { get; set; }
+
+    /// <summary>どの窓にも乗っていない位置で離したときの行き先。独立ウィンドウを 1 枚こしらえる。</summary>
+    public Action<OverlayViewModel, Point>? FloatOut { get; set; }
 
     /// <summary>今カーソルが乗っている枠。どの枠にも乗っていなければ null。</summary>
     public DockLeaf? HoverLeaf => _hoverLeaf;
@@ -466,6 +649,8 @@ public sealed class OverlayDragState : ViewModelBase
     /// </summary>
     public void SetHover(DockLeaf? leaf, SplitPreview? split)
     {
+        // 枠に乗せ直したら「窓の外」は取り消し。下見が変わらなくても必ず消す（先に落とす）。
+        _outside = null;
         // 元の枠にこのタブしか無ければ、割ってすぐ運び出したところで空になった元の枠が
         // 畳まれて元通りになるだけ（見た目は変わらず、枠番号だけ振り直る）なので下見を出さない。
         var sourceHasOthers = _sourceLeaf is { } source && source.Items.Count > 1;
@@ -485,16 +670,33 @@ public sealed class OverlayDragState : ViewModelBase
     }
 
     /// <summary>
+    /// アプリのどの窓にも乗っていないカーソル位置。ここで離せば独立ウィンドウになる。
+    /// <paramref name="at"/> は画面上の位置（DIP）。乗っていた枠の下見・着色はここで消える。
+    /// </summary>
+    public void SetOutside(Point at)
+    {
+        SetHover(null, null);
+        _outside = at;
+    }
+
+    /// <summary>
     /// 乗っている枠へ移す。端に寄せていたら先にそちら側を割ってから、できた新しい枠へ移す
-    /// （上限で割れなければ、これまで通りその枠へタブとして合流させる）。枠の外で離したときは何もしない。
+    /// （上限で割れなければ、これまで通りその枠へタブとして合流させる）。
+    /// どの窓にも乗っていなければ独立ウィンドウにする。窓の中で枠を外して離したときだけ何もしない。
     /// </summary>
     public void CompleteDrag()
     {
         var vm = _dragged;
         var leaf = _hoverLeaf;
         var split = _hoverSplit;
+        var outside = _outside;
         Cancel();
-        if (vm is null || leaf is null) return;
+        if (vm is null) return;
+        if (leaf is null)
+        {
+            if (outside is { } at) FloatOut?.Invoke(vm, at);
+            return;
+        }
 
         var target = split is not null && leaf.Owner is { } owner
             ? owner.Split(leaf, split.Axis, split.Ratio, split.NewIsSecond) ?? leaf

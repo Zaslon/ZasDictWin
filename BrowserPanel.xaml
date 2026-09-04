@@ -26,7 +26,7 @@
                 <!-- アドレス欄。枠そのものは TextBox ではなく Border で描き、フォーカス中だけ
                      アクセント色に光らせる。半径は隣の戻る／進む／再読み込みボタン（Button
                      テンプレートの 8）に合わせ、横並びで角の丸みが揃うようにしている。 -->
-                <Border Grid.Column="1" Margin="6,0,0,0" CornerRadius="8" Height="28"
+                <Border Grid.Column="1" Margin="6,0,0,0" CornerRadius="8" MinHeight="28"
                         Background="{StaticResource Field}" VerticalAlignment="Center">
                     <Border.Style>
                         <Style TargetType="Border">

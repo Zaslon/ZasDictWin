@@ -3,12 +3,15 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:v="clr-namespace:ZasDictWin.Views"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
-             xmlns:m="clr-namespace:ZasDictWin.Models">
+             xmlns:m="clr-namespace:ZasDictWin.Models"
+             xmlns:s="clr-namespace:ZasDictWin.Services">
 
-    <Border Style="{StaticResource OverlayCard}">
+    <Border Style="{StaticResource OverlayCard}"
+>
         <DockPanel>
 
-            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
+            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1"
+>
                 <TextBlock Text="{Binding Title}" FontWeight="SemiBold"
                            FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
             </Border>
@@ -88,6 +91,19 @@
                                     </DockPanel>
                                     <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
                                              AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72" VerticalScrollBarVisibility="Auto" />
+                                    <!-- 発音記号欄だけの案内。中身の同期先（特殊発音タグ）は Const.PronContentTitle に紐付く。 -->
+                                    <TextBlock Text="発音記号を追加すると特殊発音タグを自動付与" Margin="0,4,0,0">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource Label}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Title}" Value="{x:Static s:Const.PronContentTitle}">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </StackPanel>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -107,9 +123,6 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                        <TextBlock Text="「発音記号」を入力すると「特殊発音」タグが自動で付き、空にすると外れます。"
-                                   Style="{StaticResource Label}" Margin="0,2,0,0" />
-
                     <TextBlock Text="関連語" Style="{StaticResource SectionHeading}" />
                     <ItemsControl ItemsSource="{Binding Relations}">
                         <ItemsControl.ItemTemplate>

@@ -64,11 +64,8 @@ public sealed class BrowserViewModel : ViewModelBase
             if (!Set(ref _isOpen, value)) return;
             _settings.BrowserVisible = value;
             _settings.Save();
-            Raise(nameof(ToggleLabel));
         }
     }
-
-    public string ToggleLabel => IsOpen ? "ブラウザを閉じる" : "ブラウザ";
 
     /// <summary>タブを開いたときに呼ぶ。初回はここで WebView2 の初期化と最初のページ表示が走る
     /// （起動を重くしないため遅延させている）。</summary>

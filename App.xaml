@@ -33,20 +33,30 @@
                     <v:BrowserPanel DataContext="{Binding Browser}" />
                 </Grid>
             </DataTemplate>
+            <!-- ツール類。タブでも独立ウィンドウでも同じ中身を出す（器は DockGroupPanel が持つ）。 -->
+            <DataTemplate DataType="{x:Type vm:DialectToolViewModel}">
+                <v:DialectPanel />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:IpaToolViewModel}">
+                <v:IpaPanel />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:StatsViewModel}">
+                <v:StatsPanel />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:LegendViewModel}">
+                <v:LegendPanel />
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ChangelogViewModel}">
+                <v:ChangelogPanel />
+            </DataTemplate>
             <DataTemplate DataType="{x:Type vm:ChoiceViewModel}">
                 <ov:ChoiceOverlay />
             </DataTemplate>
             <DataTemplate DataType="{x:Type vm:WordEditViewModel}">
                 <ov:WordEditOverlay />
             </DataTemplate>
-            <DataTemplate DataType="{x:Type vm:ToolsViewModel}">
-                <ov:ToolsOverlay />
-            </DataTemplate>
             <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
                 <ov:SettingsOverlay />
-            </DataTemplate>
-            <DataTemplate DataType="{x:Type vm:InfoViewModel}">
-                <ov:InfoOverlay />
             </DataTemplate>
             <DataTemplate DataType="{x:Type vm:ExamplesViewModel}">
                 <ov:ExamplesOverlay />

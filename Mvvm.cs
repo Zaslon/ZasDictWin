@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using ZasDictWin.Services;
@@ -61,6 +62,16 @@ public abstract class OverlayViewModel : ViewModelBase
 
     /// <summary>タブとして並べるか。偽なら中央のモーダルとして 1 枚だけ出す。</summary>
     public virtual bool IsDockable => true;
+
+    /// <summary>
+    /// 行き先を覚えていないとき、本体のタブ束ではなく独立ウィンドウとして開くか。
+    /// 常設の枠を割きたくないツール類だけが真にする。どちらで開いても、
+    /// あとからタブを掴んで窓の内と外を行き来させられる。
+    /// </summary>
+    public virtual bool PrefersFloating => false;
+
+    /// <summary>独立ウィンドウとして出すときの既定の大きさ。</summary>
+    public virtual Size FloatSize => new(620, 520);
 
     /// <summary>
     /// 閉じられない据え置きのタブか（検索と単語詳細）。運ぶことはできるので、

@@ -35,6 +35,23 @@ public class DropDown : Control
     private ScrollViewer? _scroller;
     private bool _syncing;
 
+    /// <summary>開いているプルダウン／階層メニューの数。WebView2 は airspace の関係で常に手前に出てしまい、
+    /// 一覧をこの上に重ねて描いても隠れるため、ひとつでも開いている間は BrowserPanel 側が自分（WebView2）を
+    /// 隠す。MenuButton もここを共用する（internal にしてある）。</summary>
+    private static int _openOverlayCount;
+
+    internal static event Action<bool>? OverlayVisibilityChanged;
+
+    internal static void EnterOverlay()
+    {
+        if (_openOverlayCount++ == 0) OverlayVisibilityChanged?.Invoke(true);
+    }
+
+    internal static void ExitOverlay()
+    {
+        if (_openOverlayCount > 0 && --_openOverlayCount == 0) OverlayVisibilityChanged?.Invoke(false);
+    }
+
     static DropDown() =>
         DefaultStyleKeyProperty.OverrideMetadata(typeof(DropDown), new FrameworkPropertyMetadata(typeof(DropDown)));
 
@@ -197,6 +214,7 @@ public class DropDown : Control
 
         SetValue(IsOpenKey, true);
         _current = this;
+        EnterOverlay();
 
         // 行のコンテナは Add した直後にはまだ生成されていないため、生成後に選択行へ移す。
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
@@ -237,6 +255,7 @@ public class DropDown : Control
 
         SetValue(IsOpenKey, false);
         if (_current == this) _current = null;
+        ExitOverlay();
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)

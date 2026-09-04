@@ -1,0 +1,83 @@
+<UserControl x:Class="ZasDictWin.Views.ChangelogPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+
+    <DockPanel Margin="24,20">
+        <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="CSV を選び直す" Command="{Binding RelinkChangelogCommand}" />
+                <Button Content="書き出す" Command="{Binding ExportChangelogCommand}" Margin="0" />
+            </StackPanel>
+            <!-- パスは 1 行。Label スタイルが Wrap を宣言しているので明示的に打ち消す -->
+            <TextBlock Text="{Binding ChangelogPath}" Style="{StaticResource Label}" Margin="0"
+                       VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+        </DockPanel>
+
+        <!-- 列幅は固定 px にせず、SharedSizeGroup で全行そろえて内容に合わせる。
+             固定にすると文字サイズ倍率を上げたとき「CHANGE」等が折り返す。
+             スコープを見出し行と本文の共通の親にしているため、見出しの列幅も本文とそろう。 -->
+        <Grid Grid.IsSharedSizeScope="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <!-- 見出し行はスクロール領域の外（Row 0）に置く。本文が何行あっても動かさない。 -->
+            <Border Grid.Row="0" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
+                <Grid Margin="0,0,0,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="ChangeTime" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="ChangeType" />
+                        <ColumnDefinition Width="Auto" SharedSizeGroup="ChangeForm" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Grid.Column="0" Text="{Binding ChangelogHeader[0]}" Foreground="{StaticResource Muted}"
+                               FontWeight="SemiBold" TextWrapping="NoWrap" Margin="0,0,16,0"
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                    <TextBlock Grid.Column="1" Text="{Binding ChangelogHeader[1]}" Foreground="{StaticResource Muted}"
+                               FontWeight="SemiBold" TextWrapping="NoWrap" Margin="0,0,16,0"
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                    <TextBlock Grid.Column="2" Text="{Binding ChangelogHeader[2]}" Foreground="{StaticResource Muted}"
+                               FontWeight="SemiBold" TextWrapping="NoWrap" Margin="0,0,16,0"
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                    <TextBlock Grid.Column="3" Text="{Binding ChangelogHeader[3]}" Foreground="{StaticResource Muted}"
+                               FontWeight="SemiBold" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                </Grid>
+            </Border>
+
+            <!-- 履歴は追記順（古い → 新しい）なので、表示時に一度だけ末尾＝最新行へ送る。 -->
+            <ScrollViewer x:Name="ChangelogScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled"
+                          Loaded="ChangelogScroll_Loaded">
+                <ItemsControl ItemsSource="{Binding ChangelogRows}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="0,0,0,4">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="ChangeTime" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="ChangeType" />
+                                    <ColumnDefinition Width="Auto" SharedSizeGroup="ChangeForm" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Grid.Column="0" Text="{Binding [0]}" Foreground="{StaticResource Muted}"
+                                           TextWrapping="NoWrap" Margin="0,0,16,0"
+                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                                <TextBlock Grid.Column="1" Text="{Binding [1]}"
+                                           TextWrapping="NoWrap" Margin="0,0,16,0"
+                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                                <TextBlock Grid.Column="2" Text="{Binding [2]}"
+                                           TextWrapping="NoWrap" Margin="0,0,16,0"
+                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
+                                <TextBlock Grid.Column="3" Text="{Binding [3]}" Foreground="{StaticResource Muted}"
+                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
+                                           TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                            </Grid>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </DockPanel>
+</UserControl>

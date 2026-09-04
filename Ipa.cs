@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 namespace ZasDictWin.Services;
 
 /// <summary>
-/// zasdict.lang.ipa の移植。IPA 表記をイジェール語の簡略綴りに落とす。
+/// zasdict.lang.ipa の移植。IPA 表記をイジェール語の音写に変換する。
 /// 置換は上から順に適用するため並び順に意味がある（例: ɐ は母音 e の行で先に消費される）。
 /// </summary>
 public static class Ipa

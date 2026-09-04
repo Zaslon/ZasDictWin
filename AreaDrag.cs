@@ -5,11 +5,51 @@ using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
 
-/// <summary>カーソルの下にある枠を拾う。タブの運びと角の引き回しで同じ判定を使う。</summary>
+/// <summary>
+/// カーソルの下にある枠を拾う。タブの運びと角の引き回しで同じ判定を使う。
+/// タブは窓をまたいで運べるので、本体と独立ウィンドウをまとめて見る口も持つ。
+/// </summary>
 internal static class DockHit
 {
     /// <summary>端からこの範囲内にカーソルがあれば、タブとしての合流ではなく分割の下見を出す。</summary>
     private const double EdgeZone = 48;
+
+    /// <summary>
+    /// 画面上の位置（デバイスピクセル）が、アプリのどの窓のどの枠に乗っているか。
+    /// どの窓にも乗っていなければ null（そこで離せば独立ウィンドウになる）。
+    /// 窓には乗っているが枠の外（ヘッダ・フッタなど）なら、枠だけが null の組を返す。
+    /// </summary>
+    public static (Window Window, DockGroupPanel? Panel, DockLeaf? Leaf)? AtScreen(Point screen)
+    {
+        foreach (var window in DockWindows())
+        {
+            Point local;
+            try
+            {
+                local = window.PointFromScreen(screen);
+            }
+            catch (InvalidOperationException)
+            {
+                continue;   // まだ描かれていない（HWND を持たない）窓は当たり判定に入れない
+            }
+            if (local.X < 0 || local.Y < 0 || local.X > window.ActualWidth || local.Y > window.ActualHeight) continue;
+            var hit = PanelAt(window, local);
+            return (window, hit?.Panel, hit?.Leaf);
+        }
+        return null;
+    }
+
+    /// <summary>
+    /// 枠を並べている窓。手前にあるものから返す。独立ウィンドウは本体を親に持つので必ず本体より上にあり、
+    /// 独立ウィンドウどうしの重なりだけ、いま操作している窓を先に見る。
+    /// </summary>
+    private static IEnumerable<Window> DockWindows()
+    {
+        if (Application.Current is not { } app) yield break;
+        var windows = app.Windows.OfType<Window>().Where(w => w.IsVisible && w.WindowState != WindowState.Minimized).ToList();
+        foreach (var window in windows.OfType<FloatingWindow>().OrderByDescending(w => w.IsActive)) yield return window;
+        foreach (var window in windows.OfType<MainWindow>()) yield return window;
+    }
 
     /// <summary>どの枠にも乗っていなければ null。</summary>
     public static DockLeaf? LeafAt(UIElement root, Point point) => PanelAt(root, point)?.Leaf;

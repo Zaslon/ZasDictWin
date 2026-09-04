@@ -145,6 +145,7 @@ public class MenuButton : Control
 
         SetValue(IsOpenKey, true);
         _current = this;
+        DropDown.EnterOverlay();
     }
 
     public void Close()
@@ -167,6 +168,7 @@ public class MenuButton : Control
 
         SetValue(IsOpenKey, false);
         if (_current == this) _current = null;
+        DropDown.ExitOverlay();
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)

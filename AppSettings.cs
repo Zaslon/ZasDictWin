@@ -42,6 +42,10 @@ public sealed class AppSettings
     // 読めないときは既定の割り付け（左に検索、右に単語詳細）から始める。
     public DockNodeSettings? Layout { get; set; }
 
+    // 本体の窓から持ち出したタブ（独立ウィンドウ）。窓ごとに割り付けと位置・大きさを持つ。
+    // 中身が空の窓は開かないが、次にその種類を開いたとき同じ位置へ出すために記憶としては残す。
+    public List<DockFloatSettings> Floats { get; set; } = new();
+
     public bool StreamWindowTopmost { get; set; } = true;
     public string StreamBackground { get; set; } = "#00B140";
     public double StreamFontScale { get; set; } = 2.2;
@@ -119,4 +123,21 @@ public sealed class DockNodeSettings
 
     /// <summary>この枠に住む種類名。並び順がそのままタブの並び。</summary>
     public List<string> Tabs { get; set; } = new();
+}
+
+/// <summary>
+/// 独立ウィンドウ 1 枚を settings.json に写したもの。中身は本体と同じ枠の入れ子で、
+/// それに窓の位置と大きさが付く。位置が null のときはまだ決めていない（本体の中央に出す）。
+/// メモリ上（<see cref="ViewModels.DockFloat.Bounds"/>）は決めていない位置を Rect の NaN で表すが、
+/// NaN は JSON にできないため、ファイル上はここで null に変換して持つ。
+/// </summary>
+public sealed class DockFloatSettings
+{
+    public double? Left { get; set; }
+    public double? Top { get; set; }
+    public double Width { get; set; } = 620;
+    public double Height { get; set; } = 520;
+
+    /// <summary>窓の中の割り付け。枠ひとつだけのことも、割った入れ子のこともある。</summary>
+    public DockNodeSettings? Node { get; set; }
 }

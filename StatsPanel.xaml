@@ -1,0 +1,83 @@
+<UserControl x:Class="ZasDictWin.Views.StatsPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+
+    <!-- 統計は縦にだけ流す（横スクロールで行順が崩れるのを防ぐ） -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24,20">
+        <StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{Binding WordCount}"
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=34}" />
+                    <TextBlock Text="見出し語" Style="{StaticResource Label}" />
+                </StackPanel>
+                <StackPanel Grid.Column="1">
+                    <TextBlock Text="{Binding ExampleCount}"
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=34}" />
+                    <TextBlock Text="例文" Style="{StaticResource Label}" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Style="{StaticResource Label}" Margin="0,18,0,0">
+                <Run Text="同綴りの見出し語 " /><Run Text="{Binding HomonymCount, Mode=OneWay}" />
+                <Run Text="  ／  平均文字数 " /><Run Text="{Binding AverageFormLength, Mode=OneWay}" />
+            </TextBlock>
+
+            <TextBlock Text="品詞（訳語のタイトル）" Style="{StaticResource SectionHeading}" />
+            <!-- 品詞・タグの内訳は横流れの文字列ではなくグリッド状に整列させる。
+                 SharedSizeGroup（更新履歴と同じ手法）で全セルの名称列・件数列の幅をそろえ、
+                 WrapPanel で折り返す。固定 px を使わないので文字サイズ倍率にも追従する。 -->
+            <ItemsControl ItemsSource="{Binding PosItems}" Grid.IsSharedSizeScope="True" Margin="0,2,0,0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,0,24,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="BreakName" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="BreakCount" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Count}" Foreground="{StaticResource Muted}"
+                                       TextAlignment="Right" Margin="6,0,0,0"
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <TextBlock Text="タグ" Style="{StaticResource SectionHeading}" />
+            <ItemsControl ItemsSource="{Binding TagItems}" Grid.IsSharedSizeScope="True" Margin="0,2,0,0">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Margin="0,0,24,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="BreakName" />
+                                <ColumnDefinition Width="Auto" SharedSizeGroup="BreakCount" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="{Binding Name}"
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                            <TextBlock Grid.Column="1" Text="{Binding Count}" Foreground="{StaticResource Muted}"
+                                       TextAlignment="Right" Margin="6,0,0,0"
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

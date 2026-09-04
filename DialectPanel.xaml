@@ -1,0 +1,52 @@
+<UserControl x:Class="ZasDictWin.Views.DialectPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+
+    <!-- 方言変換。タブとしても独立ウィンドウとしても同じ中身を出すので、題は付けない
+         （タブの見出しと窓の題がそれを兼ねる）。 -->
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24,20">
+        <StackPanel>
+            <TextBlock Text="元単語（強勢のある母音を大文字で入力）" Style="{StaticResource Label}" />
+            <TextBox Text="{Binding Input, UpdateSourceTrigger=PropertyChanged, Delay=120}"
+                     FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}" />
+
+            <Grid Margin="0,18,0,0">
+                <!-- 方言名は文字サイズ倍率に合わせて伸びるので、固定幅にすると折り返す -->
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="旗艦方言 Sekore"
+                           Foreground="{StaticResource Muted}" Margin="0,0,16,10" TextWrapping="NoWrap" VerticalAlignment="Center" />
+                <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Sekore, Mode=OneWay}" IsReadOnly="True"
+                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}" Margin="0,0,0,10" />
+
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="資源循環艦方言 Titauini"
+                           Foreground="{StaticResource Muted}" Margin="0,0,16,10" TextWrapping="NoWrap" VerticalAlignment="Center" />
+                <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Titauini, Mode=OneWay}" IsReadOnly="True"
+                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}" Margin="0,0,0,10" />
+
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="探査艦方言 Kaiko"
+                           Foreground="{StaticResource Muted}" Margin="0,0,16,10" TextWrapping="NoWrap" VerticalAlignment="Center" />
+                <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Kaiko, Mode=OneWay}" IsReadOnly="True"
+                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}" Margin="0,0,0,10" />
+
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="教団暗号 Arzafire"
+                           Foreground="{StaticResource Muted}" Margin="0,0,16,0" TextWrapping="NoWrap" VerticalAlignment="Center" />
+                <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Arzafire, Mode=OneWay}" IsReadOnly="True"
+                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}" />
+            </Grid>
+
+            <CheckBox Margin="0,16,0,0" IsChecked="{Binding FaithfulTitauini}"
+                      Content="Titauini で Python 版と同じ挙動を使う（3母音化を捨てる）" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

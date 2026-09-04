@@ -13,6 +13,12 @@ public partial class MainWindow : Window
     private StreamWindow? _stream;
     private bool _forceClose;
 
+    // 窓の外へ持ち出したタブ。中身のある浮き枠ひとつにつき 1 枚の窓を開ける。
+    // 割り付け（DockLayout）が正で、ここはその通知を受けて窓を合わせるだけ。
+    private readonly Dictionary<DockFloat, FloatingWindow> _floats = new();
+    private bool _syncingFloats;
+    private bool _shuttingDown;
+
     public MainWindow()
     {
         InitializeComponent();
@@ -34,6 +40,25 @@ public partial class MainWindow : Window
             new MenuAction { Header = "保存", ToolTip = "Ctrl+S", Command = _vm.SaveCommand, IsPrimary = true },
             new MenuAction { Header = "別名で保存", ToolTip = "Ctrl+Shift+S", Command = _vm.SaveAsCommand },
         };
+
+        // 統計・凡例・更新履歴・方言変換・IPA→綴りは、常設のタブ枠を割かないよう独立ウィンドウで開く。
+        // ただし中身は他と同じタブなので、掴んで本体の枠へ運べばタブになる。
+        // すでに開いていれば作り直さず、そのタブを表に出すだけ（ボタンはグレーアウトさせない）。
+        ToolsMenuButton.Items = new[]
+        {
+            new MenuAction { Header = "変換", Command = _vm.ShowDialectToolCommand },
+            new MenuAction { Header = "IPA", Command = _vm.ShowIpaToolCommand },
+            new MenuAction { Header = "統計", Command = _vm.ShowStatsCommand },
+            new MenuAction { Header = "凡例", Command = _vm.ShowLegendCommand },
+            new MenuAction { Header = "更新履歴", Command = _vm.ShowChangelogCommand },
+        };
+
+        // 独立ウィンドウは割り付けが持つ浮き枠と 1 対 1。中身が入れば開き、空になれば閉じる。
+        _vm.Layout.FloatsChanged += SyncFloatWindows;
+        _vm.OverlayFocused += FocusOverlay;
+        // 保存した割り付けに独立ウィンドウが含まれていれば、本体が出た後に開く
+        // （Owner を持たせるため、本体に HWND ができてからでないと開けない）。
+        Loaded += (_, _) => SyncFloatWindows();
 
         // 枠を消したので OS は大きさを覚えてくれない。前回閉じたときの大きさをここで復元する。
         Width = _vm.Settings.WindowWidth;
@@ -132,6 +157,83 @@ public partial class MainWindow : Window
         MaximizeRestoreButton.ToolTip = maximized ? "元のサイズに戻す" : "最大化";
     }
 
+    // ---- 独立ウィンドウ（窓の外へ持ち出したタブ）----------------------------------------
+
+    /// <summary>
+    /// 割り付けの浮き枠に窓を合わせる。中身が入った浮き枠には窓を開け、空になった浮き枠と
+    /// 消えた浮き枠の窓は閉じる。窓を閉じると中のタブが動いてここへ戻ってくるので、入れ子は 1 度目に任せる。
+    /// </summary>
+    private void SyncFloatWindows()
+    {
+        if (_syncingFloats || _shuttingDown || !IsLoaded) return;
+        _syncingFloats = true;
+        try
+        {
+            foreach (var host in _vm.Layout.Floats.ToList())
+            {
+                var open = _floats.TryGetValue(host, out var window);
+                if (host.HasItems && !open) Open(host);
+                else if (!host.HasItems && open) Close(host, window!);
+            }
+            // 割り付けから外れた浮き枠（窓ごと畳んだ枠）の窓も閉じる。
+            foreach (var (host, window) in _floats.Where(p => !_vm.Layout.Floats.Contains(p.Key)).ToList())
+                Close(host, window);
+        }
+        finally
+        {
+            _syncingFloats = false;
+        }
+
+        void Open(DockFloat host)
+        {
+            // Owner を持たせて本体より手前に置く。タブの運び先の当たり判定もこの前後関係を前提にしている。
+            var window = new FloatingWindow(_vm, host) { Owner = this };
+            _floats[host] = window;
+            window.Closing += (_, _) => FloatWindowClosing(host);
+            window.Show();
+        }
+
+        void Close(DockFloat host, FloatingWindow window)
+        {
+            // 先に台帳から外す。窓を閉じた通知でここへ戻ってきても、もう閉じにこないようにする。
+            _floats.Remove(host);
+            window.CloseFromLayout();
+        }
+    }
+
+    /// <summary>
+    /// 独立ウィンドウを手で閉じたとき。中のタブは閉じ、閉じられない据え置きのタブ（検索・単語詳細）は
+    /// 本体へ引き取る。割り付け側から閉じた窓は始末が済んでいるので何もしない。
+    /// </summary>
+    private void FloatWindowClosing(DockFloat host)
+    {
+        if (_shuttingDown || !_floats.Remove(host)) return;
+        // タブを 1 枚閉じるごとに割り付けの通知が飛ぶが、まだ中身の残っている枠を見て
+        // 窓を開け直されては困る。始末が終わってから 1 度だけ合わせる。
+        _syncingFloats = true;
+        try
+        {
+            foreach (var vm in host.Items.ToList())
+            {
+                if (!vm.IsPinned) _vm.CloseOverlay(vm);
+            }
+            // 残った据え置きのタブは Discard が本体へ移す。位置の記憶ごと浮き枠を落とす。
+            _vm.Layout.Discard(host);
+        }
+        finally
+        {
+            _syncingFloats = false;
+        }
+        SyncFloatWindows();
+    }
+
+    /// <summary>そのタブがいる窓を前に出す。ツールメニューで開き直したときの行き先。</summary>
+    private void FocusOverlay(OverlayViewModel vm)
+    {
+        if (_vm.Layout.FloatOf(vm) is { } host && _floats.TryGetValue(host, out var window)) window.Activate();
+        else Activate();
+    }
+
     private void ToggleStreamWindow_Click(object sender, RoutedEventArgs e)
     {
         if (_stream is not null)
@@ -155,6 +257,9 @@ public partial class MainWindow : Window
             e.Cancel = true;
             return;
         }
+        // ここから先で閉じる独立ウィンドウは「畳んだ」のではなく終了なので、
+        // 中のタブを本体へ移し替えない（せっかくの割り付けが保存直前に崩れてしまう）。
+        _shuttingDown = true;
         SaveWindowBounds();
         _stream?.Close();
         base.OnClosing(e);
@@ -179,5 +284,7 @@ public partial class MainWindow : Window
             settings.WindowMaximized = WindowState == WindowState.Maximized;
         }
         settings.Save();
+        // 独立ウィンドウの位置と大きさは動かすたび浮き枠に控えてあるだけなので、ここで書き出す。
+        _vm.Layout.Save();
     }
 }

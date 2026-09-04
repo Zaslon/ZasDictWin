@@ -1,6 +1,8 @@
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using Microsoft.Web.WebView2.Core;
 using ZasDictWin.ViewModels;
 
@@ -23,7 +25,28 @@ public partial class BrowserPanel : UserControl
     {
         InitializeComponent();
         DataContextChanged += (_, _) => Attach();
-        Loaded += (_, _) => { if (_vm?.IsOpen == true) EnsureReady(null); };
+        Loaded += (_, _) =>
+        {
+            if (_vm?.IsOpen == true) EnsureReady(null);
+            DropDown.OverlayVisibilityChanged += OnOverlayVisibilityChanged;
+        };
+        Unloaded += (_, _) => DropDown.OverlayVisibilityChanged -= OnOverlayVisibilityChanged;
+    }
+
+    /// <summary>プルダウンや階層メニューを開いている間は WebView2 を隠す。airspace のせいで
+    /// Visibility を手前に重ねる通常の Z 順制御が効かず、隠す以外に取れる手が無いため。
+    /// Web.Visibility は HasError にバインドしてあるので、SetValue で直接上書きするとバインドが
+    /// 外れてしまう。SetCurrentValue で一時的に上書きし、閉じたらバインドから再評価させて戻す。</summary>
+    private void OnOverlayVisibilityChanged(bool overlayOpen)
+    {
+        if (overlayOpen)
+        {
+            Web.SetCurrentValue(VisibilityProperty, Visibility.Hidden);
+        }
+        else
+        {
+            BindingOperations.GetBindingExpressionBase(Web, VisibilityProperty)?.UpdateTarget();
+        }
     }
 
     private void Attach()

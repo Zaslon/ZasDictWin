@@ -46,6 +46,8 @@ public sealed class MainViewModel : ViewModelBase
 
         Layout = new DockLayout(Settings);
         OverlayDragState.Instance.Move = Layout.Move;
+        // 窓の外へ落としたタブは独立ウィンドウにする。窓そのものの開け閉めは MainWindow が受け持つ。
+        OverlayDragState.Instance.FloatOut = (vm, at) => Layout.Float(vm, at);
         // タブを選び直すのも「触った」うち。Esc はここで一番新しいものを閉じる。
         Layout.Touched += Touch;
 
@@ -71,14 +73,23 @@ public sealed class MainViewModel : ViewModelBase
         DuplicateWordCommand = new RelayCommand(o => DuplicateWord(o as Word ?? SelectedWord), o => (o as Word ?? SelectedWord) is not null && CanOpen<WordEditViewModel>());
         // 編集中の単語を消せると、開いたままのエディタが宙に浮く。
         DeleteWordCommand = new RelayCommand(o => ConfirmDeleteWord(o as Word ?? SelectedWord), o => (o as Word ?? SelectedWord) is not null && CanOpen<WordEditViewModel>());
-        ShowToolsCommand = new RelayCommand(() => ShowOverlay(new ToolsViewModel(SelectedWord?.Form)), CanOpen<ToolsViewModel>);
-        ToggleBrowserCommand = new RelayCommand(ToggleBrowser, () => ModalOverlay is null);
+        // 他のタブ系ボタン（ツール・凡例・統計など）と同じく、開いている間は押し直せないよう
+        // グレーアウトする。閉じる操作はタブの ✕ に一本化し、ボタン自体はトグルにしない。
+        ShowBrowserCommand = new RelayCommand(OpenBrowserTab, CanOpen<BrowserTabViewModel>);
         ShowSettingsCommand = new RelayCommand(ShowSettings, CanOpen<SettingsViewModel>);
-        ShowInfoCommand = new RelayCommand(ShowInfo, CanOpen<InfoViewModel>);
         ShowExamplesCommand = new RelayCommand(() => ShowExamples(), () => _doc is not null && CanOpen<ExamplesViewModel>());
         EditExampleCommand = new RelayCommand(
             o => { if (o is Example e) ShowExampleEditor(e); },
             _ => CanOpen<ExampleEditViewModel>());
+        // ツール類は他のタブと違い、すでに開いていればそのタブを表に出すだけ（ボタンは殺さない）。
+        // 独立ウィンドウで開いている場合はその窓を前に出す。
+        ShowDialectToolCommand = new RelayCommand(
+            () => ShowTool<DialectToolViewModel>(() => new DialectToolViewModel(SelectedWord?.Form)), NoModal);
+        ShowIpaToolCommand = new RelayCommand(() => ShowTool<IpaToolViewModel>(() => new IpaToolViewModel()), NoModal);
+        ShowStatsCommand = new RelayCommand(() => ShowTool<StatsViewModel>(() => new StatsViewModel(_doc)), NoModal);
+        ShowLegendCommand = new RelayCommand(
+            () => ShowTool<LegendViewModel>(() => new LegendViewModel(BuildLegendMarkdown())), NoModal);
+        ShowChangelogCommand = new RelayCommand(() => ShowTool<ChangelogViewModel>(BuildChangelog), NoModal);
         SetModeCommand = new RelayCommand(o => { if (o is string s) SearchMode = Enum.Parse<SearchMode>(s); });
         SetScopeCommand = new RelayCommand(o => { if (o is string s) SearchScope = Enum.Parse<SearchScope>(s); });
         FollowRelationCommand = new RelayCommand(o => FollowRelation(o as Relation));
@@ -230,12 +241,15 @@ public sealed class MainViewModel : ViewModelBase
     public ICommand EditWordCommand { get; }
     public ICommand DuplicateWordCommand { get; }
     public ICommand DeleteWordCommand { get; }
-    public ICommand ShowToolsCommand { get; }
-    public ICommand ToggleBrowserCommand { get; }
+    public ICommand ShowBrowserCommand { get; }
     public ICommand ShowSettingsCommand { get; }
-    public ICommand ShowInfoCommand { get; }
     public ICommand ShowExamplesCommand { get; }
     public ICommand EditExampleCommand { get; }
+    public ICommand ShowDialectToolCommand { get; }
+    public ICommand ShowIpaToolCommand { get; }
+    public ICommand ShowStatsCommand { get; }
+    public ICommand ShowLegendCommand { get; }
+    public ICommand ShowChangelogCommand { get; }
     public ICommand SetModeCommand { get; }
     public ICommand SetScopeCommand { get; }
     public ICommand FollowRelationCommand { get; }
@@ -246,11 +260,33 @@ public sealed class MainViewModel : ViewModelBase
     /// <summary>Esc で閉じる相手。触った順に前へ来る（開いた・タブを選んだ順）。</summary>
     private readonly List<OverlayViewModel> _recent = new();
 
-    public OverlayViewModel? ActiveOverlay => _recent.Count > 0 ? _recent[0] : null;
+    /// <summary>本体の窓で Esc が閉じる相手。持ち出したタブはその窓の Esc が閉じるので飛ばす。</summary>
+    public OverlayViewModel? ActiveOverlay => _recent.FirstOrDefault(vm => Layout.FloatOf(vm) is null);
 
     /// <summary>その種類がまだ開いていないか。確認ダイアログ中はどれも開かせない。</summary>
     public bool CanOpen<T>() where T : OverlayViewModel
         => ModalOverlay is null && !Layout.Overlays.Any(o => o is T);
+
+    /// <summary>確認ダイアログを開いている間は、先にそれへ答えてもらう。</summary>
+    private bool NoModal() => ModalOverlay is null;
+
+    /// <summary>このタブを表に出したい、という合図。それがいる窓を前に出すのはビューの役目。</summary>
+    public event Action<OverlayViewModel>? OverlayFocused;
+
+    /// <summary>
+    /// ツール類を開く。すでに開いていれば作り直さず、そのタブを表に出す（見ている位置や
+    /// 打ちかけの入力を捨てないため）。独立ウィンドウにいるならその窓を前に出す。
+    /// </summary>
+    private void ShowTool<T>(Func<T> create) where T : OverlayViewModel
+    {
+        if (Layout.Overlays.OfType<T>().FirstOrDefault() is not { } open)
+        {
+            open = create();
+            ShowOverlay(open);
+        }
+        else if (Layout.LeafOf(open) is { } leaf) leaf.Selected = open;
+        OverlayFocused?.Invoke(open);
+    }
 
     /// <summary>編集中は辞書の差し替えを止める。保存の宛先だけが入れ替わるのを防ぐため。</summary>
     private bool IsEditorOpen
@@ -280,13 +316,6 @@ public sealed class MainViewModel : ViewModelBase
     }
 
     public void CloseModal() => ModalOverlay = null;
-
-    /// <summary>ブラウザのタブを開閉する（ヘッダのボタン）。閉じた枠は隣に吸収される。</summary>
-    private void ToggleBrowser()
-    {
-        if (Layout.Overlays.OfType<BrowserTabViewModel>().FirstOrDefault() is { } tab) CloseOverlay(tab);
-        else OpenBrowserTab();
-    }
 
     /// <summary>
     /// ブラウザのタブを開く。中身の WebView2 は初期化を遅らせてあるので、
@@ -862,31 +891,45 @@ public sealed class MainViewModel : ViewModelBase
         MarkDirty("例文を削除しました。");
     }
 
-    // ---- settings / info -------------------------------------------------
+    // ---- tools / info（ツールメニューの画面。既定は独立ウィンドウ、運べばタブ） ----------------
 
-    private void ShowInfo()
+    /// <summary>
+    /// 更新履歴の画面を組み立てる。CSV を選び直すと中身が丸ごと変わるので、そのときは
+    /// 閉じて開き直す。行き先は種類ごとに覚えているので、タブでも独立ウィンドウでも同じ場所に戻る。
+    /// </summary>
+    private ChangelogViewModel BuildChangelog()
     {
-        // legend が Markdown 文字列ならそのまま描画に渡す。構造化 JSON の場合は
-        // 従来どおり整形済み JSON をテキスト表示する（Markdown として見劣りしない範囲で）。
-        var legend = _doc is null ? "" : _doc.Legend switch
+        ChangelogViewModel? vm = null;
+        var relink = new RelayCommand(() =>
         {
-            JsonValue lv when lv.TryGetValue<string>(out var ls) => ls,
-            var other => OtmJsonIo.PrettyPrint(other ?? _doc.Root["zpdicOnline"]),
-        };
-        var csv = _doc?.Path is null
-            ? (Settings.ChangelogPath ?? "")
-            : (Settings.ChangelogPath ?? ChangelogService.DefaultPathFor(_doc.Path));
+            if (!RelinkChangelog() || vm is null) return;
+            CloseOverlay(vm);
+            ShowOverlay(BuildChangelog());
+        });
+        var csv = ChangelogCsvPath();
+        vm = new ChangelogViewModel(ReadChangelogRows(csv), csv, new RelayCommand(() => ExportChangelog(csv)), relink);
+        return vm;
+    }
+
+    // legend が Markdown 文字列ならそのまま描画に渡す。構造化 JSON の場合は
+    // 従来どおり整形済み JSON をテキスト表示する（Markdown として見劣りしない範囲で）。
+    private string BuildLegendMarkdown() => _doc is null ? "" : _doc.Legend switch
+    {
+        JsonValue lv when lv.TryGetValue<string>(out var ls) => ls,
+        var other => OtmJsonIo.PrettyPrint(other ?? _doc.Root["zpdicOnline"]),
+    };
+
+    private string ChangelogCsvPath() => _doc?.Path is null
+        ? (Settings.ChangelogPath ?? "")
+        : (Settings.ChangelogPath ?? ChangelogService.DefaultPathFor(_doc.Path));
+
+    private IReadOnlyList<string[]> ReadChangelogRows(string csv)
+    {
         // CSV にまだフラッシュしていない保留履歴は、行頭（timestamp）に * を付けて後続表示する。
         var rows = new List<string[]>(csv.Length > 0 ? ChangelogService.Read(csv) : Array.Empty<string[]>());
         foreach (var e in _pendingChanges)
             rows.Add(new[] { "*" + e.At.ToString("yyyy-MM-dd"), e.Operation, e.Form, e.Detail });
-
-        InfoViewModel? vm = null;
-        vm = new InfoViewModel(_doc, legend, rows, csv,
-            new RelayCommand(() => ExportChangelog(csv)),
-            // CSV を選び直すと一覧の中身が変わるので、この画面はいったん閉じて開き直させる。
-            new RelayCommand(() => { if (RelinkChangelog() && vm is not null) CloseOverlay(vm); }));
-        ShowOverlay(vm);
+        return rows;
     }
 
     private void ExportChangelog(string csv)
@@ -898,6 +941,7 @@ public sealed class MainViewModel : ViewModelBase
         Status = $"{dlg.FileName} に書き出しました。";
     }
 
+    /// <summary>CSV を選び直す。戻り値は選び直せたか（成功したときだけ画面を作り直す）。</summary>
     private bool RelinkChangelog()
     {
         var dlg = new OpenFileDialog { Title = "更新履歴 CSV を選択", Filter = "CSV (*.csv)|*.csv|すべてのファイル (*.*)|*.*" };

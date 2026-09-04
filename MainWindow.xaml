@@ -88,6 +88,9 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <!-- 開く・新規辞書・保存・別名で保存。項目は MainWindow.xaml.cs でまとめて詰める
                              （コマンドを直接渡したいので、Items は XAML の Binding ではなくコード側で組む）。 -->
                         <v:MenuButton x:Name="FileMenuButton" Header="ファイル" />
+                        <!-- 統計・凡例・更新履歴・方言変換・IPA→綴りは、常設のタブ枠を食わない
+                             独立ウィンドウとしてここから開く（MainWindow.xaml.cs が Items を詰める）。 -->
+                        <v:MenuButton x:Name="ToolsMenuButton" Header="ツール" />
                         <!-- GitHubモードのときだけ現れる。設定 → GitHub でリポジトリ・トークンを登録すると使える。 -->
                         <Border Width="1" Background="{StaticResource Line}" Margin="6,5"
                                 Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}" />
@@ -102,11 +105,9 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <Button Content="＋ 単語" Style="{StaticResource ToolbarAccentButton}" Command="{Binding NewWordCommand}" />
                         <Button Content="例文" Style="{StaticResource ToolbarButton}" Command="{Binding ShowExamplesCommand}"
                                 ToolTip="辞書の例文（examples）を一覧・編集します" />
-                        <Button Content="ツール" Style="{StaticResource ToolbarButton}" Command="{Binding ShowToolsCommand}" />
-                        <Button Content="凡例・統計" Style="{StaticResource ToolbarButton}" Command="{Binding ShowInfoCommand}" />
                         <Button Content="設定" Style="{StaticResource ToolbarButton}" Command="{Binding ShowSettingsCommand}" />
-                        <Button x:Name="BrowserButton" Content="{Binding Browser.ToggleLabel}" Style="{StaticResource ToolbarButton}"
-                                Command="{Binding ToggleBrowserCommand}" ToolTip="ウェブブラウザのタブを開閉します" />
+                        <Button x:Name="BrowserButton" Content="ブラウザ" Style="{StaticResource ToolbarButton}"
+                                Command="{Binding ShowBrowserCommand}" ToolTip="ウェブブラウザのタブを開きます" />
                         <Border Width="1" Background="{StaticResource Line}" Margin="6,5" />
                         <Button x:Name="StreamButton" Content="単語ウィンドウ" Style="{StaticResource ToolbarButton}"
                                 Click="ToggleStreamWindow_Click" />
