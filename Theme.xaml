@@ -12,7 +12,7 @@
     <v:ScaleFontSizeConverter x:Key="ScaleFont" />
     <v:SplitMarginConverter x:Key="SplitMargin" />
 
-    <!-- 配色トークン。キー名は据え置きで値だけ更新しているので、参照側（オーバーレイ含む）はそのまま動く。
+    <!-- 配色トークン。キー名は参照側（オーバーレイ含む）との契約なので、調整は値だけで行う。
          Ink=窓 / Panel=ヘッダ・カード / Raised=ボタン と役割で揃える。影系 Effect は一切使わない方針
          （ビットマップ化されると文字がにじみ、OBS のウィンドウキャプチャ画質を落とすため）。 -->
     <Color x:Key="InkColor">#0B0E15</Color>
@@ -207,8 +207,8 @@
         </Style.Triggers>
     </Style>
 
-    <!-- メニュー列のなかで最もよく使う項目（単語の追加）。面で塗ると囲みが戻るので、
-         文字色だけをアクセントにして他と段を付ける。 -->
+    <!-- メニュー列のなかで最もよく使う項目（単語の追加）。面で塗ると囲みの線が出て、
+         枠なしに揃えたメニュー列から浮くので、文字色だけをアクセントにして段を付ける。 -->
     <Style x:Key="ToolbarAccentButton" TargetType="Button" BasedOn="{StaticResource ToolbarButton}">
         <Setter Property="Foreground" Value="{StaticResource Accent}" />
         <Setter Property="FontWeight" Value="SemiBold" />
@@ -433,7 +433,7 @@
         </Setter>
     </Style>
 
-    <!-- 一覧。全行に下線を引く区切りはやめ、角丸の行として hover / 選択を出す。
+    <!-- 一覧。角丸の行として hover / 選択を出す。
          選択行は左の細いバーで示す（背景だけより走査しやすい）。 -->
     <Style TargetType="ListBox">
         <Setter Property="Background" Value="Transparent" />

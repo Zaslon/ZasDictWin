@@ -74,7 +74,7 @@ public sealed class MainViewModel : ViewModelBase
         // 編集中の単語を消せると、開いたままのエディタが宙に浮く。
         DeleteWordCommand = new RelayCommand(o => ConfirmDeleteWord(o as Word ?? SelectedWord), o => (o as Word ?? SelectedWord) is not null && CanOpen<WordEditViewModel>());
         // 他のタブ系ボタン（ツール・凡例・統計など）と同じく、開いている間は押し直せないよう
-        // グレーアウトする。閉じる操作はタブの ✕ に一本化し、ボタン自体はトグルにしない。
+        // グレーアウトする。
         ShowBrowserCommand = new RelayCommand(OpenBrowserTab, CanOpen<BrowserTabViewModel>);
         ShowSettingsCommand = new RelayCommand(ShowSettings, CanOpen<SettingsViewModel>);
         ShowExamplesCommand = new RelayCommand(() => ShowExamples(), () => _doc is not null && CanOpen<ExamplesViewModel>());
@@ -912,7 +912,7 @@ public sealed class MainViewModel : ViewModelBase
     }
 
     // legend が Markdown 文字列ならそのまま描画に渡す。構造化 JSON の場合は
-    // 従来どおり整形済み JSON をテキスト表示する（Markdown として見劣りしない範囲で）。
+    // 整形済み JSON をそのままテキストとして流す（Markdown として見劣りしない範囲で）。
     private string BuildLegendMarkdown() => _doc is null ? "" : _doc.Legend switch
     {
         JsonValue lv when lv.TryGetValue<string>(out var ls) => ls,

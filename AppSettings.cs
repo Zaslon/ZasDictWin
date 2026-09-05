@@ -14,7 +14,7 @@ public sealed class AppSettings
     public string? LastDictionaryPath { get; set; }
     public string? ChangelogPath { get; set; }
 
-    // 枠を消したぶん OS が覚えてくれないので、最後に閉じたときのウィンドウの大きさを自前で持つ。
+    // 標準の枠が無いので OS は大きさを覚えてくれない。最後に閉じたときのウィンドウの大きさを自前で持つ。
     // 最大化して閉じた場合は、次に元へ戻したときの大きさが分かるよう最大化前の大きさを保つ。
     public double WindowWidth { get; set; } = 1280;
     public double WindowHeight { get; set; } = 800;

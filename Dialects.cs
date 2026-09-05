@@ -6,7 +6,7 @@ namespace ZasDictWin.Services;
 public sealed record DialectResult(string Sekore, string Titauini, string Kaiko, string Arzafire);
 
 /// <summary>
-/// zasdict.lang.dialects（旧 kaiomom.py）の移植。関数の分割と適用順は Python 版に合わせてある。
+/// zasdict.lang.dialects の移植。関数の分割と適用順は Python 版に合わせてある。
 /// 入力の強勢母音は大文字、語頭は #、語末は φ で表す内部表現を使う。
 /// </summary>
 public static class Dialects

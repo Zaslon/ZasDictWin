@@ -60,7 +60,7 @@ public partial class MainWindow : Window
         // （Owner を持たせるため、本体に HWND ができてからでないと開けない）。
         Loaded += (_, _) => SyncFloatWindows();
 
-        // 枠を消したので OS は大きさを覚えてくれない。前回閉じたときの大きさをここで復元する。
+        // 標準の枠が無いので OS は大きさを覚えてくれない。前回閉じたときの大きさをここで復元する。
         Width = _vm.Settings.WindowWidth;
         Height = _vm.Settings.WindowHeight;
         if (_vm.Settings.WindowMaximized) WindowState = WindowState.Maximized;
@@ -124,7 +124,7 @@ public partial class MainWindow : Window
         e.Handled = true;
     }
 
-    // 枠を消した代わりに、ヘッダの余白（ボタンの無い部分）をドラッグでの移動とダブルクリックでの
+    // 標準の枠が無いので、ヘッダの余白（ボタンの無い部分）をドラッグでの移動とダブルクリックでの
     // 最大化トグルに使う。ボタンは ButtonBase が MouseLeftButtonDown を Handled 済みにするので、
     // ここまでは届かず衝突しない。
     private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

@@ -697,7 +697,7 @@ internal static class MdInlines
                 }
             }
         }
-        // 閉じ没有找到：開始シーケンスをリテラルとして扱う（markdown-it と同じ）
+        // 閉じが見つからない：開始シーケンスをリテラルとして扱う（markdown-it と同じ）
         st.Pending.Append(st.Src, start, openLen);
         st.Pos = pos;
         return true;
@@ -1115,7 +1115,7 @@ internal static class MdInlines
     }
     // ---- markdown-it-cjk-friendly の scanDelims 上書きを移植 ----
     // * と _ で挙動が異なる点に注意：CJK 補正は canSplitWord（= マーカーが *）のときのみ適用され、
-    // _ は従来どおり「前後が標点記号」でのみ開閉できる。
+    // _ は markdown-it 既定どおり「前後が標点記号」でのみ開閉できる。
 
     private static (bool CanOpen, bool CanClose, int Length) ScanDelims(State st, int start, bool canSplitWord)
     {

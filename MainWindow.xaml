@@ -26,7 +26,7 @@
         </Storyboard>
     </Window.Resources>
 
-    <!-- 標準の枠を消した代わりに、上のヘッダ（アプリ名＋ボタン列）自体をつまみにする。
+    <!-- 標準の枠が無いので、上のヘッダ（アプリ名＋ボタン列）自体をつまみにする。
          CaptionHeight は 0 にし、ドラッグと最大化トグルは Header_MouseLeftButtonDown で自前実装する
          （ボタンより先にヘッダ全体をキャプションにすると、ボタンの当たり判定と衝突するため）。
          ResizeBorderThickness だけは残し、枠が無くても端をつまんでリサイズできるようにする。 -->
@@ -49,7 +49,7 @@
     <Grid>
         <DockPanel x:Name="Root">
 
-            <!-- 枠を消したぶん、このヘッダ自体がウィンドウのドラッグ・つまみを兼ねる（Header_MouseLeftButtonDown）。
+            <!-- 標準の枠が無いので、このヘッダ自体がウィンドウのドラッグ・つまみを兼ねる（Header_MouseLeftButtonDown）。
                  ボタンは ButtonBase 側が MouseLeftButtonDown を Handled 済みにするため、ここまでは伝播せず、
                  ボタンの無い余白だけがドラッグ領域として働く。 -->
             <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
@@ -72,7 +72,7 @@
                                  Visibility="{Binding IsDirty, Converter={StaticResource BoolVis}}" />
                     </StackPanel>
 
-                    <!-- 最小化・最大化（元に戻す）・閉じる。標準の枠を消したので自前で持つ。
+                    <!-- 最小化・最大化（元に戻す）・閉じる。標準の枠が無いので自前で持つ。
                          アイコンは検索欄の虫眼鏡（SearchPanel.xaml）と同じ Segoe MDL2 Assets。 -->
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
                         <Button Content="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="10"
