@@ -182,6 +182,9 @@ public sealed class MainViewModel : ViewModelBase
 
     public string CountLabel => _doc is null ? "" : $"{FilteredWords.Count} / {_doc.Words.Count} 語";
 
+    /// <summary>AssemblyVersion（csproj の BumpVersionPatch がコンパイルごとに末尾を+1する）をそのまま表示する。</summary>
+    public string VersionLabel => "v" + (System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "?");
+
     public bool IsGitHubMode => Settings.Mode == EditMode.GitHub;
 
     /// <summary>GitHubへの通信中。連打で二重コミットにならないよう、この間はボタンを無効にする。</summary>
@@ -456,6 +459,11 @@ public sealed class MainViewModel : ViewModelBase
             }
         }
         _pendingChanges.Add(entry);
+
+        // 更新履歴の画面を開いたままだと ChangelogViewModel はスナップショットのままなので、
+        // 開いていればその場で引き直す（閉じていればどうせ次に開いたときに最新化される）。
+        foreach (var vm in Layout.Overlays.OfType<ChangelogViewModel>().ToList())
+            vm.Refresh(ReadChangelogRows(vm.ChangelogPath));
     }
 
     // ---- GitHub モード ----------------------------------------------------

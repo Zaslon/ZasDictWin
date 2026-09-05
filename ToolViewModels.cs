@@ -157,6 +157,14 @@ public sealed class ChangelogViewModel : OverlayViewModel
         RelinkChangelogCommand = relinkChangelogCommand;
     }
 
+    /// <summary>画面を開いたまま単語を編集・追加・削除・複製したときに、中身をその場で引き直す。</summary>
+    public void Refresh(IReadOnlyList<string[]> changelogRows)
+    {
+        var (_, body) = SplitChangelogHeader(changelogRows);
+        ChangelogRows.Clear();
+        foreach (var row in body) ChangelogRows.Add(row);
+    }
+
     public override bool PrefersFloating => true;
 
     public override Size FloatSize => new(820, 600);

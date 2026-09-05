@@ -11,11 +11,42 @@
     <RootNamespace>ZasDictWin</RootNamespace>
     <ApplicationIcon>ZasDictWin.ico</ApplicationIcon>
     <InvariantGlobalization>false</InvariantGlobalization>
+
+    <!-- バージョンの末尾（パッチ番号）は VersionPatchFile に永続化し、コンパイルのたびに BumpVersionPatch で +1 する。
+         Major.Minor はここで直接編集する。 -->
+    <VersionMajor>1</VersionMajor>
+    <VersionMinor>2</VersionMinor>
+    <VersionPatchFile>$(MSBuildProjectDirectory)\version.patch.txt</VersionPatchFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
   </ItemGroup>
 
+  <!-- IDE のデザインタイムビルドでは走らせない（IntelliSense のたびに末尾が増えてしまうため）。
+       BuildingProject はコンパイルを伴う実ビルドでのみ true になる。
+       WPF は XAML コンパイルのため本体とは別に "_wpftmp" という一時プロジェクトでもこのファイルを
+       ビルドし直す（本体より先に走る）。ここでも条件に一致してしまい 1 回のビルドで 2 回加算されるため、
+       一時プロジェクトでは走らせない。
+       GetAssemblyVersion より前に Version を確定させる必要がある。GenerateAssemblyInfo を
+       BeforeTargets に指定しても、その DependsOnTargets（CoreGenerateAssemblyInfo 経由で
+       GetAssemblyVersion）は先に走ってしまい間に合わない。 -->
+  <Target Name="BumpVersionPatch" BeforeTargets="BeforeBuild;GetAssemblyVersion"
+          Condition="'$(BuildingProject)' == 'true' And '$(DesignTimeBuild)' != 'true' And !$(MSBuildProjectName.Contains('_wpftmp'))">
+    <ReadLinesFromFile File="$(VersionPatchFile)" Condition="Exists('$(VersionPatchFile)')">
+      <Output TaskParameter="Lines" ItemName="_VersionPatchLine" />
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <VersionPatch>@(_VersionPatchLine)</VersionPatch>
+      <VersionPatch Condition="'$(VersionPatch)' == ''">0</VersionPatch>
+    </PropertyGroup>
+    <WriteLinesToFile File="$(VersionPatchFile)" Lines="$([MSBuild]::Add($(VersionPatch), 1))" Overwrite="true" />
+    <PropertyGroup>
+      <Version>$(VersionMajor).$(VersionMinor).$(VersionPatch)</Version>
+      <AssemblyVersion>$(Version)</AssemblyVersion>
+      <FileVersion>$(Version)</FileVersion>
+      <InformationalVersion>$(Version)</InformationalVersion>
+    </PropertyGroup>
+  </Target>
 
 </Project>

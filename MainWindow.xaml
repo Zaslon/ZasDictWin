@@ -118,6 +118,9 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
             <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Line}"
                     BorderThickness="0,1,0,0" Padding="12,5">
                 <DockPanel>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding VersionLabel}" Foreground="{StaticResource Muted}"
+                               Margin="12,0,0,0" VerticalAlignment="Center"
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
                     <Border DockPanel.Dock="Right" Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
                             BorderThickness="1" CornerRadius="6" Padding="10,2" Margin="12,0,0,0" VerticalAlignment="Center">
                         <TextBlock Text="{Binding CountLabel}" Foreground="{StaticResource Muted}"
