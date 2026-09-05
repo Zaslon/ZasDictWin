@@ -33,6 +33,8 @@ public partial class FloatingWindow : Window
         SizeChanged += (_, _) => Remember();
         PreviewKeyDown += OnPreviewKeyDown;
         PreviewMouseWheel += OnPreviewMouseWheel;
+        StateChanged += (_, _) => UpdateMaximizeRestoreIcon();
+        UpdateMaximizeRestoreIcon();
     }
 
     /// <summary>割り付け側の都合で閉じる（中身が本体へ移って空になった窓）。</summary>
@@ -94,5 +96,36 @@ public partial class FloatingWindow : Window
         if (Keyboard.Modifiers != ModifierKeys.Control || e.Delta == 0) return;
         _main.ZoomFont(Math.Sign(e.Delta));
         e.Handled = true;
+    }
+
+    // 標準の枠が無いので、ヘッダの余白をドラッグでの移動とダブルクリックでの最大化トグルに使う
+    // （MainWindow.Header_MouseLeftButtonDown と同じ理由）。
+    private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (e.ClickCount == 2)
+        {
+            ToggleMaximizeRestore();
+            return;
+        }
+        DragMove();
+    }
+
+    private void Minimize_Click(object sender, RoutedEventArgs e) => WindowState = WindowState.Minimized;
+
+    private void MaximizeRestore_Click(object sender, RoutedEventArgs e) => ToggleMaximizeRestore();
+
+    private void Close_Click(object sender, RoutedEventArgs e) => Close();
+
+    private void ToggleMaximizeRestore()
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    }
+
+    private void UpdateMaximizeRestoreIcon()
+    {
+        var maximized = WindowState == WindowState.Maximized;
+        // MDL2 Assets: ChromeMaximize (E922) / ChromeRestore (E923)
+        MaximizeRestoreButton.Content = maximized ? "\uE923" : "\uE922";
+        MaximizeRestoreButton.ToolTip = maximized ? "元のサイズに戻す" : "最大化";
     }
 }
