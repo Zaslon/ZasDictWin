@@ -8,7 +8,6 @@
     <v:NullToVisibilityConverter x:Key="NullVis" />
     <v:CountToVisibilityConverter x:Key="CountVis" />
     <v:StringToBrushConverter x:Key="StringBrush" />
-    <v:EqualsMultiConverter x:Key="EqualsMulti" />
     <v:ScaleFontSizeConverter x:Key="ScaleFont" />
     <v:SplitMarginConverter x:Key="SplitMargin" />
 
@@ -740,12 +739,6 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="12,10" />
-    </Style>
-
-    <Style x:Key="Separator" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource Line}" />
-        <Setter Property="Height" Value="1" />
-        <Setter Property="Margin" Value="2,8" />
     </Style>
 
     <!-- プルダウン（v:DropDown）。一覧は Popup ではなくウィンドウの AdornerLayer に描くため、

@@ -12,6 +12,24 @@
     <ApplicationIcon>ZasDictWin.ico</ApplicationIcon>
     <InvariantGlobalization>false</InvariantGlobalization>
 
+    <!-- 配布は exe 1 個で完結させる。WebView2 の WebView2Loader.dll はマネージド DLL ではないので
+         IncludeNativeLibrariesForSelfExtract を付けないとバンドルから外れて exe の隣に置かれる
+         （初回起動時に %TEMP%\.net\ZasDictWin\ へ展開されて読み込まれる）。
+         RuntimeIdentifier を固定しないと win-x64 / win-x86 / win-arm64 の 3 種類が出力される。 -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- 自己完結ビルド (-p:SelfContained=true) のときだけ有効な設定。展開に時間はかかるが 3 割ほど縮む。 -->
+    <EnableCompressionInSingleFile Condition="'$(SelfContained)' == 'true'">true</EnableCompressionInSingleFile>
+
+    <!-- pdb を別ファイルにすると exe 単体という前提が崩れ、かといって捨てると error.log の
+         スタックトレースから行番号が消える。exe に埋め込んで両立させる。 -->
+    <DebugType>embedded</DebugType>
+    <!-- 参照 NuGet の .xml (WebView2 だけで 0.8MB) と .pdb を出力に持ち込まない。 -->
+    <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+    <SatelliteResourceLanguages>ja;en</SatelliteResourceLanguages>
+
     <!-- バージョンの末尾（パッチ番号）は VersionPatchFile に永続化する。ファイルの中身は
          「最後に配布した番号」ではなく「次のビルドが名乗る番号」。
          Major.Minor はここで直接編集する。 -->
@@ -31,6 +49,22 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
   </ItemGroup>
+
+  <!-- WebView2 パッケージは WPF 版と WinForms 版のラッパーを両方入れてくる。使うのは WPF 版だけで、
+       Wpf / Core のどちらからも WinForms 版への参照は無いので出力から外す。 -->
+  <Target Name="DropWebView2WinForms" AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <ReferenceCopyLocalPaths Remove="@(ReferenceCopyLocalPaths)"
+                               Condition="'%(Filename)' == 'Microsoft.Web.WebView2.WinForms'" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="DropWebView2WinFormsFromPublish" AfterTargets="ComputeResolvedFilesToPublishList">
+    <ItemGroup>
+      <ResolvedFileToPublish Remove="@(ResolvedFileToPublish)"
+                             Condition="'%(Filename)' == 'Microsoft.Web.WebView2.WinForms'" />
+    </ItemGroup>
+  </Target>
 
   <!-- IDE のデザインタイムビルドでは走らせない（IntelliSense のたびに末尾が増えてしまうため）。
        BuildingProject はコンパイルを伴う実ビルドでのみ true になる。

@@ -183,6 +183,26 @@ dotnet run --project ZasDictWin.csproj
 
 Visual Studio 2022 なら `ZasDictWin.sln` を開いて実行。
 
+### 配布用の実行ファイル
+
+`dotnet publish` は DLL とデバッグシンボルを exe に取り込むので、出力された
+`ZasDictWin.exe` 1 個をどこに置いても動く（`win-x64` 固定）。
+
+```
+dotnet publish ZasDictWin.csproj -c Release
+```
+
+出力先は `bin\Release\net8.0-windows\win-x64\publish\ZasDictWin.exe`（約 1.8MB）。
+配布先に .NET 8 デスクトップランタイムが必要で、無い環境にも配るなら自己完結ビルドにする
+（約 67MB。初回起動時の展開があるぶん起動が遅い）。
+
+```
+dotnet publish ZasDictWin.csproj -c Release -p:SelfContained=true
+```
+
+いずれも `WebView2Loader.dll` はネイティブ DLL なので exe の中から
+`%TEMP%\.net\ZasDictWin\` へ初回起動時に展開される。exe を消してもこの展開先は残る。
+
 ブラウザのために `Microsoft.Web.WebView2` NuGet パッケージを 1 つだけ使用します
 （初回ビルドで復元され、`bin` に DLL と `WebView2Loader.dll` が出力されます）。実行には
 WebView2 ランタイムが必要で、Windows 10 以降なら Microsoft Edge に同梱されていることがほとんどです。

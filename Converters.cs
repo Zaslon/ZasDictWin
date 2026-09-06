@@ -56,16 +56,6 @@ public sealed class CountToVisibilityConverter : IValueConverter
         => Binding.DoNothing;
 }
 
-/// <summary>2 つのバインディング値が等しいかを返す。値同士を比べる chip の選択表示に使う。</summary>
-public sealed class EqualsMultiConverter : IMultiValueConverter
-{
-    public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
-        => values.Length >= 2 && Equals(values[0]?.ToString(), values[1]?.ToString());
-
-    public object[] ConvertBack(object? value, Type[] targetTypes, object? parameter, CultureInfo culture)
-        => throw new NotSupportedException();
-}
-
 /// <summary>
 /// ConverterParameter に書いた基準サイズ（scale=1.0 のときの px 値）に、バインドされた
 /// 文字サイズ倍率を掛けて FontSize を返す。DataContext に依存せず {x:Static
