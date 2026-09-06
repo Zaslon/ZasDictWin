@@ -48,7 +48,12 @@
             </Border>
 
             <!-- 履歴は追記順（古い → 新しい）なので、表示時に一度だけ末尾＝最新行へ送る。 -->
-            <ScrollViewer x:Name="ChangelogScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto"
+            <!-- 縦スクロールバーは Auto にしない。Auto だと ScrollViewer がレイアウトのたびに
+                 「バー無し」「バー有り」の 2 通りの幅で中身を測り直すため、行の Grid が毎回
+                 測り直しになる（幅が交互に変わるので測定結果も使い回せない）。行数ぶんの
+                 文字計測が縦リサイズの 1 コマごとに走り、窓を縦に伸縮するとガクつく。
+                 常時表示にすると幅が動かず、測り直しは初回だけで済む。 -->
+            <ScrollViewer x:Name="ChangelogScroll" Grid.Row="1" VerticalScrollBarVisibility="Visible"
                           HorizontalScrollBarVisibility="Disabled"
                           Loaded="ChangelogScroll_Loaded">
                 <ItemsControl ItemsSource="{Binding ChangelogRows}">

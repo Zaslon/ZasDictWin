@@ -12,11 +12,19 @@
     <ApplicationIcon>ZasDictWin.ico</ApplicationIcon>
     <InvariantGlobalization>false</InvariantGlobalization>
 
-    <!-- バージョンの末尾（パッチ番号）は VersionPatchFile に永続化し、コンパイルのたびに BumpVersionPatch で +1 する。
+    <!-- バージョンの末尾（パッチ番号）は VersionPatchFile に永続化する。ファイルの中身は
+         「最後に配布した番号」ではなく「次のビルドが名乗る番号」。
          Major.Minor はここで直接編集する。 -->
     <VersionMajor>1</VersionMajor>
     <VersionMinor>2</VersionMinor>
     <VersionPatchFile>$(MSBuildProjectDirectory)\version.patch.txt</VersionPatchFile>
+
+    <!-- 番号を進めるのは人手のビルドだけにする。動作確認目的で CLI から繰り返しビルドされると
+         番号が無駄に飛ぶため、既定では Visual Studio 上のビルドに限る。
+         CLI から意図的に進めたいときは -p:BumpVersion=true、VS で進めたくないときは
+         -p:BumpVersion=false を渡す。 -->
+    <BumpVersion Condition="'$(BumpVersion)' == ''">$(BuildingInsideVisualStudio)</BumpVersion>
+    <BumpVersion Condition="'$(BumpVersion)' == ''">false</BumpVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,7 +39,7 @@
        GetAssemblyVersion より前に Version を確定させる必要がある。GenerateAssemblyInfo を
        BeforeTargets に指定しても、その DependsOnTargets（CoreGenerateAssemblyInfo 経由で
        GetAssemblyVersion）は先に走ってしまい間に合わない。 -->
-  <Target Name="BumpVersionPatch" BeforeTargets="BeforeBuild;GetAssemblyVersion"
+  <Target Name="ApplyVersionPatch" BeforeTargets="BeforeBuild;GetAssemblyVersion"
           Condition="'$(BuildingProject)' == 'true' And '$(DesignTimeBuild)' != 'true' And !$(MSBuildProjectName.Contains('_wpftmp'))">
     <ReadLinesFromFile File="$(VersionPatchFile)" Condition="Exists('$(VersionPatchFile)')">
       <Output TaskParameter="Lines" ItemName="_VersionPatchLine" />
@@ -40,7 +48,10 @@
       <VersionPatch>@(_VersionPatchLine)</VersionPatch>
       <VersionPatch Condition="'$(VersionPatch)' == ''">0</VersionPatch>
     </PropertyGroup>
-    <WriteLinesToFile File="$(VersionPatchFile)" Lines="$([MSBuild]::Add($(VersionPatch), 1))" Overwrite="true" />
+    <!-- 進めないビルドでも Version の組み立ては行う。今回名乗った番号を使い切ったものとして
+         書き戻すので、進めるビルドの次は必ず新しい番号になる。 -->
+    <WriteLinesToFile Condition="'$(BumpVersion)' == 'true'"
+                      File="$(VersionPatchFile)" Lines="$([MSBuild]::Add($(VersionPatch), 1))" Overwrite="true" />
     <PropertyGroup>
       <Version>$(VersionMajor).$(VersionMinor).$(VersionPatch)</Version>
       <AssemblyVersion>$(Version)</AssemblyVersion>

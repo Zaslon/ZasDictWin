@@ -228,6 +228,8 @@ public sealed class ExampleEditViewModel : OverlayViewModel
     {
         if (Words.Any(w => w.Id == word.Id)) return;
         Words.Add(new ExampleWord { Id = word.Id, Form = word.DisplayForm });
+        // 追加できたことが見えるよう、候補一覧（検索欄）は選択のたびに畳む。
+        WordQuery = "";
     }
 
     // ---- 出典照会 --------------------------------------------------------

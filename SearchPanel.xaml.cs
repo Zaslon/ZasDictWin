@@ -18,6 +18,33 @@ public partial class SearchPanel : UserControl
         if (DataContext is MainViewModel vm) vm.RequestEditWord(w);
     }
 
+    /// <summary>検索欄で Enter を押したら結果一覧へ移る。検索と一覧を Tab 無しで往復できるようにする。</summary>
+    private void QueryBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        // Query の束縛は Delay 付きなので、打ち終えた直後の Enter では一覧がまだ古い。
+        // 先に値を流し込んで絞り込みを済ませてから、その結果へ移る。
+        QueryBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+        e.Handled = true;
+        if (ResultList.Items.Count == 0) return;
+
+        if (ResultList.SelectedIndex < 0) ResultList.SelectedIndex = 0;
+        ResultList.ScrollIntoView(ResultList.SelectedItem);
+        // 仮想化のため画面外の行にはコンテナが無い。ScrollIntoView の後にレイアウトを進めてから掴む。
+        ResultList.UpdateLayout();
+        if (ResultList.ItemContainerGenerator.ContainerFromIndex(ResultList.SelectedIndex) is ListBoxItem row) row.Focus();
+        else ResultList.Focus();
+    }
+
+    /// <summary>結果一覧で Enter を押したら検索欄へ戻る。続けて別の語を打てるよう全選択にしておく。</summary>
+    private void ResultList_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        QueryBox.SelectAll();
+        QueryBox.Focus();
+        e.Handled = true;
+    }
+
     /// <summary>行の ⋯ の中身を、開く直前にその行の単語で組む。ListBox は行を使い回す
     /// （仮想化のリサイクル）ため、行の生成時に詰める作りだと中身が入らないまま開く行が出る。</summary>
     private void RowMenu_Opening(object sender, EventArgs e)

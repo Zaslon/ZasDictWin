@@ -232,6 +232,8 @@ public sealed class WordEditViewModel : OverlayViewModel
             Form = target.Form,
             CounterpartHint = HintFor(RelationTitle)
         });
+        // 追加できたことが見えるよう、候補一覧（検索欄）は選択のたびに畳む。
+        RelationQuery = "";
     }
 
     public List<Translation> BuildTranslations() => Translations
