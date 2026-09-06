@@ -386,6 +386,12 @@ public sealed class MainViewModel : ViewModelBase
         ApplySettings();
         RebuildIndex();
         IsDirty = false;
+
+        // 開いたままの更新履歴は、辞書が入れ替わると連携先の CSV ごと変わるので引き直す。
+        var csv = ChangelogCsvPath();
+        foreach (var vm in Layout.Overlays.OfType<ChangelogViewModel>().ToList())
+            vm.Reload(ReadChangelogRows(csv), csv);
+
         Status = $"{Path.GetFileName(path)} を読み込みました。";
         RaiseDocumentChanged();
     }
@@ -497,8 +503,14 @@ public sealed class MainViewModel : ViewModelBase
         return true;
     }
 
-    /// <summary>GitHub から取得した辞書の置き場所。owner/repo/branch ごとに分けておき、
-    /// 別のリポジトリへ切り替えても前のローカルコピーを踏まないようにする。</summary>
+    /// <summary>GitHub モードで読み書きするローカルのファイル。辞書を開いていればそれを上書きする
+    /// （手元のファイルをそのまま作業コピーとして使えるようにするため）。開いていないときだけ
+    /// %APPDATA% 下の取得先を使う。</summary>
+    private string GitHubWorkingCopyPath(GitHubConfig cfg)
+        => _doc?.Path ?? GitHubLocalCachePath(cfg);
+
+    /// <summary>辞書を開いていないときに GitHub から取得した辞書を置く場所。owner/repo/branch ごとに
+    /// 分けておき、別のリポジトリへ切り替えても前のローカルコピーを踏まないようにする。</summary>
     private static string GitHubLocalCachePath(GitHubConfig cfg)
     {
         var dir = Path.Combine(
@@ -515,9 +527,11 @@ public sealed class MainViewModel : ViewModelBase
     {
         if (!TryGetGitHubConfig(out var cfg, out var error)) { Status = error; return Task.CompletedTask; }
 
-        // 押し間違いでローカルの内容を消さないよう、保存済みかどうかに関わらず確認を挟む。
+        // 押し間違いで手元のファイルを消さないよう、保存済みかどうかに関わらず確認を挟む。
+        // 上書きするのは開いている辞書そのものなので、どのファイルが置き換わるかを文面に出す。
         ShowOverlay(new ChoiceViewModel("GitHubから読み込み",
-                "ローカルの変更を破棄してGitHubから再読み込みをしますか？")
+                "ローカルの変更を破棄してGitHubから再読み込みをしますか？" + Environment.NewLine
+                + $"上書き先: {GitHubWorkingCopyPath(cfg)}")
             .Add("読み込む", () => _ = LoadFromGitHubCoreAsync(cfg), isDanger: true)
             .AddCancel("やめる"));
         return Task.CompletedTask;
@@ -537,7 +551,7 @@ public sealed class MainViewModel : ViewModelBase
                 return;
             }
 
-            var localPath = GitHubLocalCachePath(cfg);
+            var localPath = GitHubWorkingCopyPath(cfg);
             File.WriteAllText(localPath, jsonResult.Content, new UTF8Encoding(false));
 
             if (cfg.ChangelogPath.Length > 0)
@@ -545,8 +559,13 @@ public sealed class MainViewModel : ViewModelBase
                 var csvResult = await GitHubApi.GetFileAsync(cfg.Owner, cfg.Repo, cfg.ChangelogPath, cfg.Branch, cfg.Token).ConfigureAwait(true);
                 if (csvResult.Ok)
                 {
-                    File.WriteAllText(ChangelogService.DefaultPathFor(localPath), csvResult.Content, new UTF8Encoding(true));
-                    Settings.ChangelogPath = ChangelogService.DefaultPathFor(localPath);
+                    // 更新履歴の CSV をローカルで選んであるなら、その CSV を上書きする。
+                    // 追記先（FlushChangelog）とコミット対象がここと同じファイルになるようにするため。
+                    var csvLocalPath = string.IsNullOrWhiteSpace(Settings.ChangelogPath)
+                        ? ChangelogService.DefaultPathFor(localPath)
+                        : Settings.ChangelogPath;
+                    File.WriteAllText(csvLocalPath, csvResult.Content, new UTF8Encoding(true));
+                    Settings.ChangelogPath = csvLocalPath;
                 }
                 else if (!csvResult.NotFound)
                 {
@@ -915,7 +934,9 @@ public sealed class MainViewModel : ViewModelBase
             ShowOverlay(BuildChangelog());
         });
         var csv = ChangelogCsvPath();
-        vm = new ChangelogViewModel(ReadChangelogRows(csv), csv, new RelayCommand(() => ExportChangelog(csv)), relink);
+        // 書き出し元は開いている時点のパスではなく、画面が今つないでいる CSV（Reload で入れ替わる）。
+        vm = new ChangelogViewModel(ReadChangelogRows(csv), csv,
+            new RelayCommand(() => { if (vm is not null) ExportChangelog(vm.ChangelogPath); }), relink);
         return vm;
     }
 

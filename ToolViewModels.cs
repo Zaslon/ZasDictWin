@@ -144,15 +144,16 @@ public sealed class LegendViewModel : OverlayViewModel
 
 public sealed class ChangelogViewModel : OverlayViewModel
 {
+    private string[] _changelogHeader = (string[])ChangelogService.DefaultHeader.Clone();
+    private string _changelogPath;
+
     public ChangelogViewModel(IReadOnlyList<string[]> changelogRows, string changelogPath,
                                ICommand exportChangelogCommand, ICommand relinkChangelogCommand)
     {
         Title = "更新履歴";
-        // CSV 先頭の見出し行は、本文と一緒にスクロールせず固定表示するヘッダー側に回す。
-        var (header, body) = SplitChangelogHeader(changelogRows);
-        ChangelogHeader = header;
-        ChangelogRows = new ObservableCollection<string[]>(body);
-        ChangelogPath = changelogPath;
+        ChangelogRows = new ObservableCollection<string[]>();
+        _changelogPath = changelogPath;
+        Refresh(changelogRows);
         ExportChangelogCommand = exportChangelogCommand;
         RelinkChangelogCommand = relinkChangelogCommand;
     }
@@ -160,9 +161,19 @@ public sealed class ChangelogViewModel : OverlayViewModel
     /// <summary>画面を開いたまま単語を編集・追加・削除・複製したときに、中身をその場で引き直す。</summary>
     public void Refresh(IReadOnlyList<string[]> changelogRows)
     {
-        var (_, body) = SplitChangelogHeader(changelogRows);
+        // CSV 先頭の見出し行は、本文と一緒にスクロールせず固定表示するヘッダー側に回す。
+        var (header, body) = SplitChangelogHeader(changelogRows);
+        ChangelogHeader = header;
         ChangelogRows.Clear();
         foreach (var row in body) ChangelogRows.Add(row);
+    }
+
+    /// <summary>連携先の CSV ごと引き直す。辞書の開き直しや GitHub からの再読み込みでは
+    /// 中身だけでなく CSV そのものが入れ替わるため。</summary>
+    public void Reload(IReadOnlyList<string[]> changelogRows, string changelogPath)
+    {
+        ChangelogPath = changelogPath;
+        Refresh(changelogRows);
     }
 
     public override bool PrefersFloating => true;
@@ -170,10 +181,10 @@ public sealed class ChangelogViewModel : OverlayViewModel
     public override Size FloatSize => new(820, 600);
 
     /// <summary>更新履歴の見出し行。画面側はスクロール領域の外に固定して表示する（常に 4 列）。</summary>
-    public string[] ChangelogHeader { get; }
+    public string[] ChangelogHeader { get => _changelogHeader; private set => Set(ref _changelogHeader, value); }
     /// <summary>更新履歴の本文行（見出し行は含まない）。追記順 = 古い順で並ぶ。</summary>
     public ObservableCollection<string[]> ChangelogRows { get; }
-    public string ChangelogPath { get; }
+    public string ChangelogPath { get => _changelogPath; private set => Set(ref _changelogPath, value); }
     public ICommand ExportChangelogCommand { get; }
     public ICommand RelinkChangelogCommand { get; }
 
