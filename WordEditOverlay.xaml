@@ -58,12 +58,19 @@
                                     <StackPanel>
                                         <Grid>
                                             <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
                                                 <ColumnDefinition Width="*" />
                                                 <ColumnDefinition Width="Auto" />
                                             </Grid.ColumnDefinitions>
-                                            <TextBox Grid.Column="0" Text="{Binding FormsText, UpdateSourceTrigger=PropertyChanged}"
+                                            <!-- Background を敷かないと透明な部分でマウスを拾えず、掴める幅が字の太さだけになる -->
+                                            <Border Grid.Column="0" v:RowDrag.IsGrip="True" Background="Transparent"
+                                                    Padding="2,0,8,0" ToolTip="ドラッグで並べ替え">
+                                                <TextBlock Text="≡" Foreground="{StaticResource Muted}" VerticalAlignment="Center"
+                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}" />
+                                            </Border>
+                                            <TextBox Grid.Column="1" Text="{Binding FormsText, UpdateSourceTrigger=PropertyChanged}"
                                                      Margin="0,0,6,0" />
-                                            <Button Grid.Column="1" Content="✕" Style="{StaticResource GhostButton}" Margin="0"
+                                            <Button Grid.Column="2" Content="✕" Style="{StaticResource GhostButton}" Margin="0"
                                                     Command="{Binding DataContext.RemoveTranslationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}" />
                                         </Grid>

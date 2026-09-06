@@ -18,10 +18,11 @@ public partial class SearchPanel : UserControl
         if (DataContext is MainViewModel vm) vm.RequestEditWord(w);
     }
 
-    /// <summary>検索欄で Enter を押したら結果一覧へ移る。検索と一覧を Tab 無しで往復できるようにする。</summary>
+    /// <summary>検索欄で Enter を押したら結果一覧へ移る。検索と一覧を Tab 無しで往復できるようにする。
+    /// 修飾キー付き（Ctrl+Enter 等）は Window の KeyBinding に譲るため、素の Enter のみ拾う。</summary>
     private void QueryBox_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter) return;
+        if (e.Key != Key.Enter || Keyboard.Modifiers != ModifierKeys.None) return;
         // Query の束縛は Delay 付きなので、打ち終えた直後の Enter では一覧がまだ古い。
         // 先に値を流し込んで絞り込みを済ませてから、その結果へ移る。
         QueryBox.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
@@ -36,10 +37,11 @@ public partial class SearchPanel : UserControl
         else ResultList.Focus();
     }
 
-    /// <summary>結果一覧で Enter を押したら検索欄へ戻る。続けて別の語を打てるよう全選択にしておく。</summary>
+    /// <summary>結果一覧で Enter を押したら検索欄へ戻る。続けて別の語を打てるよう全選択にしておく。
+    /// 修飾キー付き（Ctrl+Enter 等）は Window の KeyBinding に譲るため、素の Enter のみ拾う。</summary>
     private void ResultList_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key != Key.Enter) return;
+        if (e.Key != Key.Enter || Keyboard.Modifiers != ModifierKeys.None) return;
         QueryBox.SelectAll();
         QueryBox.Focus();
         e.Handled = true;

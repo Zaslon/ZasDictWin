@@ -1,4 +1,4 @@
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Input;
 using ZasDictWin.ViewModels;
 
@@ -84,6 +84,7 @@ public partial class FloatingWindow : Window
         if (MenuButton.CloseCurrent()) { e.Handled = true; return; }
         if (AreaDrag.Cancel()) { e.Handled = true; return; }
         if (OverlayDrag.Cancel()) { e.Handled = true; return; }
+        if (RowDrag.Cancel()) { e.Handled = true; return; }
         // この窓に出ているタブだけを閉じる（据え置きのタブは閉じられないので飛ばす）。
         if (_host.Leaves.FirstOrDefault(l => l.Selected is { IsPinned: false })?.Selected is not { } vm) return;
         vm.CloseCommand.Execute(null);

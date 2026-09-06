@@ -19,12 +19,13 @@
     <VersionMinor>2</VersionMinor>
     <VersionPatchFile>$(MSBuildProjectDirectory)\version.patch.txt</VersionPatchFile>
 
-    <!-- 番号を進めるのは人手のビルドだけにする。動作確認目的で CLI から繰り返しビルドされると
-         番号が無駄に飛ぶため、既定では Visual Studio 上のビルドに限る。
-         CLI から意図的に進めたいときは -p:BumpVersion=true、VS で進めたくないときは
-         -p:BumpVersion=false を渡す。 -->
-    <BumpVersion Condition="'$(BumpVersion)' == ''">$(BuildingInsideVisualStudio)</BumpVersion>
-    <BumpVersion Condition="'$(BumpVersion)' == ''">false</BumpVersion>
+    <!-- 番号を進めるのは人手のビルドだけにする。AI エージェント (Claude Code など) や CI が
+         動作確認のために繰り返しビルドすると番号が無駄に飛ぶため、それらのシェルにだけ注入される
+         環境変数を見て除外する。CLAUDECODE / AI_AGENT は利用者自身のターミナルには存在しないので、
+         人手のビルドと区別できる。
+         明示的に制御したいときは -p:BumpVersion=true / -p:BumpVersion=false を渡す。 -->
+    <BumpVersion Condition="'$(BumpVersion)' == '' And ('$(CLAUDECODE)' != '' Or '$(AI_AGENT)' != '' Or '$(CI)' != '')">false</BumpVersion>
+    <BumpVersion Condition="'$(BumpVersion)' == ''">true</BumpVersion>
   </PropertyGroup>
 
   <ItemGroup>

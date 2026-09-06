@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
@@ -107,6 +107,7 @@ public partial class MainWindow : Window
         // 枠を割り直している最中と、タブの運び先を選んでいる最中は、まずその操作だけをやめる。
         if (AreaDrag.Cancel()) { e.Handled = true; return; }
         if (OverlayDrag.Cancel()) { e.Handled = true; return; }
+        if (RowDrag.Cancel()) { e.Handled = true; return; }
         // 確認は他の画面の上に重なるので、上の層から順に閉じる。
         if (_vm.ModalOverlay is not null) { _vm.CloseModal(); e.Handled = true; return; }
         // 複数開いていても閉じる相手は 1 枚。最後に触ったタブから畳む。

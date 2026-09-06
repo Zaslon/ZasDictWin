@@ -79,7 +79,7 @@
                                 </TextBlock>
                                 <TextBox Text="{Binding Punctuations}" FontFamily="Consolas" />
                                 <TextBlock Style="{StaticResource FieldLabel}" Margin="0,18,0,5">
-                                    <Run Text="ignoredPattern" /><Run Style="{StaticResource FieldNote}" Text="（前方・後方・完全一致で見出し語から除去する正規表現）" />
+                                    <Run Text="ignoredPattern" /><Run Style="{StaticResource FieldNote}" Text="（検索の際に無視する部分を表す正規表現）" />
                                 </TextBlock>
                                 <TextBox Text="{Binding IgnoredPattern}" FontFamily="Consolas" />
                                 <TextBlock Text="この 2 つは辞書ファイルの zpdicOnline に書き込まれます。"
