@@ -4,11 +4,11 @@
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:v="clr-namespace:ZasDictWin.Views"
              xmlns:ov="clr-namespace:ZasDictWin.Views.Overlays"
-             StartupUri="MainWindow.xaml">
+             StartupUri="Views/MainWindow.xaml">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Theme.xaml" />
+                <ResourceDictionary Source="Themes/Theme.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <!-- 画面の割り付け。節と枠の入れ子をそのまま描く（再帰は ContentControl 任せ）。 -->

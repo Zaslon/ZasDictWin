@@ -4,7 +4,7 @@ namespace ZasDictWin.Views;
 
 /// <summary>
 /// TextBox に案内文字（プレースホルダー）を添える添付プロパティ。
-/// Theme.xaml の TextBox テンプレートが「入力が空のときだけ」表示する。
+/// Themes/Theme.xaml の TextBox テンプレートが「入力が空のときだけ」表示する。
 /// 入力値そのものには触れない（Text に書き込むと確定入力と誤認されるため）。
 /// </summary>
 public static class Placeholder

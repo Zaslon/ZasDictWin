@@ -38,7 +38,7 @@ internal static class SelectableTextBehavior
 
 /// <summary>
 /// マウスで選んでコピーできる本文。WPF の TextBlock は文字を選べないため、読み取り専用の TextBox を
-/// 素の文字に見えるまで削ったものを代わりに使う（見た目は Theme.xaml の既定スタイルが受け持つ）。
+/// 素の文字に見えるまで削ったものを代わりに使う（見た目は Themes/Theme.xaml の既定スタイルが受け持つ）。
 /// TextBox の暗黙スタイル（入力欄の枠と面）を継がないよう、別の型として立ててある。
 /// </summary>
 public class SelectableText : TextBox

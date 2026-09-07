@@ -10,7 +10,7 @@ namespace ZasDictWin.Services;
 
 /// <summary>
 /// Markdown を WPF の FlowDocument に描画する。MarkdownParser.Parse が作る AST
-/// （MdParagraph / MdHeading / …）だけを見て、Theme.xaml のブラシと文字サイズ倍率を適用する。
+/// （MdParagraph / MdHeading / …）だけを見て、Themes/Theme.xaml のブラシと文字サイズ倍率を適用する。
 /// </summary>
 public static class Markdown
 {
@@ -319,7 +319,7 @@ public static class Markdown
 
     private static double S(double baseSize, double scale) => baseSize * scale;
 
-    /// <summary>Theme.xaml のブラシを解決できなかった場合のフォールバックは Theme.xaml と同じ色。</summary>
+    /// <summary>Themes/Theme.xaml のブラシを解決できなかった場合のフォールバックは Themes/Theme.xaml と同じ色。</summary>
     private static Brush Res(string key, uint fallbackRgb)
     {
         if (Application.Current?.TryFindResource(key) is Brush found) return found;
