@@ -30,6 +30,7 @@ public sealed class MainViewModel : ViewModelBase
 
     // ---- GitHub モード ------------------------------------------------------
     private bool _isGitHubBusy;
+    private bool _isGitHubSynced;
 
     public MainViewModel()
     {
@@ -63,7 +64,7 @@ public sealed class MainViewModel : ViewModelBase
         SaveAsCommand = new RelayCommand(() => Save(true), () => _doc is not null);
         // GitHubモードだけの操作。編集画面が開いている間は辞書の差し替えを止める（開く／新規辞書と同じ理由）。
         LoadFromGitHubCommand = new RelayCommand(async () => await LoadFromGitHubAsync(), () => IsGitHubMode && !IsGitHubBusy && !IsEditorOpen);
-        CommitToGitHubCommand = new RelayCommand(ShowCommitDialog, () => IsGitHubMode && !IsGitHubBusy && _doc is not null);
+        CommitToGitHubCommand = new RelayCommand(ShowCommitDialog, () => IsGitHubMode && !IsGitHubBusy && _doc is not null && !IsGitHubSynced);
         // 同じ画面は 1 枚まで。開いている種類のボタンは無効にして、書きかけの入力が
         // 差し替えで飛ぶのを防ぐ（ショートカットはオーバーレイの上からでも届くため）。
         NewWordCommand = new RelayCommand(NewWord, () => _doc is not null && CanOpen<WordEditViewModel>());
@@ -192,6 +193,17 @@ public sealed class MainViewModel : ViewModelBase
     {
         get => _isGitHubBusy;
         private set => Set(ref _isGitHubBusy, value);
+    }
+
+    /// <summary>直近のGitHub読み込み・コミット以降、辞書を編集していないか。真ならコミットしても
+    /// GitHub側と差が出ないので、コミットボタンはこれで無効化する。実際の内容を毎回比較するのではなく
+    /// 「読み込み／コミット直後」を基点に、そこから編集が入ったかどうかで判定する（＝厳密な差分検知
+    /// ではなく、その近似）。アプリ起動直後や手元のファイルを直接開いた場合は基点が無いので false
+    /// （＝差があるかもしれない扱い）から始まる。</summary>
+    public bool IsGitHubSynced
+    {
+        get => _isGitHubSynced;
+        private set => Set(ref _isGitHubSynced, value);
     }
 
     /// <summary>確認ダイアログ専用の層。窓全体を覆い、ドッキング中の画面を閉じずに上へ重ねる。</summary>
@@ -348,6 +360,7 @@ public sealed class MainViewModel : ViewModelBase
         SelectedWord = null;
         RebuildIndex();
         IsDirty = true;
+        IsGitHubSynced = false;
         Status = "空の辞書を作成しました。保存時にファイル名を指定します。";
         RaiseDocumentChanged();
     }
@@ -386,6 +399,9 @@ public sealed class MainViewModel : ViewModelBase
         ApplySettings();
         RebuildIndex();
         IsDirty = false;
+        // ここで読み込んだファイルがGitHub側と一致しているとはまだ分からない。
+        // GitHubから読み込んだ直後は LoadFromGitHubCoreAsync がこの直後に true へ戻す。
+        IsGitHubSynced = false;
 
         // 開いたままの更新履歴は、辞書が入れ替わると連携先の CSV ごと変わるので引き直す。
         var csv = ChangelogCsvPath();
@@ -523,24 +539,14 @@ public sealed class MainViewModel : ViewModelBase
     private static string SanitizeFileName(string s)
         => string.Concat(s.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c));
 
-    private Task LoadFromGitHubAsync()
+    private async Task LoadFromGitHubAsync()
     {
-        if (!TryGetGitHubConfig(out var cfg, out var error)) { Status = error; return Task.CompletedTask; }
+        if (!TryGetGitHubConfig(out var cfg, out var error)) { Status = error; return; }
 
-        // 押し間違いで手元のファイルを消さないよう、保存済みかどうかに関わらず確認を挟む。
-        // 上書きするのは開いている辞書そのものなので、どのファイルが置き換わるかを文面に出す。
-        ShowOverlay(new ChoiceViewModel("GitHubから読み込み",
-                "ローカルの変更を破棄してGitHubから再読み込みをしますか？" + Environment.NewLine
-                + $"上書き先: {GitHubWorkingCopyPath(cfg)}")
-            .Add("読み込む", () => _ = LoadFromGitHubCoreAsync(cfg), isDanger: true)
-            .AddCancel("やめる"));
-        return Task.CompletedTask;
-    }
-
-    private async Task LoadFromGitHubCoreAsync(GitHubConfig cfg)
-    {
+        // 差があるかどうかを確認ダイアログの前に見ておく。無ければ「破棄して読み込む」確認自体が
+        // 不要（何も破棄されない）なので出さず、その場でステータスに出して終える。
         IsGitHubBusy = true;
-        Status = "GitHubから読み込み中…";
+        Status = "GitHubの内容を確認中…";
         try
         {
             var jsonResult = await GitHubApi.GetFileAsync(cfg.Owner, cfg.Repo, cfg.JsonPath, cfg.Branch, cfg.Token).ConfigureAwait(true);
@@ -552,8 +558,43 @@ public sealed class MainViewModel : ViewModelBase
             }
 
             var localPath = GitHubWorkingCopyPath(cfg);
+            if (File.Exists(localPath) && TextEquals(File.ReadAllText(localPath), jsonResult.Content))
+            {
+                IsGitHubSynced = true;
+                Status = "ローカルとリモートに差がありません。";
+                return;
+            }
+
+            // 押し間違いで手元のファイルを消さないよう確認を挟む。上書きするのは開いている辞書
+            // そのものなので、どのファイルが置き換わるかを文面に出す。取得済みの内容はそのまま渡し、
+            // 確定後にもう一度取りに行かない。
+            ShowOverlay(new ChoiceViewModel("GitHubから読み込み",
+                    "ローカルの変更を破棄してGitHubから再読み込みをしますか？" + Environment.NewLine
+                    + $"上書き先: {localPath}")
+                .Add("読み込む", () => _ = LoadFromGitHubCoreAsync(cfg, jsonResult), isDanger: true)
+                .AddCancel("やめる"));
+        }
+        finally
+        {
+            IsGitHubBusy = false;
+        }
+    }
+
+    /// <summary>改行コード（CRLF/LF）の差だけで「差あり」と誤判定しないよう正規化してから比較する。</summary>
+    private static bool TextEquals(string a, string b) => a.Replace("\r\n", "\n") == b.Replace("\r\n", "\n");
+
+    private async Task LoadFromGitHubCoreAsync(GitHubConfig cfg, GitHubFileResult jsonResult)
+    {
+        IsGitHubBusy = true;
+        Status = "GitHubから読み込み中…";
+        try
+        {
+            var localPath = GitHubWorkingCopyPath(cfg);
             File.WriteAllText(localPath, jsonResult.Content, new UTF8Encoding(false));
 
+            // 辞書は読み込めても更新履歴の取得にだけ失敗した場合、ローカルのCSVはGitHub側と
+            // 一致していない。その場合はコミットボタンを無効化しない（＝差ありのまま）。
+            var csvSynced = true;
             if (cfg.ChangelogPath.Length > 0)
             {
                 var csvResult = await GitHubApi.GetFileAsync(cfg.Owner, cfg.Repo, cfg.ChangelogPath, cfg.Branch, cfg.Token).ConfigureAwait(true);
@@ -571,10 +612,13 @@ public sealed class MainViewModel : ViewModelBase
                 {
                     // 辞書自体は読み込めたので続行する。履歴だけ最初のコミットで新規作成させる。
                     Status = $"更新履歴の読み込みに失敗しました: {csvResult.Message}";
+                    csvSynced = false;
                 }
             }
 
             LoadDictionary(localPath);
+            // LoadDictionary が一旦 false に戻すので、その後で確定させる。
+            if (csvSynced) IsGitHubSynced = true;
             Status = $"GitHubから読み込みました（{cfg.Owner}/{cfg.Repo} @ {cfg.Branch}）。";
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -638,6 +682,7 @@ public sealed class MainViewModel : ViewModelBase
                 return;
             }
 
+            IsGitHubSynced = true;
             Status = "GitHubへコミットしました。";
         }
         catch (IOException ex)
@@ -834,6 +879,7 @@ public sealed class MainViewModel : ViewModelBase
     private void MarkDirty(string status)
     {
         IsDirty = true;
+        IsGitHubSynced = false;
         Status = status;
         // 自動保存はモードに関係なく機能する（GitHubモードでもローカルファイルへの保存は通常どおり）。
         // コミットはこの保存結果を対象にするだけで、保存自体はコミットボタンの役割ではない。
