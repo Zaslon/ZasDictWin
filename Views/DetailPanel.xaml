@@ -112,7 +112,11 @@
                         <ItemsControl ItemsSource="{Binding Contents}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type m:ContentItem}">
-                                    <StackPanel Margin="0,0,0,10">
+                                    <!-- 見出し（内容欄の title）も本文も辞書データなので、表示言語の UI フォントは
+                                         継がせない。Idyerin 表示では器の既定が Heksa になり、語源欄は区間ごとの
+                                         描き分けが飲まれ、日本語の見出しは字を持たないフォントから落ちる。 -->
+                                    <StackPanel Margin="0,0,0,10"
+                                                TextElement.FontFamily="{x:Static res:Strings.ContentFont}">
                                         <v:SelectableText Text="{Binding Title, Mode=OneWay}" Foreground="{StaticResource Accent}"
                                                           Style="{StaticResource DetailLabelText}" />
                                         <!-- 語源欄はイジェール語の語幹だけ Heksa で描くため Inlines を組み立てる。
