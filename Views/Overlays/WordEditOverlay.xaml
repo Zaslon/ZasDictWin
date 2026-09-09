@@ -7,6 +7,7 @@
              xmlns:s="clr-namespace:ZasDictWin.Services">
 
     <Border Style="{StaticResource OverlayCard}"
+            KeyboardNavigation.TabNavigation="Cycle"
 >
         <DockPanel>
 
@@ -34,12 +35,16 @@
                 </Grid>
             </Border>
 
-            <!-- 縦スクロールのみ。横に流すと項目の折り返し幅が変わって見出しと入力の並びがずれる -->
-            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24,16">
+            <!-- 縦スクロールのみ。横に流すと項目の折り返し幅が変わって見出しと入力の並びがずれる。
+                 IsTabStop を落としてあるのは、ScrollViewer 自体が Control 派生で既定 Tab 対象になり、
+                 見た目の変化が無いまま Tab を一つ飲み込んでしまう（フォーカスが消えたように見える）ため。
+                 中の ItemsControl（訳語・内容・関連語・変化形の各行、追加候補の一覧）も同じ理由で落としてある。 -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24,16"
+                          IsTabStop="False">
                 <StackPanel>
 
                     <TextBlock Text="見出し語" Style="{StaticResource Label}" />
-                    <TextBox Text="{Binding Form, UpdateSourceTrigger=PropertyChanged}"
+                    <TextBox x:Name="FormBox" Text="{Binding Form, UpdateSourceTrigger=PropertyChanged}"
                              FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}"
                              FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}" />
 
@@ -50,7 +55,7 @@
                                 Command="{Binding AddTranslationCommand}" Margin="0" />
                         <TextBlock Text="訳語" Style="{StaticResource SectionHeading}" Margin="0" VerticalAlignment="Center" />
                     </DockPanel>
-                    <ItemsControl ItemsSource="{Binding Translations}">
+                    <ItemsControl ItemsSource="{Binding Translations}" IsTabStop="False">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:TranslationRow}">
                                 <Border Background="{StaticResource Ink}" CornerRadius="8"
@@ -85,7 +90,7 @@
                     </ItemsControl>
 
                     <TextBlock Text="内容" Style="{StaticResource SectionHeading}" Margin="0,20,0,6" />
-                    <ItemsControl ItemsSource="{Binding Contents}">
+                    <ItemsControl ItemsSource="{Binding Contents}" IsTabStop="False">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:ContentRow}">
                                 <StackPanel Margin="0,0,0,10">
@@ -116,7 +121,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <!-- 追加済みの種類はここから消える（ZasDictAndroid の CONTENT_TYPES 追加ボタンと同じ挙動） -->
-                    <ItemsControl ItemsSource="{Binding AvailableContentTypes}" Margin="0,0,0,4">
+                    <ItemsControl ItemsSource="{Binding AvailableContentTypes}" Margin="0,0,0,4" IsTabStop="False">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
@@ -131,7 +136,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <TextBlock Text="関連語" Style="{StaticResource SectionHeading}" />
-                    <ItemsControl ItemsSource="{Binding Relations}">
+                    <ItemsControl ItemsSource="{Binding Relations}" IsTabStop="False">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:RelationRow}">
                                 <Grid Margin="0,0,0,6">
@@ -169,7 +174,7 @@
                             </Grid>
                             <TextBlock Text="{Binding RelationTitleHint}" Style="{StaticResource Label}" Margin="0,6,0,0" />
 
-                            <ItemsControl ItemsSource="{Binding RelationCandidates}" Margin="0,4,0,0">
+                            <ItemsControl ItemsSource="{Binding RelationCandidates}" Margin="0,4,0,0" IsTabStop="False">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:Word}">
                                         <Button HorizontalContentAlignment="Left" Margin="0,0,0,4" Padding="10,6"
@@ -194,7 +199,7 @@
                                 Command="{Binding AddVariationCommand}" Margin="0" />
                         <TextBlock Text="変化形" Style="{StaticResource SectionHeading}" Margin="0" VerticalAlignment="Center" />
                     </DockPanel>
-                    <ItemsControl ItemsSource="{Binding Variations}">
+                    <ItemsControl ItemsSource="{Binding Variations}" IsTabStop="False">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:VariationRow}">
                                 <Grid Margin="0,0,0,6">

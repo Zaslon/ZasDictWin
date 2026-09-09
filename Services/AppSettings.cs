@@ -20,6 +20,10 @@ public sealed class AppSettings
     public double WindowHeight { get; set; } = 800;
     public bool WindowMaximized { get; set; }
 
+    // true の間は WindowWidth / WindowHeight の比率を、端をつまんだ手動リサイズでも崩さない
+    // （MainWindow が WM_SIZING を横取りして矯正する。最大化には作用しない）。
+    public bool WindowAspectLocked { get; set; }
+
     public double FontScale { get; set; } = 1.0;
     public bool AutoSave { get; set; }
 

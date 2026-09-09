@@ -20,7 +20,9 @@
                 <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="13"
                            Foreground="{StaticResource Muted}" HorizontalAlignment="Left" VerticalAlignment="Center"
                            Margin="12,0,0,0" IsHitTestVisible="False" />
-                <Button Content="✕" Style="{StaticResource IconButton}" Width="26" Height="24"
+                <!-- Width/Height を固定しない。IconButton の FontSize は文字サイズ倍率に連動して
+                     大きくなるため、箱を固定すると倍率を上げたときに ✕ がはみ出す。 -->
+                <Button Content="✕" Style="{StaticResource IconButton}"
                         HorizontalAlignment="Right" Margin="0,0,5,0"
                         Command="{Binding ClearQueryCommand}"
                         Visibility="{Binding Query, Converter={StaticResource NullVis}}" />

@@ -108,11 +108,10 @@ public sealed class BrowserTabViewModel : OverlayViewModel
     public bool IsContentShown => Main.IsBrowserShown;
 }
 
+// タブ束にもオーバーレイ層にも入らない、独立ウィンドウ（SettingsWindow）専用の ViewModel。
+// OverlayViewModel からは Title / RequestClose / CloseCommand だけを流用する。
 public sealed class SettingsViewModel : OverlayViewModel
 {
-    // タブ束に混ざると誤操作しやすいので、コミットと同じ中央モーダルとして出す。
-    public override bool IsDockable => false;
-
     private readonly AppSettings _settings;
     private readonly OtmDocument? _doc;
     private readonly Action _apply;
@@ -127,6 +126,9 @@ public sealed class SettingsViewModel : OverlayViewModel
         SortOrder = settings.SortOrder;
         FontScale = settings.FontScale;
         AutoSave = settings.AutoSave;
+        WindowWidth = settings.WindowWidth;
+        WindowHeight = settings.WindowHeight;
+        WindowAspectLocked = settings.WindowAspectLocked;
         HeksaEnabled = settings.HeksaEnabled;
         HeksaFontPath = settings.HeksaFontPath ?? "";
         ReciprocalText = FormatReciprocal(Choices.Current.Relations);
@@ -169,6 +171,15 @@ public sealed class SettingsViewModel : OverlayViewModel
     public string SortOrder { get; set; }
     public double FontScale { get; set; }
     public bool AutoSave { get; set; }
+
+    // MainWindow.MinWidth / MinHeight（XAML）と同じ下限。ここより小さい値は
+    // ウィンドウ側で結局弾かれるだけなので、適用前にクランプして食い違いを見せない。
+    private const double MinWindowWidth = 900;
+    private const double MinWindowHeight = 600;
+
+    public double WindowWidth { get; set; }
+    public double WindowHeight { get; set; }
+    public bool WindowAspectLocked { get; set; }
 
     private bool _heksaEnabled;
     public bool HeksaEnabled
@@ -310,6 +321,9 @@ public sealed class SettingsViewModel : OverlayViewModel
         _settings.SortOrder = string.IsNullOrWhiteSpace(SortOrder) ? TextProcessor.DefaultSortOrder : SortOrder;
         _settings.FontScale = Math.Clamp(FontScale, 0.6, 3.0);
         _settings.AutoSave = AutoSave;
+        _settings.WindowWidth = Math.Max(WindowWidth, MinWindowWidth);
+        _settings.WindowHeight = Math.Max(WindowHeight, MinWindowHeight);
+        _settings.WindowAspectLocked = WindowAspectLocked;
         _settings.HeksaEnabled = HeksaEnabled;
         _settings.HeksaFontPath = string.IsNullOrWhiteSpace(HeksaFontPath) ? null : HeksaFontPath;
 

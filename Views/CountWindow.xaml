@@ -1,0 +1,19 @@
+﻿<Window x:Class="ZasDictWin.Views.CountWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ZasDict 単語数ウィンドウ"
+        Width="480" Height="220" MinWidth="240" MinHeight="120"
+        ShowInTaskbar="True"
+        WindowStyle="SingleBorderWindow"
+        Background="{Binding Settings.StreamBackground, Converter={StaticResource StringBrush}}">
+
+    <!-- 背景色・文字サイズ倍率・最前面は単語ウィンドウ（StreamWindow）の設定をそのまま使う。
+         クロマキーを別々に合わせずに済むよう、設定は増やさず共用にしてある。 -->
+    <Grid Margin="48,32">
+        <TextBlock Text="{Binding WordCountLabel}"
+                   Foreground="White"
+                   FontSize="{Binding StreamHeadwordSize}"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"
+                   TextWrapping="NoWrap" />
+    </Grid>
+</Window>

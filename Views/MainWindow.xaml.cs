@@ -1,6 +1,8 @@
 ﻿using System.ComponentModel;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media.Animation;
 using ZasDictWin.Services;
 using ZasDictWin.ViewModels;
@@ -11,6 +13,8 @@ public partial class MainWindow : Window
 {
     private readonly MainViewModel _vm = new();
     private StreamWindow? _stream;
+    private CountWindow? _count;
+    private SettingsWindow? _settings;
     private bool _forceClose;
 
     // 窓の外へ持ち出したタブ。中身のある浮き枠ひとつにつき 1 枚の窓を開ける。
@@ -19,13 +23,18 @@ public partial class MainWindow : Window
     private bool _syncingFloats;
     private bool _shuttingDown;
 
+    // 縦横比固定モードの間だけ値を持つ（幅 / 高さ）。null なら WndProc は何もしない。
+    // 比率は設定を適用した瞬間の幅・高さから決まり、以後は端をつまんだリサイズがこれを崩さない。
+    private double? _aspectRatio;
+
     public MainWindow()
     {
         InitializeComponent();
         DataContext = _vm;
-        // 選択の変更は MainViewModel の PropertyChanged で単語ウィンドウにも届く。
+        // 選択や語数の変更は MainViewModel の PropertyChanged で配信用ウィンドウにも届く。
         // 設定だけは AppSettings が変更通知を持たないので、明示的に張り直させる。
-        _vm.SettingsApplied += () => _stream?.ApplySettings();
+        _vm.SettingsApplied += () => { _stream?.ApplySettings(); _count?.ApplySettings(); ApplyWindowSizeSettings(); };
+        _vm.SettingsRequested += ShowSettingsWindow;
         _vm.PropertyChanged += Vm_PropertyChanged;
         App.UiException += ShowException;
         PreviewKeyDown += OnPreviewKeyDown;
@@ -53,6 +62,10 @@ public partial class MainWindow : Window
             new MenuAction { Header = "更新履歴", Command = _vm.ShowChangelogCommand },
         };
 
+        // 配信用の独立ウィンドウ。項目名が開閉で変わるので、開く直前に組み直す。
+        WindowMenuButton.Opening += (_, _) => BuildWindowMenu();
+        BuildWindowMenu();
+
         // 独立ウィンドウは割り付けが持つ浮き枠と 1 対 1。中身が入れば開き、空になれば閉じる。
         _vm.Layout.FloatsChanged += SyncFloatWindows;
         _vm.OverlayFocused += FocusOverlay;
@@ -64,8 +77,85 @@ public partial class MainWindow : Window
         Width = _vm.Settings.WindowWidth;
         Height = _vm.Settings.WindowHeight;
         if (_vm.Settings.WindowMaximized) WindowState = WindowState.Maximized;
+        if (_vm.Settings.WindowAspectLocked) _aspectRatio = _vm.Settings.WindowWidth / _vm.Settings.WindowHeight;
         StateChanged += (_, _) => UpdateMaximizeRestoreIcon();
         UpdateMaximizeRestoreIcon();
+    }
+
+    // WindowChrome 導入前から ResizeBorderThickness だけ残して端をつまむリサイズを効かせている
+    // （MainWindow.xaml 参照）ため、比率固定も WM_SIZING を横取りする形でしか実現できない
+    // （WPF の Width/Height バインディングでは、ドラッグ中のリアルタイムな矯正に間に合わない）。
+    protected override void OnSourceInitialized(EventArgs e)
+    {
+        base.OnSourceInitialized(e);
+        if (PresentationSource.FromVisual(this) is HwndSource source) source.AddHook(WndProc);
+    }
+
+    private const int WM_SIZING = 0x0214;
+    // WM_SIZING の wParam（どの辺・角をつまんでいるか）。
+    private const int WMSZ_LEFT = 1, WMSZ_RIGHT = 2, WMSZ_TOP = 3, WMSZ_TOPLEFT = 4,
+        WMSZ_TOPRIGHT = 5, WMSZ_BOTTOM = 6, WMSZ_BOTTOMLEFT = 7, WMSZ_BOTTOMRIGHT = 8;
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct RECT { public int Left, Top, Right, Bottom; }
+
+    /// <summary>
+    /// 縦横比固定モードのときだけ、つまんだ辺・角に応じて動いた側の一辺を比率どおりに矯正する。
+    /// RECT はスクリーン座標（物理ピクセル）だが、比率は幅と高さの比なので DPI 換算は要らない。
+    /// </summary>
+    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+    {
+        if (msg != WM_SIZING || _aspectRatio is not { } ratio) return IntPtr.Zero;
+
+        var rect = Marshal.PtrToStructure<RECT>(lParam);
+        var width = rect.Right - rect.Left;
+        var height = rect.Bottom - rect.Top;
+
+        switch (wParam.ToInt32())
+        {
+            // 左右の辺：幅にあわせて高さを決め、下端を動かす。
+            case WMSZ_LEFT or WMSZ_RIGHT:
+                rect.Bottom = rect.Top + (int)Math.Round(width / ratio);
+                break;
+            // 上下の辺：高さにあわせて幅を決め、右端を動かす。
+            case WMSZ_TOP or WMSZ_BOTTOM:
+                rect.Right = rect.Left + (int)Math.Round(height * ratio);
+                break;
+            // 角：左端が動く角は幅を高さから、それ以外は高さを幅から決める。
+            case WMSZ_TOPLEFT:
+                rect.Left = rect.Right - (int)Math.Round(height * ratio);
+                break;
+            case WMSZ_BOTTOMLEFT:
+                rect.Bottom = rect.Top + (int)Math.Round(width / ratio);
+                break;
+            case WMSZ_TOPRIGHT:
+                rect.Top = rect.Bottom - (int)Math.Round(width / ratio);
+                break;
+            case WMSZ_BOTTOMRIGHT:
+                rect.Bottom = rect.Top + (int)Math.Round(width / ratio);
+                break;
+        }
+
+        Marshal.StructureToPtr(rect, lParam, true);
+        handled = true;
+        return IntPtr.Zero;
+    }
+
+    /// <summary>
+    /// 設定を適用した直後に呼ぶ。最大化中は Width/Height が画面いっぱいの値になっており
+    /// ここで上書きすると復元後の大きさが狂うため、通常時だけ実際の大きさへ反映する。
+    /// 固定する比率は「その時点の設定値」から決め直す（既存の窓の実寸ではなく、
+    /// 設定欄に入っている幅・高さを比率の基準にする）。
+    /// </summary>
+    private void ApplyWindowSizeSettings()
+    {
+        var s = _vm.Settings;
+        if (WindowState == WindowState.Normal)
+        {
+            Width = s.WindowWidth;
+            Height = s.WindowHeight;
+        }
+        _aspectRatio = s.WindowAspectLocked ? s.WindowWidth / s.WindowHeight : null;
     }
 
     // UI スレッドで漏れた例外はアプリを落とさず、OBS に映るオーバーレイで知らせます。
@@ -235,7 +325,45 @@ public partial class MainWindow : Window
         else Activate();
     }
 
-    private void ToggleStreamWindow_Click(object sender, RoutedEventArgs e)
+    // ---- 設定ポップアップ（独立ウィンドウ）------------------------------------------------
+
+    /// <summary>
+    /// 設定は他のオーバーレイと違い中央モーダルの見た目のまま独立ウィンドウで開く。ShowSettingsCommand
+    /// の CanExecute は NoModal だけなので、二重に開かないための判定はここで持つ。
+    /// </summary>
+    private void ShowSettingsWindow(SettingsViewModel vm)
+    {
+        if (_settings is not null) { _settings.Activate(); return; }
+        _settings = new SettingsWindow(_vm, vm) { Owner = this };
+        _settings.Closed += (_, _) => _settings = null;
+        // Owner（本体）だけを操作不能にする。単語ウィンドウ・単語数ウィンドウは別 HWND なので影響されない。
+        _settings.ShowDialog();
+    }
+
+    // ---- 配信用の独立ウィンドウ（単語・単語数）------------------------------------------
+
+    /// <summary>開いているものは「閉じる」に変えて出す。開くたびに組み直すのは、
+    /// MenuAction を作った時点の状態で固まってしまわないようにするため。</summary>
+    private void BuildWindowMenu()
+    {
+        WindowMenuButton.Items = new[]
+        {
+            new MenuAction
+            {
+                Header = _stream is null ? "単語ウィンドウ" : "単語ウィンドウを閉じる",
+                ToolTip = "選択中の単語だけを大きく表示します",
+                Command = new RelayCommand(ToggleStreamWindow),
+            },
+            new MenuAction
+            {
+                Header = _count is null ? "単語数ウィンドウ" : "単語数ウィンドウを閉じる",
+                ToolTip = "辞書の総語数だけを大きく表示します",
+                Command = new RelayCommand(ToggleCountWindow),
+            },
+        };
+    }
+
+    private void ToggleStreamWindow()
     {
         if (_stream is not null)
         {
@@ -246,9 +374,21 @@ public partial class MainWindow : Window
         // 独立した HWND にするため Owner は設定しない。OBS 側で個別のウィンドウ
         // キャプチャソースとして選べる必要がある。
         _stream = new StreamWindow(_vm);
-        _stream.Closed += (_, _) => { _stream = null; StreamButton.Content = "単語ウィンドウ"; };
+        _stream.Closed += (_, _) => _stream = null;
         _stream.Show();
-        StreamButton.Content = "単語ウィンドウを閉じる";
+    }
+
+    private void ToggleCountWindow()
+    {
+        if (_count is not null)
+        {
+            _count.Close();
+            return;
+        }
+
+        _count = new CountWindow(_vm);
+        _count.Closed += (_, _) => _count = null;
+        _count.Show();
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -263,6 +403,8 @@ public partial class MainWindow : Window
         _shuttingDown = true;
         SaveWindowBounds();
         _stream?.Close();
+        _count?.Close();
+        _settings?.Close();
         base.OnClosing(e);
     }
 

@@ -293,6 +293,13 @@
         <Setter Property="Padding" Value="9,6" />
         <Setter Property="SelectionBrush" Value="{StaticResource Accent}" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <!-- 単一行の入力欄は中身を縦中央に置く。見た目を整えるためだけではなく、字が欠けるのを防ぐため。
+             WPF の行の高さは「主フォントの LineSpacing × FontSize」で決まり、字が無くて別のフォントへ
+             落ちた分（見出し語フォントに漢字が無い場合の漢字など）が背高でも広がらない。
+             既定の上寄せだと行の箱の上端が PART_ContentHost の切り取り線と重なり、はみ出した分が消える。
+             縦中央なら余白が上下に割れて逃げ場ができる（ブラウザの URL 欄と同じ収まり方）。
+             複数行の入力欄は下の Trigger で上寄せへ戻す。中身が箱の中央に浮いて見えてしまうため。 -->
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -324,6 +331,11 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="AcceptsReturn" Value="True">
+                <Setter Property="VerticalContentAlignment" Value="Top" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- 選択してコピーできる本文（v:SelectableText / v:SelectableRichText）。中身は読み取り専用の

@@ -77,7 +77,9 @@ public sealed class MainViewModel : ViewModelBase
         // 他のタブ系ボタン（ツール・凡例・統計など）と同じく、開いている間は押し直せないよう
         // グレーアウトする。
         ShowBrowserCommand = new RelayCommand(OpenBrowserTab, CanOpen<BrowserTabViewModel>);
-        ShowSettingsCommand = new RelayCommand(ShowSettings, CanOpen<SettingsViewModel>);
+        // 設定はもう Layout.Overlays に入らない（独立ウィンドウ）ので、CanOpen<T> ではなく
+        // 他の独立ウィンドウ系コマンドと同じ NoModal で判定する（開いているかどうかは View 側が持つ）。
+        ShowSettingsCommand = new RelayCommand(ShowSettings, NoModal);
         ShowExamplesCommand = new RelayCommand(() => ShowExamples(), () => _doc is not null && CanOpen<ExamplesViewModel>());
         EditExampleCommand = new RelayCommand(
             o => { if (o is Example e) ShowExampleEditor(e); },
@@ -182,6 +184,9 @@ public sealed class MainViewModel : ViewModelBase
     }
 
     public string CountLabel => _doc is null ? "" : $"{FilteredWords.Count} / {_doc.Words.Count} 語";
+
+    /// <summary>単語数ウィンドウに出す総語数。絞り込みには連動させない（配信で見せるのは辞書の規模）。</summary>
+    public string WordCountLabel => $"{_doc?.Words.Count ?? 0}語";
 
     /// <summary>AssemblyVersion（csproj の ApplyVersionPatch が組み立てる）をそのまま表示する。</summary>
     public string VersionLabel => "v" + (System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "?");
@@ -730,7 +735,7 @@ public sealed class MainViewModel : ViewModelBase
 
     public void RebuildIndex()
     {
-        if (_doc is null) { FilteredWords.Clear(); Raise(nameof(CountLabel)); return; }
+        if (_doc is null) { FilteredWords.Clear(); RaiseCounts(); return; }
 
         var sorted = _doc.Words.OrderBy(w => w, _text.WordComparer).ToList();
         TextProcessor.AssignHomonymIndexes(sorted);
@@ -744,10 +749,17 @@ public sealed class MainViewModel : ViewModelBase
     private void ApplyFilter()
     {
         FilteredWords.Clear();
-        if (_doc is null) { Raise(nameof(CountLabel)); return; }
+        if (_doc is null) { RaiseCounts(); return; }
         foreach (var w in _search.Filter(_doc.Words, Query, SearchMode, SearchScope))
             FilteredWords.Add(w);
+        RaiseCounts();
+    }
+
+    /// <summary>フッタの件数と単語数ウィンドウの語数。総語数しか変わらない場面でも 2 つまとめて出し直す。</summary>
+    private void RaiseCounts()
+    {
         Raise(nameof(CountLabel));
+        Raise(nameof(WordCountLabel));
     }
 
     private void RaiseDocumentChanged()
@@ -756,7 +768,7 @@ public sealed class MainViewModel : ViewModelBase
         Raise(nameof(AllWords));
         Raise(nameof(WindowTitle));
         Raise(nameof(DictionaryName));
-        Raise(nameof(CountLabel));
+        RaiseCounts();
     }
 
     // ---- word operations -------------------------------------------------
@@ -886,9 +898,11 @@ public sealed class MainViewModel : ViewModelBase
         if (Settings.AutoSave && _doc?.Path is not null) Save(false);
     }
 
+    // 設定は他のオーバーレイと違い、独立ウィンドウとして開く（ShowOverlay を通さない）。
+    // 窓を作るのは View の役目なので、ここでは組み立てた ViewModel を渡すだけにする。
     private void ShowSettings()
     {
-        ShowOverlay(new SettingsViewModel(Settings, _doc, () =>
+        SettingsRequested?.Invoke(new SettingsViewModel(Settings, _doc, () =>
         {
             ApplySettings();
             RebuildIndex();
@@ -896,6 +910,8 @@ public sealed class MainViewModel : ViewModelBase
             Status = "設定を適用しました。";
         }));
     }
+
+    public event Action<SettingsViewModel>? SettingsRequested;
 
     public event Action? SettingsApplied;
 

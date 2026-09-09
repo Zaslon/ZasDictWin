@@ -109,8 +109,9 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <Button x:Name="BrowserButton" Content="ブラウザ" Style="{StaticResource ToolbarButton}"
                                 Command="{Binding ShowBrowserCommand}" ToolTip="ウェブブラウザのタブを開きます" />
                         <Border Width="1" Background="{StaticResource Line}" Margin="6,5" />
-                        <Button x:Name="StreamButton" Content="単語ウィンドウ" Style="{StaticResource ToolbarButton}"
-                                Click="ToggleStreamWindow_Click" />
+                        <!-- 単語ウィンドウ・単語数ウィンドウは独立した HWND で、開く／閉じるを切り替える。
+                             項目名は開いているかどうかで変わるので、MainWindow.xaml.cs が開くたび組み直す。 -->
+                        <v:MenuButton x:Name="WindowMenuButton" Header="ウィンドウ" />
                     </WrapPanel>
                 </DockPanel>
             </Border>

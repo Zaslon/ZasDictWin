@@ -95,4 +95,24 @@
     </PropertyGroup>
   </Target>
 
+  <!-- リリース後の後片付け。dotnet clean は最後のビルドが記録したファイルしか消さず publish\ が
+       まるごと残るため、次の配布で古い exe を掴む事故になる。ここは bin / obj ごと捨てる。
+       単一ファイル exe は起動時に WebView2Loader.dll を %TEMP%\.net\ZasDictWin\<ハッシュ>\ へ
+       展開し、ハッシュは publish のたびに変わるので放っておくと溜まりつづける。
+       標準の Clean にぶら下げないのは、Rebuild が Clean → Build と走るため。obj を消すと
+       project.assets.json ごと失われ、復元前のビルドが失敗する。 -->
+  <Target Name="Distclean">
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\obj" />
+    <!-- アプリを起動したままだと publish\ の exe だけがロックされ、RemoveDir は残りを消したうえで
+         MSB3231「アクセスが拒否されました」で止まる。これだけでは理由が読み取れないので、
+         いったん警告に落として消し残しから案内し直す。 -->
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\bin" ContinueOnError="WarnAndContinue" />
+    <RemoveDir Directories="$(TEMP)\.net\$(AssemblyName)" Condition="'$(TEMP)' != ''"
+               ContinueOnError="WarnAndContinue" />
+    <Error Condition="Exists('$(MSBuildProjectDirectory)\bin')"
+           Text="bin\ を削除しきれませんでした。$(AssemblyName).exe を起動したままだとロックされます。終了してからやり直してください。" />
+    <Message Importance="high"
+             Text="Distclean: bin\ obj\ $(TEMP)\.net\$(AssemblyName)\ を削除しました。" />
+  </Target>
+
 </Project>

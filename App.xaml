@@ -55,9 +55,6 @@
             <DataTemplate DataType="{x:Type vm:WordEditViewModel}">
                 <ov:WordEditOverlay />
             </DataTemplate>
-            <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
-                <ov:SettingsOverlay />
-            </DataTemplate>
             <DataTemplate DataType="{x:Type vm:ExamplesViewModel}">
                 <ov:ExamplesOverlay />
             </DataTemplate>
