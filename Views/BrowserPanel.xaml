@@ -40,8 +40,13 @@
                             </Style.Triggers>
                         </Style>
                     </Border.Style>
+                    <!-- URL は UI 文字列ではないので、表示言語のフォントを継がせない。Idyerin 表示では
+                         主フォントが Heksa になり、そのままだと打った URL がイジェール文字で描かれて
+                         読めなくなる。案内文字（Placeholder）は UI 文字列なので、TextBox のテンプレート側で
+                         UI フォントに戻している（Themes/Theme.xaml）。 -->
                     <TextBox x:Name="AddressBox" BorderThickness="0" Background="Transparent"
                              Padding="11,0" VerticalContentAlignment="Center"
+                             FontFamily="{x:Static res:Strings.EnFont}"
                              t:Placeholder.Text="{x:Static res:Strings.Browser_AddressPlaceholder}"
                              Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}">
                         <TextBox.InputBindings>
@@ -70,8 +75,11 @@
             <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Line}"
                     BorderThickness="0,1,0,0" Padding="10,5">
                 <!-- 既定の TextBlock スタイルが Wrap なので 1 行に固定し、長い URL は途中を … で
-                     省略する（末尾だけ切れると判別できないため先頭と末尾を残す）。 -->
+                     省略する（末尾だけ切れると判別できないため先頭と末尾を残す）。
+                     中身はほぼ URL で、区間ごとのフォント指定も効かない（EllipsisMiddle は [en] を
+                     落とすだけ）。行ごと en のフォントに寄せ、URL が読めることを優先する。 -->
                 <TextBlock t:EllipsisMiddle.Source="{Binding Status}" Foreground="{StaticResource Muted}"
+                           FontFamily="{x:Static res:Strings.EnFont}"
                            FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
             </Border>

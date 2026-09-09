@@ -1,6 +1,8 @@
 namespace ZasDictWin.Resources;
 
-/// <summary>選択肢に出す 1 言語。Name は常にその言語自身での表記（"日本語" / "English" 等）にする。</summary>
+/// <summary>選択肢に出す 1 言語。Name は常にその言語自身での表記（"日本語" / "English" 等）にする。
+/// 表示は Strings.EnFont に固定されるので、[en] タグは書かない（プルダウンは表示中の言語に関わらず
+/// どの言語名も読める必要があり、タグでは自分以外の言語名を救えないため）。</summary>
 public sealed record LanguageOption(string Code, string Name);
 
 /// <summary>
@@ -17,7 +19,7 @@ public static class Languages
     public static readonly IReadOnlyList<LanguageOption> All = new[]
     {
         new LanguageOption("ja", "日本語"),
-        new LanguageOption("en", "[en]English[en]"),
+        new LanguageOption("en", "English"),
         new LanguageOption("idz", "Idyerin"),
         // 新しい言語はこの下に追加する（上の手順 1・3 を忘れずに）。
     };
