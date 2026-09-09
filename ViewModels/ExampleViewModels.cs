@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Windows.Input;
 using ZasDictWin.Models;
+using ZasDictWin.Resources;
 using ZasDictWin.Services;
 
 namespace ZasDictWin.ViewModels;
@@ -19,7 +20,7 @@ public sealed class ExamplesViewModel : OverlayViewModel
     {
         _doc = doc;
         _query = query;
-        Title = "例文";
+        Title = Strings.Examples_Title;
 
         AddCommand = new RelayCommand(() => AddRequested?.Invoke());
         EditCommand = new RelayCommand(o => { if (o is Example e) EditRequested?.Invoke(e); });
@@ -41,7 +42,7 @@ public sealed class ExamplesViewModel : OverlayViewModel
         set { if (Set(ref _query, value)) Refresh(); }
     }
 
-    public string CountLabel => $"{Examples.Count} / {_doc.Examples.Count} 文";
+    public string CountLabel => string.Format(Strings.Examples_CountLabel, Examples.Count, _doc.Examples.Count);
 
     public bool IsEmpty => Examples.Count == 0;
 
@@ -100,7 +101,7 @@ public sealed class ExampleEditViewModel : OverlayViewModel
         _commit = commit;
 
         Source = source;
-        Title = source is null ? "例文を追加" : "例文を編集";
+        Title = source is null ? Strings.ExampleEdit_AddTitle : Strings.ExampleEdit_EditTitle;
 
         if (source is not null)
         {
@@ -131,7 +132,7 @@ public sealed class ExampleEditViewModel : OverlayViewModel
     /// <summary>［キャンセル］。MainViewModel が一覧に戻す。</summary>
     public Action? CancelRequested { get; set; }
 
-    public string IdLabel => Source is null ? "ID: —（保存時に採番）" : $"ID: {Source.Id}";
+    public string IdLabel => Source is null ? Strings.ExampleEdit_IdPending : string.Format(Strings.ExampleEdit_IdFormat, Source.Id);
 
     public string Sentence { get => _sentence; set => Set(ref _sentence, value); }
     public string TranslationText { get => _translation; set => Set(ref _translation, value); }
@@ -202,8 +203,8 @@ public sealed class ExampleEditViewModel : OverlayViewModel
     public bool HasApiKey => ZpdicApi.LoadApiKey() is not null;
 
     public string ApiKeyHint => HasApiKey
-        ? $"APIキーは保存済みです（{ZpdicApi.ApiKeyPath}）。入れ直すと上書きします。"
-        : $"照会には ZpDIC Online の APIキーが必要です。保存先: {ZpdicApi.ApiKeyPath}";
+        ? string.Format(Strings.Zpdic_KeyHintSaved, ZpdicApi.ApiKeyPath)
+        : string.Format(Strings.Zpdic_KeyHintMissing, ZpdicApi.ApiKeyPath);
 
     public ICommand AddWordCommand { get; }
     public ICommand RemoveWordCommand { get; }
@@ -239,17 +240,17 @@ public sealed class ExampleEditViewModel : OverlayViewModel
     private async Task FetchAsync()
     {
         var number = ParseOfferNumber();
-        if (number <= 0) { OfferStatus = "番号を入力してください。"; return; }
+        if (number <= 0) { OfferStatus = Strings.Zpdic_EnterNumber; return; }
 
         var key = ZpdicApi.LoadApiKey();
         if (key is null)
         {
-            OfferStatus = "APIキーが未設定です。下の欄に入れて［キーを保存］を押してください。";
+            OfferStatus = Strings.Zpdic_KeyMissing;
             return;
         }
 
         IsFetching = true;
-        OfferStatus = "照会中…";
+        OfferStatus = Strings.Zpdic_Fetching;
         ExampleOfferResult result;
         try
         {
@@ -259,7 +260,7 @@ public sealed class ExampleEditViewModel : OverlayViewModel
         {
             // コマンドは async void で走るため、ここで漏らすとアプリごと落ちる。
             ErrorLog.Write("例文の出典照会", ex);
-            result = new ExampleOfferResult(false, $"照会に失敗しました: {ex.Message}");
+            result = new ExampleOfferResult(false, string.Format(Strings.Zpdic_FetchFailed, ex.Message));
         }
         finally
         {
@@ -284,11 +285,11 @@ public sealed class ExampleEditViewModel : OverlayViewModel
         {
             ZpdicApi.SaveApiKey(ApiKeyInput);
             ApiKeyInput = "";
-            OfferStatus = "APIキーを保存しました。";
+            OfferStatus = Strings.Zpdic_KeySaved;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            OfferStatus = $"APIキーを保存できませんでした: {ex.Message}";
+            OfferStatus = string.Format(Strings.Zpdic_KeySaveFailed, ex.Message);
         }
         Raise(nameof(HasApiKey));
         Raise(nameof(ApiKeyHint));
@@ -299,7 +300,7 @@ public sealed class ExampleEditViewModel : OverlayViewModel
     private bool Validate()
     {
         var ok = !string.IsNullOrWhiteSpace(Sentence);
-        ValidationMessage = ok ? "" : "「文」は必須です。";
+        ValidationMessage = ok ? "" : Strings.ExampleEdit_ValidationSentence;
         return ok;
     }
 

@@ -5,6 +5,7 @@ using System.Text.Json.Nodes;
 using System.Windows.Input;
 using Microsoft.Win32;
 using ZasDictWin.Models;
+using ZasDictWin.Resources;
 using ZasDictWin.Services;
 
 namespace ZasDictWin.ViewModels;
@@ -24,7 +25,7 @@ public sealed class MainViewModel : ViewModelBase
     private SearchScope _scope = SearchScope.Both;
     private bool _isDirty;
     private OverlayViewModel? _modal;
-    private string _status = "辞書を開いてください。";
+    private string _status = Strings.Main_OpenDictionaryPrompt;
     /// <summary>例文一覧の絞り込み文字列。編集に入って戻ってきても打ち直さずに済むよう覚えておく。</summary>
     private string _exampleQuery = "";
 
@@ -170,12 +171,12 @@ public sealed class MainViewModel : ViewModelBase
     {
         get
         {
-            var name = _doc?.Name ?? "辞書なし";
+            var name = _doc?.Name ?? Strings.Main_NoDictionaryName;
             return $"ZasDict for Windows: {name}{(IsDirty ? " *" : "")}";
         }
     }
 
-    public string DictionaryName => _doc?.Name ?? "辞書なし";
+    public string DictionaryName => _doc?.Name ?? Strings.Main_NoDictionaryName;
 
     public string Status
     {
@@ -183,10 +184,10 @@ public sealed class MainViewModel : ViewModelBase
         private set => Set(ref _status, value);
     }
 
-    public string CountLabel => _doc is null ? "" : $"{FilteredWords.Count} / {_doc.Words.Count} 語";
+    public string CountLabel => _doc is null ? "" : string.Format(Strings.Main_CountLabel, FilteredWords.Count, _doc.Words.Count);
 
     /// <summary>単語数ウィンドウに出す総語数。絞り込みには連動させない（配信で見せるのは辞書の規模）。</summary>
-    public string WordCountLabel => $"{_doc?.Words.Count ?? 0}語";
+    public string WordCountLabel => string.Format(Strings.Main_WordCountLabel, _doc?.Words.Count ?? 0);
 
     /// <summary>AssemblyVersion（csproj の ApplyVersionPatch が組み立てる）をそのまま表示する。</summary>
     public string VersionLabel => "v" + (System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "?");
@@ -243,7 +244,7 @@ public sealed class MainViewModel : ViewModelBase
         FontScaleState.Instance.Scale = scale;
         Raise(nameof(BaseFontSize));
         Raise(nameof(HeadwordFontSize));
-        Status = $"文字サイズ {scale * 100:0} %";
+        Status = string.Format(Strings.Main_FontScaleStatus, $"{scale * 100:0}");
     }
 
     public double StreamHeadwordSize => 30 * Settings.StreamFontScale;
@@ -366,17 +367,18 @@ public sealed class MainViewModel : ViewModelBase
         RebuildIndex();
         IsDirty = true;
         IsGitHubSynced = false;
-        Status = "空の辞書を作成しました。保存時にファイル名を指定します。";
+        Status = Strings.Main_NewDictionaryCreated;
         RaiseDocumentChanged();
     }
 
     private void OpenDictionary()
     {
         // ファイルダイアログだけは OS のウィンドウ。OBS ではこの瞬間だけ映らない。
+        // 描くのが OS 側なので [en] は効かず、EnTag.Strip でタグだけ落とす。
         var dlg = new OpenFileDialog
         {
-            Title = "OTM-JSON 辞書を開く",
-            Filter = "OTM-JSON (*.json)|*.json|すべてのファイル (*.*)|*.*"
+            Title = EnTag.Strip(Strings.Main_OpenDialogTitle),
+            Filter = EnTag.Strip(Strings.Main_OtmFilter)
         };
         if (dlg.ShowDialog() != true) return;
         LoadDictionary(dlg.FileName);
@@ -391,8 +393,8 @@ public sealed class MainViewModel : ViewModelBase
         catch (Exception ex)
         {
             ErrorLog.Write($"辞書の読み込み ({path})", ex);
-            Status = $"読み込みに失敗しました: {ex.Message}";
-            ShowOverlay(new ChoiceViewModel("読み込めません", $"{path}{Environment.NewLine}{ex.Message}").AddCancel("閉じる"));
+            Status = string.Format(Strings.Main_LoadFailedStatus, ex.Message);
+            ShowOverlay(new ChoiceViewModel(Strings.Main_LoadFailedTitle, $"{path}{Environment.NewLine}{ex.Message}").AddCancel(Strings.Common_Close));
             return;
         }
 
@@ -413,7 +415,7 @@ public sealed class MainViewModel : ViewModelBase
         foreach (var vm in Layout.Overlays.OfType<ChangelogViewModel>().ToList())
             vm.Reload(ReadChangelogRows(csv), csv);
 
-        Status = $"{Path.GetFileName(path)} を読み込みました。";
+        Status = string.Format(Strings.Main_LoadedStatus, Path.GetFileName(path));
         RaiseDocumentChanged();
     }
 
@@ -425,7 +427,7 @@ public sealed class MainViewModel : ViewModelBase
         {
             var dlg = new SaveFileDialog
             {
-                Title = "辞書を保存",
+                Title = EnTag.Strip(Strings.Main_SaveDialogTitle),
                 Filter = "OTM-JSON (*.json)|*.json",
                 FileName = path is null ? "dictionary.json" : Path.GetFileName(path)
             };
@@ -440,8 +442,8 @@ public sealed class MainViewModel : ViewModelBase
         catch (Exception ex)
         {
             ErrorLog.Write($"辞書の保存 ({path})", ex);
-            Status = $"保存に失敗しました: {ex.Message}";
-            ShowOverlay(new ChoiceViewModel("保存できません", ex.Message).AddCancel("閉じる"));
+            Status = string.Format(Strings.Main_SaveFailedStatus, ex.Message);
+            ShowOverlay(new ChoiceViewModel(Strings.Main_SaveFailedTitle, ex.Message).AddCancel(Strings.Common_Close));
             return;
         }
 
@@ -449,7 +451,7 @@ public sealed class MainViewModel : ViewModelBase
         Settings.LastDictionaryPath = path;
         Settings.Save();
         IsDirty = false;
-        Status = $"{Path.GetFileName(path)} に保存しました。";
+        Status = string.Format(Strings.Main_SavedStatus, Path.GetFileName(path));
         Raise(nameof(WindowTitle));
         Raise(nameof(DictionaryName));
     }
@@ -467,7 +469,7 @@ public sealed class MainViewModel : ViewModelBase
         {
             // 追記に失敗しても未保存の履歴は捨てず、次回保存で再試行する。
             ErrorLog.Write($"更新履歴の追記 ({csv})", ex);
-            Status = $"更新履歴の追記に失敗しました: {ex.Message}";
+            Status = string.Format(Strings.Main_ChangelogAppendFailedStatus, ex.Message);
         }
     }
 
@@ -509,13 +511,13 @@ public sealed class MainViewModel : ViewModelBase
         if (owner.Length == 0 || repo.Length == 0 || jsonPath.Length == 0)
         {
             cfg = default;
-            error = "設定 → GitHub でリポジトリと辞書ファイルのパスを入力してください。";
+            error = Strings.GitHub_ConfigMissingRepo;
             return false;
         }
         if (token is null)
         {
             cfg = default;
-            error = "設定 → GitHub でアクセストークンを保存してください。";
+            error = Strings.GitHub_ConfigMissingToken;
             return false;
         }
 
@@ -551,14 +553,14 @@ public sealed class MainViewModel : ViewModelBase
         // 差があるかどうかを確認ダイアログの前に見ておく。無ければ「破棄して読み込む」確認自体が
         // 不要（何も破棄されない）なので出さず、その場でステータスに出して終える。
         IsGitHubBusy = true;
-        Status = "GitHubの内容を確認中…";
+        Status = Strings.GitHub_Checking;
         try
         {
             var jsonResult = await GitHubApi.GetFileAsync(cfg.Owner, cfg.Repo, cfg.JsonPath, cfg.Branch, cfg.Token).ConfigureAwait(true);
             if (!jsonResult.Ok)
             {
                 if (jsonResult.AuthFailed) GitHubApi.DeleteToken();
-                Status = $"GitHubからの読み込みに失敗しました: {jsonResult.Message}";
+                Status = string.Format(Strings.GitHub_LoadFailedStatus, jsonResult.Message);
                 return;
             }
 
@@ -566,18 +568,18 @@ public sealed class MainViewModel : ViewModelBase
             if (File.Exists(localPath) && TextEquals(File.ReadAllText(localPath), jsonResult.Content))
             {
                 IsGitHubSynced = true;
-                Status = "ローカルとリモートに差がありません。";
+                Status = Strings.GitHub_NoDiff;
                 return;
             }
 
             // 押し間違いで手元のファイルを消さないよう確認を挟む。上書きするのは開いている辞書
             // そのものなので、どのファイルが置き換わるかを文面に出す。取得済みの内容はそのまま渡し、
             // 確定後にもう一度取りに行かない。
-            ShowOverlay(new ChoiceViewModel("GitHubから読み込み",
-                    "ローカルの変更を破棄してGitHubから再読み込みをしますか？" + Environment.NewLine
-                    + $"上書き先: {localPath}")
-                .Add("読み込む", () => _ = LoadFromGitHubCoreAsync(cfg, jsonResult), isDanger: true)
-                .AddCancel("やめる"));
+            ShowOverlay(new ChoiceViewModel(Strings.GitHub_LoadConfirmTitle,
+                    Strings.GitHub_LoadConfirmQuestion + Environment.NewLine
+                    + string.Format(Strings.GitHub_LoadConfirmTarget, localPath))
+                .Add(Strings.GitHub_LoadConfirmYes, () => _ = LoadFromGitHubCoreAsync(cfg, jsonResult), isDanger: true)
+                .AddCancel(Strings.Common_Stop));
         }
         finally
         {
@@ -591,7 +593,7 @@ public sealed class MainViewModel : ViewModelBase
     private async Task LoadFromGitHubCoreAsync(GitHubConfig cfg, GitHubFileResult jsonResult)
     {
         IsGitHubBusy = true;
-        Status = "GitHubから読み込み中…";
+        Status = Strings.GitHub_Loading;
         try
         {
             var localPath = GitHubWorkingCopyPath(cfg);
@@ -616,7 +618,7 @@ public sealed class MainViewModel : ViewModelBase
                 else if (!csvResult.NotFound)
                 {
                     // 辞書自体は読み込めたので続行する。履歴だけ最初のコミットで新規作成させる。
-                    Status = $"更新履歴の読み込みに失敗しました: {csvResult.Message}";
+                    Status = string.Format(Strings.GitHub_ChangelogLoadFailedStatus, csvResult.Message);
                     csvSynced = false;
                 }
             }
@@ -624,12 +626,12 @@ public sealed class MainViewModel : ViewModelBase
             LoadDictionary(localPath);
             // LoadDictionary が一旦 false に戻すので、その後で確定させる。
             if (csvSynced) IsGitHubSynced = true;
-            Status = $"GitHubから読み込みました（{cfg.Owner}/{cfg.Repo} @ {cfg.Branch}）。";
+            Status = string.Format(Strings.GitHub_LoadedStatus, cfg.Owner, cfg.Repo, cfg.Branch);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             ErrorLog.Write("GitHubから取得したファイルの書き込み", ex);
-            Status = $"ローカルへの書き込みに失敗しました: {ex.Message}";
+            Status = string.Format(Strings.GitHub_WriteFailedStatus, ex.Message);
         }
         finally
         {
@@ -640,15 +642,16 @@ public sealed class MainViewModel : ViewModelBase
     private void ShowCommitDialog()
     {
         if (!TryGetGitHubConfig(out var cfg, out var error)) { Status = error; return; }
-        if (_doc is null) { Status = "辞書を開いてください。"; return; }
+        if (_doc is null) { Status = Strings.Main_OpenDictionaryPrompt; return; }
 
         var forms = _pendingChanges.Select(e => e.Form).Distinct().ToList();
         var summary = _pendingChanges.Count == 0
-            ? "保留中の更新はありません。辞書ファイルの現在の内容をそのままコミットします。"
+            ? Strings.GitHub_NoPendingChanges
             : string.Join(Environment.NewLine, _pendingChanges.Select(e => $"{e.Operation} {e.Form}"));
-        var defaultMessage = _pendingChanges.Count == 0
-            ? "ZasDict: 更新"
-            : $"ZasDict: {string.Join(", ", forms.Take(5))}{(forms.Count > 5 ? " ほか" : "")}";
+        // コミットメッセージは編集欄を通って GitHub へ出ていくので、[en] はここで落とす。
+        var defaultMessage = EnTag.Strip(_pendingChanges.Count == 0
+            ? Strings.GitHub_DefaultCommitMessage
+            : string.Format(Strings.GitHub_CommitMessageFormat, string.Join(", ", forms.Take(5)), forms.Count > 5 ? Strings.GitHub_AndMoreSuffix : ""));
 
         ShowOverlay(new CommitViewModel(summary, defaultMessage, message => _ = CommitToGitHubAsync(cfg, message)));
     }
@@ -660,10 +663,10 @@ public sealed class MainViewModel : ViewModelBase
         // コミットの対象は常にローカルの最新内容。保存は自動保存（または手動保存）が担うが、
         // それがオフの環境でも古い内容をコミットしないよう、念のためここでも確定させる。
         if (IsDirty) Save(false);
-        if (_doc.Path is null) { Status = "保存先が決まっていません。"; return; }
+        if (_doc.Path is null) { Status = Strings.Main_NoSavePathStatus; return; }
 
         IsGitHubBusy = true;
-        Status = "コミット中…";
+        Status = Strings.GitHub_Committing;
         try
         {
             var files = new List<GitHubFileChange> { new(cfg.JsonPath, File.ReadAllText(_doc.Path)) };
@@ -683,17 +686,17 @@ public sealed class MainViewModel : ViewModelBase
             if (!result.Ok)
             {
                 if (result.AuthFailed) GitHubApi.DeleteToken();
-                Status = $"コミットに失敗しました: {result.Message}";
+                Status = string.Format(Strings.GitHub_CommitFailedStatus, result.Message);
                 return;
             }
 
             IsGitHubSynced = true;
-            Status = "GitHubへコミットしました。";
+            Status = Strings.GitHub_Committed;
         }
         catch (IOException ex)
         {
             ErrorLog.Write("コミット対象ファイルの読み込み", ex);
-            Status = $"コミットに失敗しました: {ex.Message}";
+            Status = string.Format(Strings.GitHub_CommitFailedStatus, ex.Message);
         }
         finally
         {
@@ -803,10 +806,10 @@ public sealed class MainViewModel : ViewModelBase
 
         if (!current.HasChanges) { CloseOverlay(current); EditWord(w); return; }
 
-        ShowOverlay(new ChoiceViewModel("保存されていない変更があります",
-                $"「{current.Form}」の編集内容を保存せずに閉じますか？")
-            .Add("閉じる", () => { CloseOverlay(current); EditWord(w); }, isDanger: true)
-            .AddCancel("やめる"));
+        ShowOverlay(new ChoiceViewModel(Strings.WordEdit_UnsavedTitle,
+                string.Format(Strings.WordEdit_UnsavedMessage, current.Form))
+            .Add(Strings.Common_Close, () => { CloseOverlay(current); EditWord(w); }, isDanger: true)
+            .AddCancel(Strings.Common_Stop));
     }
 
     private void CommitEdit(WordEditViewModel vm)
@@ -833,13 +836,14 @@ public sealed class MainViewModel : ViewModelBase
         _doc.ResolveExampleForms();
 
         // 更新履歴は ADD / CHANGE / DELETE。見出し語変更（リネーム）の時だけ details に旧見出し語を残す。
-        var changeDetail = !isNew && formChanged ? $"旧: {oldForm}" : "";
+        // CSV に書き出す欄なので、UI 文字列の [en] はここで落とす。
+        var changeDetail = !isNew && formChanged ? EnTag.Strip(string.Format(Strings.Changelog_OldFormDetail, oldForm)) : "";
         AddPendingChange(new ChangeEntry(DateTime.Now, isNew ? "ADD" : "CHANGE", word.Form, changeDetail));
 
         CloseOverlay(vm);
         RebuildIndex();
         SelectedWord = word;
-        MarkDirty($"「{word.Form}」を{(isNew ? "追加" : "更新")}しました。");
+        MarkDirty(string.Format(isNew ? Strings.Word_AddedStatus : Strings.Word_UpdatedStatus, word.Form));
     }
 
     private void DuplicateWord(Word? w)
@@ -850,15 +854,15 @@ public sealed class MainViewModel : ViewModelBase
         AddPendingChange(new ChangeEntry(DateTime.Now, "ADD", copy.Form, ""));
         RebuildIndex();
         SelectedWord = copy;
-        MarkDirty($"「{w.Form}」を複製しました。");
+        MarkDirty(string.Format(Strings.Word_DuplicatedStatus, w.Form));
         EditWord(copy);
     }
 
     private void ConfirmDeleteWord(Word? w)
     {
         if (w is null) return;
-        ShowOverlay(new ChoiceViewModel("単語を削除", $"「{w.DisplayForm}」を削除します。この単語を指している関係も外れます。")
-            .Add("削除する", () => DeleteWord(w), isDanger: true)
+        ShowOverlay(new ChoiceViewModel(Strings.Word_DeleteConfirmTitle, string.Format(Strings.Word_DeleteConfirmMessage, w.DisplayForm))
+            .Add(Strings.Common_DeleteAction, () => DeleteWord(w), isDanger: true)
             .AddCancel());
     }
 
@@ -873,7 +877,7 @@ public sealed class MainViewModel : ViewModelBase
         AddPendingChange(new ChangeEntry(DateTime.Now, "DELETE", w.Form, ""));
         if (SelectedWord == w) SelectedWord = null;
         RebuildIndex();
-        MarkDirty($"「{w.Form}」を削除しました。");
+        MarkDirty(string.Format(Strings.Word_DeletedStatus, w.Form));
     }
 
     private void FollowRelation(Relation? r)
@@ -882,7 +886,7 @@ public sealed class MainViewModel : ViewModelBase
         var target = _doc.Words.FirstOrDefault(w => w.Id == r.Id);
         if (target is null)
         {
-            Status = $"関係先 id={r.Id}（{r.Form}）が見つかりません。";
+            Status = string.Format(Strings.Word_RelationNotFoundStatus, r.Id, r.Form);
             return;
         }
         SelectedWord = target;
@@ -907,7 +911,7 @@ public sealed class MainViewModel : ViewModelBase
             ApplySettings();
             RebuildIndex();
             SettingsApplied?.Invoke();
-            Status = "設定を適用しました。";
+            Status = Strings.Settings_AppliedStatus;
         }));
     }
 
@@ -920,7 +924,7 @@ public sealed class MainViewModel : ViewModelBase
     /// <summary>例文の一覧を開く。閉じて開き直したときも同じ絞り込みで始まる。</summary>
     private void ShowExamples()
     {
-        if (_doc is null) { Status = "辞書を開いてください。"; return; }
+        if (_doc is null) { Status = Strings.Main_OpenDictionaryPrompt; return; }
         var vm = new ExamplesViewModel(_doc, _exampleQuery);
         vm.AddRequested = () => { _exampleQuery = vm.Query; ShowExampleEditor(null); };
         vm.EditRequested = e => { _exampleQuery = vm.Query; ShowExampleEditor(e); };
@@ -958,7 +962,7 @@ public sealed class MainViewModel : ViewModelBase
 
         RefreshRelatedExamples();
         back();
-        MarkDirty($"例文を{(isNew ? "追加" : "更新")}しました。");
+        MarkDirty(isNew ? Strings.Example_AddedStatus : Strings.Example_UpdatedStatus);
     }
 
     private void ConfirmDeleteExample(ExampleEditViewModel vm, Action back)
@@ -966,9 +970,9 @@ public sealed class MainViewModel : ViewModelBase
         if (vm.Source is not { } example) return;
         var preview = example.SentencePreview;
         // 確認は編集画面とは別の層に出るので、やめたときは畳むだけで書きかけの入力はそのまま残る。
-        ShowOverlay(new ChoiceViewModel("例文を削除", $"「{preview}」を削除します。")
-            .Add("削除する", () => DeleteExample(example, back), isDanger: true)
-            .AddCancel("やめる"));
+        ShowOverlay(new ChoiceViewModel(Strings.Example_DeleteConfirmTitle, string.Format(Strings.Example_DeleteConfirmMessage, preview))
+            .Add(Strings.Common_DeleteAction, () => DeleteExample(example, back), isDanger: true)
+            .AddCancel(Strings.Common_Stop));
     }
 
     private void DeleteExample(Example example, Action back)
@@ -977,7 +981,7 @@ public sealed class MainViewModel : ViewModelBase
         _doc.Examples.Remove(example);
         RefreshRelatedExamples();
         back();
-        MarkDirty("例文を削除しました。");
+        MarkDirty(Strings.Example_DeletedStatus);
     }
 
     // ---- tools / info（ツールメニューの画面。既定は独立ウィンドウ、運べばタブ） ----------------
@@ -1025,31 +1029,31 @@ public sealed class MainViewModel : ViewModelBase
 
     private void ExportChangelog(string csv)
     {
-        if (!File.Exists(csv)) { Status = "書き出せる更新履歴がありません。"; return; }
-        var dlg = new SaveFileDialog { Title = "更新履歴を書き出す", Filter = "CSV (*.csv)|*.csv", FileName = Path.GetFileName(csv) };
+        if (!File.Exists(csv)) { Status = Strings.Changelog_NothingToExportStatus; return; }
+        var dlg = new SaveFileDialog { Title = EnTag.Strip(Strings.Changelog_ExportDialogTitle), Filter = "CSV (*.csv)|*.csv", FileName = Path.GetFileName(csv) };
         if (dlg.ShowDialog() != true) return;
         File.Copy(csv, dlg.FileName, overwrite: true);
-        Status = $"{dlg.FileName} に書き出しました。";
+        Status = string.Format(Strings.Changelog_ExportedStatus, dlg.FileName);
     }
 
     /// <summary>CSV を選び直す。戻り値は選び直せたか（成功したときだけ画面を作り直す）。</summary>
     private bool RelinkChangelog()
     {
-        var dlg = new OpenFileDialog { Title = "更新履歴 CSV を選択", Filter = "CSV (*.csv)|*.csv|すべてのファイル (*.*)|*.*" };
+        var dlg = new OpenFileDialog { Title = EnTag.Strip(Strings.Changelog_RelinkDialogTitle), Filter = EnTag.Strip(Strings.Changelog_CsvFilter) };
         if (dlg.ShowDialog() != true) return false;
         Settings.ChangelogPath = dlg.FileName;
         Settings.Save();
-        Status = $"更新履歴を {Path.GetFileName(dlg.FileName)} に連携しました。";
+        Status = string.Format(Strings.Changelog_RelinkedStatus, Path.GetFileName(dlg.FileName));
         return true;
     }
 
     public bool ConfirmCloseIfDirty(Action proceed)
     {
         if (!IsDirty) return true;
-        ShowOverlay(new ChoiceViewModel("未保存の変更があります", $"{DictionaryName} の変更が保存されていません。")
-            .Add("保存して終了", () => { Save(false); proceed(); })
-            .Add("保存せず終了", proceed, isDanger: true)
-            .AddCancel("編集を続ける"));
+        ShowOverlay(new ChoiceViewModel(Strings.App_UnsavedCloseTitle, string.Format(Strings.App_UnsavedCloseMessage, DictionaryName))
+            .Add(Strings.App_SaveAndExit, () => { Save(false); proceed(); })
+            .Add(Strings.App_ExitWithoutSaving, proceed, isDanger: true)
+            .AddCancel(Strings.Common_KeepEditing));
         return false;
     }
 }

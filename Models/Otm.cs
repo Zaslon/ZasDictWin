@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.Json.Nodes;
+using ZasDictWin.Resources;
 
 namespace ZasDictWin.Models;
 
@@ -231,7 +232,7 @@ public sealed class OtmDocument
         foreach (var e in Examples) e.ResolveForms(byId);
     }
 
-    public string Name => Path is null ? "（無題）" : System.IO.Path.GetFileNameWithoutExtension(Path);
+    public string Name => Path is null ? Strings.Doc_Untitled : System.IO.Path.GetFileNameWithoutExtension(Path);
 
     public JsonObject ZpdicOnline
     {

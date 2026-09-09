@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Input;
 using ZasDictWin.Models;
+using ZasDictWin.Resources;
 using ZasDictWin.Services;
 
 namespace ZasDictWin.ViewModels;
@@ -20,7 +21,7 @@ public sealed class DialectToolViewModel : OverlayViewModel
 
     public DialectToolViewModel(string? initialInput = null)
     {
-        Title = "変換";
+        Title = Strings.Dialect_Title;
         _input = initialInput ?? "";
         Convert();
     }
@@ -68,7 +69,7 @@ public sealed class IpaToolViewModel : OverlayViewModel
     private string _ipaInput = "";
     private string _ipaSpelling = "";
 
-    public IpaToolViewModel() => Title = "IPA";
+    public IpaToolViewModel() => Title = Strings.Ipa_Title;
 
     public override bool PrefersFloating => true;
 
@@ -90,7 +91,7 @@ public sealed class StatsViewModel : OverlayViewModel
 {
     public StatsViewModel(OtmDocument? doc)
     {
-        Title = "統計";
+        Title = Strings.Stats_Title;
         if (doc is null) return;
         WordCount = doc.Words.Count;
         var forms = doc.Words.Select(w => w.Form).ToList();
@@ -130,7 +131,7 @@ public sealed class LegendViewModel : OverlayViewModel
 {
     public LegendViewModel(string legendMarkdown)
     {
-        Title = "凡例";
+        Title = Strings.Legend_Title;
         LegendMarkdown = legendMarkdown;
     }
 
@@ -150,7 +151,7 @@ public sealed class ChangelogViewModel : OverlayViewModel
     public ChangelogViewModel(IReadOnlyList<string[]> changelogRows, string changelogPath,
                                ICommand exportChangelogCommand, ICommand relinkChangelogCommand)
     {
-        Title = "更新履歴";
+        Title = Strings.Changelog_Title;
         ChangelogRows = new ObservableCollection<string[]>();
         _changelogPath = changelogPath;
         Refresh(changelogRows);

@@ -10,6 +10,7 @@
     <v:StringToBrushConverter x:Key="StringBrush" />
     <v:ScaleFontSizeConverter x:Key="ScaleFont" />
     <v:SplitMarginConverter x:Key="SplitMargin" />
+    <v:PlainTextConverter x:Key="PlainText" />
 
     <!-- 配色トークン。キー名は参照側（オーバーレイ含む）との契約なので、調整は値だけで行う。
          Ink=窓 / Panel=ヘッダ・カード / Raised=ボタン と役割で揃える。影系 Effect は一切使わない方針
@@ -84,9 +85,12 @@
         <Setter Property="Margin" Value="0,0,0,5" />
     </Style>
 
-    <!-- 項目名に添える補足（「（カンマ区切り）」など）。FieldLabel の中に Run で混ぜて使い、
-         名前だけが太く明るく残るようにする。 -->
-    <Style x:Key="FieldNote" TargetType="Run">
+    <!-- 項目名に添える補足（「（カンマ区切り）」など）。FieldLabel の中に Span で混ぜて使い、
+         名前だけが太く明るく残るようにする。TargetType が Span なのは、UI 文字列を流す側が
+         v:LocalizedText.Text を付けた Span になるため。付ける先は必ず Span にすること。
+         WPF の Style は TargetType と要素の型が一致していないと弾かれるので、派生である Run に
+         これを付けると、その画面を開いた瞬間に XamlParseException で落ちる。 -->
+    <Style x:Key="FieldNote" TargetType="Span">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="FontWeight" Value="Normal" />
     </Style>
@@ -310,7 +314,7 @@
                             <!-- 案内文字は 1 行。NoWrap を書かないと暗黙の TextBlock スタイル（Wrap）が効いて
                                  折り返してしまい、TextTrimming が働かない -->
                             <TextBlock x:Name="ph"
-                                       Text="{Binding Path=(v:Placeholder.Text), RelativeSource={RelativeSource TemplatedParent}}"
+                                       v:LocalizedText.Text="{Binding Path=(v:Placeholder.Text), RelativeSource={RelativeSource TemplatedParent}}"
                                        Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                                        Foreground="{StaticResource Muted}"
                                        TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
@@ -336,6 +340,94 @@
                 <Setter Property="VerticalContentAlignment" Value="Top" />
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+    <!-- プルダウン（言語選択など）。既定の ComboBox は Windows のライトテーマのまま出てしまい暗い画面で浮くため、
+         Field/Panel/Line の配色に合わせてテンプレートを丸ごと差し替える。矢印は他の窓ボタンと同じアイコン
+         フォント（Segoe MDL2 Assets）の Chevron Down。 -->
+    <Style TargetType="ComboBox">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="Background" Value="{StaticResource Field}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="9,6" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBox">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="bd" Grid.ColumnSpan="2" CornerRadius="8" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" />
+                        <ContentPresenter Grid.Column="0" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                           IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}"
+                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
+                        <TextBlock Grid.Column="1" Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="9"
+                                   Foreground="{StaticResource Muted}" Margin="0,0,10,0" VerticalAlignment="Center"
+                                   IsHitTestVisible="False" />
+                        <!-- 開閉トグルは面全体に重ねて透明ボタンとして置く。中身（選択中の項目）を描くのは
+                             上の ContentPresenter 側なので、こちらは当たり判定だけ持てばよい。 -->
+                        <ToggleButton Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0" ClickMode="Press"
+                                      IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+                            <ToggleButton.Template>
+                                <ControlTemplate TargetType="ToggleButton">
+                                    <Border Background="{TemplateBinding Background}" />
+                                </ControlTemplate>
+                            </ToggleButton.Template>
+                        </ToggleButton>
+                        <Popup x:Name="popup" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade"
+                               Focusable="False" IsOpen="{TemplateBinding IsDropDownOpen}"
+                               Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
+                            <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}"
+                                    BorderThickness="1" CornerRadius="8" Margin="0,4,0,0" Padding="4">
+                                <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto">
+                                    <ItemsPresenter />
+                                </ScrollViewer>
+                            </Border>
+                        </Popup>
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
+                        </Trigger>
+                        <Trigger Property="IsDropDownOpen" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Opacity" Value="0.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <Style TargetType="ComboBoxItem">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="Padding" Value="9,6" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ComboBoxItem">
+                    <Border x:Name="bd" CornerRadius="6" Background="Transparent">
+                        <ContentPresenter Margin="{TemplateBinding Padding}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
+                        </Trigger>
+                        <Trigger Property="IsSelected" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- 選択してコピーできる本文（v:SelectableText / v:SelectableRichText）。中身は読み取り専用の
@@ -431,6 +523,16 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="10,6" />
         <Setter Property="HasDropShadow" Value="False" />
+        <!-- ツールチップの中身はこのアプリでは常に UI 文字列（Resources/Strings.*.resx）なので、
+             [en] を解けるよう一括でここに通す。文字列以外を ToolTip に入れると
+             ToString() が出るだけになるため、そうしたくなったら ContentTemplateSelector に替えること。 -->
+        <Setter Property="ContentTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <TextBlock v:LocalizedText.Text="{Binding}" />
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
@@ -782,7 +884,8 @@
                                        Foreground="{TemplateBinding Foreground}"
                                        Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                                        TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
-                            <TextBlock x:Name="ph" Grid.Column="0" Text="{TemplateBinding Placeholder}"
+                            <TextBlock x:Name="ph" Grid.Column="0"
+                                       v:LocalizedText.Text="{Binding Placeholder, RelativeSource={RelativeSource TemplatedParent}}"
                                        Foreground="{StaticResource Muted}"
                                        Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                                        TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
@@ -862,7 +965,7 @@
                     <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <StackPanel Orientation="Horizontal" Margin="{TemplateBinding Padding}">
-                            <TextBlock Text="{TemplateBinding Header}" Foreground="{TemplateBinding Foreground}"
+                            <TextBlock v:LocalizedText.Text="{TemplateBinding Header}" Foreground="{TemplateBinding Foreground}"
                                        VerticalAlignment="Center" TextWrapping="NoWrap" />
                             <Path Data="M 0,0 L 8,0 L 4,5 Z" Fill="{TemplateBinding Foreground}"
                                   Opacity="0.6" Margin="7,0,0,0" VerticalAlignment="Center" />
@@ -900,7 +1003,9 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:MenuButton}">
                     <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}">
-                        <TextBlock x:Name="txt" Text="{TemplateBinding Header}" Foreground="{TemplateBinding Foreground}"
+                        <TextBlock x:Name="txt"
+                                   v:LocalizedText.Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Foreground="{TemplateBinding Foreground}"
                                    HorizontalAlignment="Center" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
@@ -948,7 +1053,7 @@
     <!-- 項目 1 つぶん。保存など IsPrimary の項目だけ、文字色と太さで強調する
          （並びの中で見失わないように。面で塗ると 1 行だけ囲みが復活して浮く）。 -->
     <DataTemplate x:Key="MenuActionTemplate" DataType="{x:Type v:MenuAction}">
-        <Button Content="{Binding Header}" ToolTip="{Binding ToolTip}" Command="{Binding Command}"
+        <Button v:LocalizedText.Content="{Binding Header}" ToolTip="{Binding ToolTip}" Command="{Binding Command}"
                 CommandParameter="{Binding CommandParameter}"
                 Visibility="{Binding IsVisible, Converter={StaticResource BoolVis}}">
             <Button.Style>

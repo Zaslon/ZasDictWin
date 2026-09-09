@@ -3,15 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="clr-namespace:ZasDictWin.Models"
              xmlns:v="clr-namespace:ZasDictWin.Views"
-             xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+             xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <Border Style="{StaticResource OverlayCard}">
         <DockPanel>
             <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
                 <DockPanel>
-                    <Button DockPanel.Dock="Right" Content="閉じる" Style="{StaticResource GhostButton}"
+                    <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Close}" Style="{StaticResource GhostButton}"
                             Command="{Binding CloseCommand}" Margin="0" />
-                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
+                    <TextBlock v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
                 </DockPanel>
             </Border>
@@ -19,21 +20,21 @@
             <!-- 追加ボタンと件数はスクロール領域の外。例文が増えても位置が動かないようにする -->
             <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
                 <DockPanel>
-                    <Button DockPanel.Dock="Right" Content="＋ 例文" Style="{StaticResource PrimaryButton}"
+                    <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Examples_AddButton}" Style="{StaticResource PrimaryButton}"
                             Command="{Binding AddCommand}" Margin="0" />
-                    <TextBlock Text="{Binding CountLabel}" Style="{StaticResource Label}" Margin="0"
+                    <TextBlock v:LocalizedText.Text="{Binding CountLabel}" Style="{StaticResource Label}" Margin="0"
                                VerticalAlignment="Center" />
                 </DockPanel>
             </Border>
 
             <DockPanel Margin="24,14,24,0">
-                <TextBlock DockPanel.Dock="Top" Text="例文・訳・補足・タグを部分一致で絞り込みます。" Style="{StaticResource Label}" />
+                <TextBlock DockPanel.Dock="Top" v:LocalizedText.Text="{x:Static res:Strings.Examples_FilterHint}" Style="{StaticResource Label}" />
                 <TextBox DockPanel.Dock="Top" Margin="0,0,0,12"
                          Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=120}"
-                         v:Placeholder.Text="例文を検索…" />
+                         v:Placeholder.Text="{x:Static res:Strings.Examples_SearchPlaceholder}" />
 
                 <TextBlock DockPanel.Dock="Top" Style="{StaticResource EmptyState}"
-                           Text="表示できる例文がありません。［＋ 例文］から追加できます。"
+                           v:LocalizedText.Text="{x:Static res:Strings.Examples_Empty}"
                            Visibility="{Binding IsEmpty, Converter={StaticResource BoolVis}}" />
 
                 <!-- 横スクロールは封じ、長い文は折り返しではなく末尾省略で吸収する -->

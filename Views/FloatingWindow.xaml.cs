@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using ZasDictWin.Resources;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
@@ -127,6 +128,6 @@ public partial class FloatingWindow : Window
         var maximized = WindowState == WindowState.Maximized;
         // MDL2 Assets: ChromeMaximize (E922) / ChromeRestore (E923)
         MaximizeRestoreButton.Content = maximized ? "\uE923" : "\uE922";
-        MaximizeRestoreButton.ToolTip = maximized ? "元のサイズに戻す" : "最大化";
+        MaximizeRestoreButton.ToolTip = maximized ? Strings.Common_Restore : Strings.Common_Maximize;
     }
 }

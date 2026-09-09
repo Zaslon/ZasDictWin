@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="clr-namespace:ZasDictWin.Models"
              xmlns:v="clr-namespace:ZasDictWin.Views"
-             xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+             xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <Grid Margin="16,12">
 
@@ -16,9 +17,9 @@
                 <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="18"
                            Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
-            <TextBlock Style="{StaticResource EmptyState}" Margin="0" Text="単語を選んでください" FontWeight="SemiBold" />
+            <TextBlock Style="{StaticResource EmptyState}" Margin="0" v:LocalizedText.Text="{x:Static res:Strings.Detail_EmptyTitle}" FontWeight="SemiBold" />
             <TextBlock Style="{StaticResource EmptyState}" Margin="0,6,0,0" Opacity="0.75"
-                       Text="左の一覧から選ぶと、ここに内容が出ます" />
+                       v:LocalizedText.Text="{x:Static res:Strings.Detail_EmptyHint}" />
         </StackPanel>
 
         <DockPanel Visibility="{Binding HasSelection, Converter={StaticResource BoolVis}}">
@@ -27,9 +28,9 @@
             <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0"
                     Padding="0,10,0,0" Margin="0,12,0,0">
                 <StackPanel Orientation="Horizontal">
-                    <Button Content="編集" Style="{StaticResource PrimaryButton}" Command="{Binding EditWordCommand}" />
-                    <Button Content="複製" Command="{Binding DuplicateWordCommand}" />
-                    <Button Content="削除" Style="{StaticResource DangerButton}" Command="{Binding DeleteWordCommand}" />
+                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Edit}" Style="{StaticResource PrimaryButton}" Command="{Binding EditWordCommand}" />
+                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Duplicate}" Command="{Binding DuplicateWordCommand}" />
+                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}" Command="{Binding DeleteWordCommand}" />
                 </StackPanel>
             </Border>
 
@@ -89,7 +90,7 @@
                     <Border Style="{StaticResource DetailSection}"
                             Visibility="{Binding Variations.Count, Converter={StaticResource CountVis}}">
                         <StackPanel>
-                            <TextBlock Text="変化形" Style="{StaticResource DetailSectionHeading}" />
+                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Label_Variations}" Style="{StaticResource DetailSectionHeading}" />
                             <ItemsControl ItemsSource="{Binding Variations}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:Variation}">
@@ -153,7 +154,7 @@
                     <Border Style="{StaticResource DetailSection}"
                             Visibility="{Binding DataContext.RelatedExamples.Count, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource CountVis}}">
                         <StackPanel>
-                            <TextBlock Text="参照例文" Style="{StaticResource DetailSectionHeading}" />
+                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Detail_RelatedExamples}" Style="{StaticResource DetailSectionHeading}" />
                             <ItemsControl ItemsSource="{Binding DataContext.RelatedExamples, RelativeSource={RelativeSource AncestorType=UserControl}}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:Example}">

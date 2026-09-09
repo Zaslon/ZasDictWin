@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using ZasDictWin.Resources;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
@@ -28,20 +29,24 @@ internal sealed class DragGhost : Window
 
         var scale = FontScaleState.Instance.Scale;
         var stack = new StackPanel();
-        stack.Children.Add(new TextBlock
+        // タブの見出しは UI 文字列（検索・設定など）なので、枠側の見出し（DockGroupPanel.xaml）と
+        // 同じく [en] を解いて描く。
+        var heading = new TextBlock
         {
-            Text = title,
             FontWeight = FontWeights.SemiBold,
             FontSize = 12 * scale,
             Foreground = Brush("Text"),
-        });
-        stack.Children.Add(new TextBlock
+        };
+        LocalizedText.SetText(heading, title);
+        stack.Children.Add(heading);
+        var hint = new TextBlock
         {
-            Text = "離すと独立ウィンドウ",
             FontSize = 11 * scale,
             Margin = new Thickness(0, 2, 0, 0),
             Foreground = Brush("Muted"),
-        });
+        };
+        LocalizedText.SetText(hint, Strings.Overlay_DropToFloatHint);
+        stack.Children.Add(hint);
 
         // 影は本体と同じ書体で出す（コードで組むので、XAML の既定は効かない）。
         FontFamily = new FontFamily("Yu Gothic UI");

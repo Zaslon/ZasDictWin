@@ -4,14 +4,15 @@
         xmlns:m="clr-namespace:ZasDictWin.Models"
         xmlns:v="clr-namespace:ZasDictWin.Views"
         xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
-        Title="ZasDict 単語ウィンドウ"
+        xmlns:res="clr-namespace:ZasDictWin.Resources"
+        Title="{Binding Source={x:Static res:Strings.Window_StreamTitle}, Converter={StaticResource PlainText}}"
         Width="960" Height="360" MinWidth="480" MinHeight="200"
         ShowInTaskbar="True"
         WindowStyle="SingleBorderWindow"
         Background="{Binding Settings.StreamBackground, Converter={StaticResource StringBrush}}">
 
     <Grid Margin="48,32">
-        <TextBlock Text="単語を選ぶとここに表示されます"
+        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Window_StreamPlaceholder}"
                    Foreground="#66FFFFFF"
                    FontSize="{Binding StreamPlaceholderSize}"
                    HorizontalAlignment="Center" VerticalAlignment="Center"

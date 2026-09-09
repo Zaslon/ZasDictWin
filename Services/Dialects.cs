@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.RegularExpressions;
+using ZasDictWin.Resources;
 
 namespace ZasDictWin.Services;
 
@@ -24,13 +25,17 @@ public static class Dialects
         var ce = CommonE(processed);
         var cf = CommonF(processed);
 
+        // 変換結果は読み取り専用の入力欄（DialectPanel）に出す。入力欄は区間ごとに
+        // フォントを変えられないので、区切りの UI 文字列からタグだけ落として繋ぐ。
+        var or = EnTag.Strip(Strings.Dialect_Or);
+
         string Either(Func<string, string> f) =>
-            ce == cf ? f(ce) : $"{f(ce)}または{f(cf)}";
+            ce == cf ? f(ce) : $"{f(ce)}{or}{f(cf)}";
 
         var arzafireWord = Arzafire(processed);
         var ceA = CommonE(arzafireWord);
         var cfA = CommonF(arzafireWord);
-        var arzafire = ceA == cfA ? Sekore(ceA) : $"{Sekore(ceA)}または{Sekore(cfA)}";
+        var arzafire = ceA == cfA ? Sekore(ceA) : $"{Sekore(ceA)}{or}{Sekore(cfA)}";
 
         return new DialectResult(Either(Sekore), Either(Titauini), Either(Kaiko), arzafire);
     }

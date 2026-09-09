@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="clr-namespace:ZasDictWin.Models"
              xmlns:v="clr-namespace:ZasDictWin.Views"
-             xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+             xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <DockPanel Margin="12,10,12,0">
 
@@ -15,7 +16,7 @@
                          Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=80}"
                          KeyDown="QueryBox_KeyDown"
                          FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}"
-                         v:Placeholder.Text="見出し語を入力"
+                         v:Placeholder.Text="{x:Static res:Strings.Search_Placeholder}"
                          Padding="30,6,32,6" />
                 <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="13"
                            Foreground="{StaticResource Muted}" HorizontalAlignment="Left" VerticalAlignment="Center"
@@ -33,23 +34,23 @@
             <Border Style="{StaticResource FilterCard}" Margin="0,10,0,0">
                 <StackPanel>
                     <WrapPanel>
-                        <ToggleButton Style="{StaticResource Chip}" Content="前方" Command="{Binding SetModeCommand}" CommandParameter="Forward"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeForward}" Command="{Binding SetModeCommand}" CommandParameter="Forward"
                                       IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Forward}" />
-                        <ToggleButton Style="{StaticResource Chip}" Content="部分" Command="{Binding SetModeCommand}" CommandParameter="Partial"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModePartial}" Command="{Binding SetModeCommand}" CommandParameter="Partial"
                                       IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Partial}" />
-                        <ToggleButton Style="{StaticResource Chip}" Content="後方" Command="{Binding SetModeCommand}" CommandParameter="Backward"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeBackward}" Command="{Binding SetModeCommand}" CommandParameter="Backward"
                                       IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Backward}" />
-                        <ToggleButton Style="{StaticResource Chip}" Content="完全" Command="{Binding SetModeCommand}" CommandParameter="Exact"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeExact}" Command="{Binding SetModeCommand}" CommandParameter="Exact"
                                       IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Exact}" />
                     </WrapPanel>
                     <WrapPanel Margin="0,7,0,0">
-                        <ToggleButton Style="{StaticResource Chip}" Content="見出し語" Command="{Binding SetScopeCommand}" CommandParameter="Form"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeForm}" Command="{Binding SetScopeCommand}" CommandParameter="Form"
                                       IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Form}" />
-                        <ToggleButton Style="{StaticResource Chip}" Content="訳語" Command="{Binding SetScopeCommand}" CommandParameter="Translation"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Label_Translation}" Command="{Binding SetScopeCommand}" CommandParameter="Translation"
                                       IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Translation}" />
-                        <ToggleButton Style="{StaticResource Chip}" Content="両方" Command="{Binding SetScopeCommand}" CommandParameter="Both"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeBoth}" Command="{Binding SetScopeCommand}" CommandParameter="Both"
                                       IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Both}" />
-                        <ToggleButton Style="{StaticResource Chip}" Content="全文" Command="{Binding SetScopeCommand}" CommandParameter="FullText"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeFullText}" Command="{Binding SetScopeCommand}" CommandParameter="FullText"
                                       IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=FullText}" />
                     </WrapPanel>
                 </StackPanel>
@@ -109,9 +110,9 @@
                  （ItemCollection）は Count の変更を通知するので、そちらを見る -->
             <StackPanel VerticalAlignment="Center"
                         Visibility="{Binding Items.Count, ElementName=ResultList, Converter={StaticResource CountVis}, ConverterParameter=invert}">
-                <TextBlock Style="{StaticResource EmptyState}" Text="該当する見出し語はありません" />
+                <TextBlock Style="{StaticResource EmptyState}" v:LocalizedText.Text="{x:Static res:Strings.Search_NoResults}" />
                 <TextBlock Style="{StaticResource EmptyState}" Margin="24,4,24,0" Opacity="0.75"
-                           Text="検索モードを「部分」、対象を「全文」にしてみてください" />
+                           v:LocalizedText.Text="{x:Static res:Strings.Search_NoResultsHint}" />
             </StackPanel>
         </Grid>
     </DockPanel>

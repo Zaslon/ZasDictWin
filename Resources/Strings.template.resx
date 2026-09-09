@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ============================================================================
+       このファイルは新しい対応言語を追加するためのひな形です（このままではビルドに含まれません。
+       ZasDictWin.csproj の EmbeddedResource Remove を参照）。
+
+       使い方:
+         1. このファイルを Resources/Strings.<コード>.resx としてコピーする。コードは任意の文字列を使用する。
+         （ZasDictWin.csproj の WithCulture=false 参照）。
+         2. 以下の各 <data name="キー名" ...><value>英語の文</value></data> の、
+            <value> と </value> の間の文字列だけをその言語へ翻訳する。
+              - name 属性（キー名）は Resources/Strings.resx（既定の日本語）・Strings.en.resx と
+                一致させること。該当しない場合はデフォルト言語にフォールバックする。
+              - {0} / {1} のようなプレースホルダーは string.Format の埋め込み位置なので、
+                個数と意味（何が入るか）を変えずに、位置だけ訳文に合わせて動かしてよい。
+              - xml:space="preserve" は前後の空白（例: " or " のような単語間の区切り）を保持するための
+                ものなので、既存の value の前後に空白があるキーはその空白ごと訳すこと。
+              - 訳文の一部（製品名・略語など）だけを英字用のフォントで出したいときは [en] と [/en] で
+                囲む。囲んだ部分は Strings.en.resx の Meta_UIFontFamily で描かれる。
+         3. Resources/Languages.cs の Languages.All に 1 行追加する（コード＝手順 1 と同じ文字列、
+            表示名＝その言語自身での言語名。例: "Français"）。csproj 側の作業は不要（この resx は
+            拡張子が一致すれば自動でビルドに含まれる）。
+
+       すぐ下の Meta_UIFontFamily だけはValueにフォント名を指定する。
+       カンマ区切りで複数書くと前から順にフォールバックする（例: "MyConlangFont, Yu Gothic UI"）。
+       未指定・見つからない場合は既定の "Yu Gothic UI" が選択される。
+       ============================================================================ -->
+
+  <data name="Meta_UIFontFamily" xml:space="preserve"><value>Yu Gothic UI</value></data>
+
+  <!-- Common -->
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Common_Save" xml:space="preserve"><value>Save</value></data>
+  <data name="Common_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Common_DeleteAction" xml:space="preserve"><value>Delete</value></data>
+  <data name="Common_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Common_Duplicate" xml:space="preserve"><value>Duplicate</value></data>
+  <data name="Common_Minimize" xml:space="preserve"><value>Minimize</value></data>
+  <data name="Common_Maximize" xml:space="preserve"><value>Maximize</value></data>
+  <data name="Common_Restore" xml:space="preserve"><value>Restore</value></data>
+  <data name="Common_Stop" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_KeepEditing" xml:space="preserve"><value>Keep editing</value></data>
+
+  <!-- Menu -->
+  <data name="Menu_File" xml:space="preserve"><value>File</value></data>
+  <data name="Menu_Tools" xml:space="preserve"><value>Tools</value></data>
+  <data name="Menu_Window" xml:space="preserve"><value>Window</value></data>
+  <data name="Menu_Open" xml:space="preserve"><value>Open</value></data>
+  <data name="Menu_NewDictionary" xml:space="preserve"><value>New Dictionary</value></data>
+  <data name="Menu_SaveAs" xml:space="preserve"><value>Save As</value></data>
+
+  <!-- Search / Detail -->
+  <data name="Search_Title" xml:space="preserve"><value>Search</value></data>
+  <data name="Search_Placeholder" xml:space="preserve"><value>Enter a headword</value></data>
+  <data name="Search_ModeForward" xml:space="preserve"><value>Prefix</value></data>
+  <data name="Search_ModePartial" xml:space="preserve"><value>Partial</value></data>
+  <data name="Search_ModeBackward" xml:space="preserve"><value>Suffix</value></data>
+  <data name="Search_ModeExact" xml:space="preserve"><value>Exact</value></data>
+  <data name="Search_ScopeForm" xml:space="preserve"><value>Headword</value></data>
+  <data name="Label_Translation" xml:space="preserve"><value>Translation</value></data>
+  <data name="Search_ScopeBoth" xml:space="preserve"><value>Both</value></data>
+  <data name="Search_ScopeFullText" xml:space="preserve"><value>Full text</value></data>
+  <data name="Search_NoResults" xml:space="preserve"><value>No matching headwords</value></data>
+  <data name="Search_NoResultsHint" xml:space="preserve"><value>Try switching the mode to "Partial" and the target to "Full text"</value></data>
+
+  <data name="Detail_Title" xml:space="preserve"><value>Word Detail</value></data>
+  <data name="Detail_EmptyTitle" xml:space="preserve"><value>Select a word</value></data>
+  <data name="Detail_EmptyHint" xml:space="preserve"><value>Choose one from the list on the left to see its details here</value></data>
+  <data name="Label_Variations" xml:space="preserve"><value>Variations</value></data>
+  <data name="Detail_RelatedExamples" xml:space="preserve"><value>Related Examples</value></data>
+  <data name="Label_Headwords" xml:space="preserve"><value>Headwords</value></data>
+
+  <!-- Browser -->
+  <data name="Browser_Title" xml:space="preserve"><value>Browser</value></data>
+  <data name="Browser_ButtonTooltip" xml:space="preserve"><value>Opens a web browser tab</value></data>
+  <data name="Browser_Back" xml:space="preserve"><value>Back</value></data>
+  <data name="Browser_Forward" xml:space="preserve"><value>Forward</value></data>
+  <data name="Browser_Reload" xml:space="preserve"><value>Reload</value></data>
+  <data name="Browser_AddressPlaceholder" xml:space="preserve"><value>Address or search terms</value></data>
+  <data name="Browser_PageError" xml:space="preserve"><value>This page can't be displayed</value></data>
+  <data name="Browser_RuntimeMissing" xml:space="preserve"><value>Couldn't start WebView2. Install Microsoft Edge or the WebView2 Runtime to use this feature.</value></data>
+  <data name="Browser_Loading" xml:space="preserve"><value>Loading: {0}</value></data>
+  <data name="Browser_LoadFailed" xml:space="preserve"><value>Failed to load ({0})</value></data>
+  <data name="Browser_CannotOpen" xml:space="preserve"><value>Can't open: {0}</value></data>
+
+  <!-- Changelog -->
+  <data name="Changelog_Title" xml:space="preserve"><value>Changelog</value></data>
+  <data name="Changelog_RelinkButton" xml:space="preserve"><value>Choose a Different CSV</value></data>
+  <data name="Changelog_ExportButton" xml:space="preserve"><value>Export</value></data>
+  <data name="Changelog_NothingToExportStatus" xml:space="preserve"><value>There's no changelog to export.</value></data>
+  <data name="Changelog_ExportDialogTitle" xml:space="preserve"><value>Export the changelog</value></data>
+  <data name="Changelog_ExportedStatus" xml:space="preserve"><value>Exported to {0}.</value></data>
+  <data name="Changelog_RelinkDialogTitle" xml:space="preserve"><value>Choose a changelog CSV</value></data>
+  <data name="Changelog_CsvFilter" xml:space="preserve"><value>CSV (*.csv)|*.csv|All files (*.*)|*.*</value></data>
+  <data name="Changelog_RelinkedStatus" xml:space="preserve"><value>Linked the changelog to {0}.</value></data>
+  <data name="Changelog_OldFormDetail" xml:space="preserve"><value>was: {0}</value></data>
+
+  <!-- Stats -->
+  <data name="Stats_Title" xml:space="preserve"><value>Statistics</value></data>
+  <data name="Examples_Title" xml:space="preserve"><value>Examples</value></data>
+  <data name="Stats_HomonymLabel" xml:space="preserve"><value>Homonyms </value></data>
+  <data name="Stats_AverageLengthLabel" xml:space="preserve"><value>   /   Average length </value></data>
+  <data name="Stats_PosHeading" xml:space="preserve"><value>Part of Speech (Translation Titles)</value></data>
+  <data name="Label_Tags" xml:space="preserve"><value>Tags</value></data>
+
+  <!-- Dialect -->
+  <data name="Dialect_Title" xml:space="preserve"><value>Convert</value></data>
+  <data name="Dialect_InputLabel" xml:space="preserve"><value>Source word (type the stressed vowel in uppercase)</value></data>
+  <data name="Dialect_SekoreLabel" xml:space="preserve"><value>Flagship dialect Sekore</value></data>
+  <data name="Dialect_TitauiniLabel" xml:space="preserve"><value>Recycler-ship dialect Titauini</value></data>
+  <data name="Dialect_KaikoLabel" xml:space="preserve"><value>Survey-ship dialect Kaiko</value></data>
+  <data name="Dialect_ArzafireLabel" xml:space="preserve"><value>Cult cipher Arzafire</value></data>
+  <data name="Dialect_FaithfulCheckbox" xml:space="preserve"><value>Use the same behavior as the Python version for Titauini (drop the three-vowel merge)</value></data>
+  <data name="Dialect_Or" xml:space="preserve"><value> or </value></data>
+
+  <!-- IPA / Legend -->
+  <data name="Ipa_Title" xml:space="preserve"><value>IPA</value></data>
+  <data name="Ipa_SpellingLabel" xml:space="preserve"><value>Idyerin Transliteration</value></data>
+  <data name="Ipa_CandidateHint" xml:space="preserve"><value>(a|b) means there are multiple candidates.</value></data>
+  <data name="Legend_Title" xml:space="preserve"><value>Legend</value></data>
+
+  <!-- Examples overlay -->
+  <data name="Examples_AddButton" xml:space="preserve"><value>+ Example</value></data>
+  <data name="Examples_FilterHint" xml:space="preserve"><value>Filters by partial match on the sentence, translation, note, and tags.</value></data>
+  <data name="Examples_SearchPlaceholder" xml:space="preserve"><value>Search examples…</value></data>
+  <data name="Examples_Empty" xml:space="preserve"><value>No examples to show. Add one with [+ Example].</value></data>
+  <data name="Examples_CountLabel" xml:space="preserve"><value>{0} / {1} sentences</value></data>
+
+  <!-- Example edit overlay -->
+  <data name="ExampleEdit_AddTitle" xml:space="preserve"><value>Add Example</value></data>
+  <data name="ExampleEdit_EditTitle" xml:space="preserve"><value>Edit Example</value></data>
+  <data name="ExampleEdit_IdPending" xml:space="preserve"><value>ID: — (assigned on save)</value></data>
+  <data name="ExampleEdit_IdFormat" xml:space="preserve"><value>ID: {0}</value></data>
+  <data name="ExampleEdit_SentenceLabel" xml:space="preserve"><value>Sentence (required)</value></data>
+  <data name="ExampleEdit_TranslationLabel" xml:space="preserve"><value>Translation</value></data>
+  <data name="ExampleEdit_SupplementLabel" xml:space="preserve"><value>Note</value></data>
+  <data name="Tags_CommaHint" xml:space="preserve"><value>Tags (comma-separated)</value></data>
+  <data name="ExampleEdit_TagsPlaceholder" xml:space="preserve"><value>e.g. greeting, everyday</value></data>
+  <data name="ExampleEdit_RelatedWordsHeading" xml:space="preserve"><value>Related Words</value></data>
+  <data name="ExampleEdit_WordSearchPlaceholder" xml:space="preserve"><value>Search for a word to add…</value></data>
+  <data name="ExampleEdit_SourceHeading" xml:space="preserve"><value>Source</value></data>
+  <data name="ExampleEdit_SourcePlaceholder" xml:space="preserve"><value>Choose a source</value></data>
+  <data name="ExampleEdit_FetchButton" xml:space="preserve"><value>Fetch</value></data>
+  <data name="ExampleEdit_FetchHint" xml:space="preserve"><value>Fetching will overwrite the translation and note.</value></data>
+  <data name="Label_ApiKeyPlaceholder" xml:space="preserve"><value>API key</value></data>
+  <data name="ExampleEdit_SaveKeyButton" xml:space="preserve"><value>Save Key</value></data>
+  <data name="ExampleEdit_ValidationSentence" xml:space="preserve"><value>"Sentence" is required.</value></data>
+
+  <!-- ZpDIC Online example offer -->
+  <data name="Zpdic_KeyHintSaved" xml:space="preserve"><value>The API key is already saved ({0}). Entering a new one will overwrite it.</value></data>
+  <data name="Zpdic_KeyHintMissing" xml:space="preserve"><value>Fetching requires a ZpDIC Online API key. Saved to: {0}</value></data>
+  <data name="Zpdic_EnterNumber" xml:space="preserve"><value>Enter a number.</value></data>
+  <data name="Zpdic_KeyMissing" xml:space="preserve"><value>No API key is set. Enter one below and press [Save Key].</value></data>
+  <data name="Zpdic_Fetching" xml:space="preserve"><value>Fetching…</value></data>
+  <data name="Zpdic_FetchFailed" xml:space="preserve"><value>Fetch failed: {0}</value></data>
+  <data name="Zpdic_KeySaved" xml:space="preserve"><value>API key saved.</value></data>
+  <data name="Zpdic_KeySaveFailed" xml:space="preserve"><value>Couldn't save the API key: {0}</value></data>
+  <data name="Zpdic_KeyInvalidChars" xml:space="preserve"><value>The API key contains characters that can't be used. Please enter it again.</value></data>
+  <data name="Zpdic_ResponseParseFailed" xml:space="preserve"><value>Couldn't parse the response.</value></data>
+  <data name="Zpdic_FetchOkWithAuthor" xml:space="preserve"><value>Fetched successfully (author: {0})</value></data>
+  <data name="Zpdic_FetchOk" xml:space="preserve"><value>Fetched successfully</value></data>
+  <data name="Zpdic_Timeout" xml:space="preserve"><value>The request timed out. Check your connection.</value></data>
+  <data name="Zpdic_Http400" xml:space="preserve"><value>HTTP 400: The request was invalid.</value></data>
+  <data name="Zpdic_Http401" xml:space="preserve"><value>HTTP 401: The API key is incorrect. Please enter it again.</value></data>
+  <data name="Zpdic_Http404" xml:space="preserve"><value>HTTP 404: Example No. {0} doesn't exist.</value></data>
+  <data name="Zpdic_Http429" xml:space="preserve"><value>HTTP 429: The call limit has been reached.</value></data>
+  <data name="Zpdic_HttpGeneric" xml:space="preserve"><value>HTTP {0}: The fetch failed.</value></data>
+
+  <!-- Word edit overlay -->
+  <data name="WordEdit_AddTitle" xml:space="preserve"><value>Add Word</value></data>
+  <data name="WordEdit_EditTitle" xml:space="preserve"><value>Edit Word</value></data>
+  <data name="WordEdit_FormLabel" xml:space="preserve"><value>Headword</value></data>
+  <data name="WordEdit_AddTranslationButton" xml:space="preserve"><value>+ Translation</value></data>
+  <data name="WordEdit_DragTooltip" xml:space="preserve"><value>Drag to reorder</value></data>
+  <data name="Label_PartOfSpeech" xml:space="preserve"><value>Part of Speech</value></data>
+  <data name="WordEdit_PosPlaceholder" xml:space="preserve"><value>Choose a part of speech</value></data>
+  <data name="Label_Content" xml:space="preserve"><value>Content</value></data>
+  <data name="WordEdit_PronHint" xml:space="preserve"><value>Adding a pronunciation automatically adds the special-pronunciation tag</value></data>
+  <data name="WordEdit_RelationsHeading" xml:space="preserve"><value>Related Words</value></data>
+  <data name="WordEdit_AddRelationHeading" xml:space="preserve"><value>Add a Related Word</value></data>
+  <data name="WordEdit_RelationTitlePlaceholder" xml:space="preserve"><value>Choose or type a relation</value></data>
+  <data name="WordEdit_AddVariationButton" xml:space="preserve"><value>+ Variation</value></data>
+  <data name="WordEdit_VariationHint" xml:space="preserve"><value>The left side is the name (plural, past tense, etc.), the right side is its spelling.</value></data>
+  <data name="WordEdit_ValidationPos" xml:space="preserve"><value>Choose a part of speech for each translation (one per translation).</value></data>
+  <data name="WordEdit_ReciprocalHint" xml:space="preserve"><value>"{0}" will be registered automatically on the other word</value></data>
+  <data name="WordEdit_NoReciprocalHint" xml:space="preserve"><value>Nothing will be registered on the other word because no reciprocal relation is defined</value></data>
+  <data name="WordEdit_UnsavedTitle" xml:space="preserve"><value>Unsaved Changes</value></data>
+  <data name="WordEdit_UnsavedMessage" xml:space="preserve"><value>Close without saving your changes to "{0}"?</value></data>
+  <data name="Relation_DefaultTitle" xml:space="preserve"><value>Antonym</value></data>
+
+  <!-- Settings -->
+  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_TabGeneral" xml:space="preserve"><value>Display &amp; Behavior</value></data>
+  <data name="Settings_TabDictionary" xml:space="preserve"><value>Dictionary-Specific</value></data>
+  <data name="Settings_TabStreamWindow" xml:space="preserve"><value>Word Window</value></data>
+  <data name="Settings_TabBrowser" xml:space="preserve"><value>Browser</value></data>
+  <data name="Settings_TabStorage" xml:space="preserve"><value>Storage</value></data>
+  <data name="Settings_ApplyButton" xml:space="preserve"><value>Apply</value></data>
+  <data name="Settings_FontScaleLabel" xml:space="preserve"><value>Font Size Scale</value></data>
+  <data name="Settings_SortOrderLabel" xml:space="preserve"><value>Custom Sort Order</value></data>
+  <data name="Settings_AutoSaveCheckbox" xml:space="preserve"><value>Automatically save changes as you edit</value></data>
+  <data name="Settings_WindowHeading" xml:space="preserve"><value>Window</value></data>
+  <data name="Settings_WidthLabel" xml:space="preserve"><value>Width</value></data>
+  <data name="Settings_HeightLabel" xml:space="preserve"><value>Height</value></data>
+  <data name="Settings_AspectLockCheckbox" xml:space="preserve"><value>Lock the aspect ratio (keeps edge-drag resizing proportional)</value></data>
+  <data name="Settings_HeksaHeading" xml:space="preserve"><value>Idyerin Script Font</value></data>
+  <data name="Settings_HeksaAnnotation" xml:space="preserve"><value> (Heksa)</value></data>
+  <data name="Settings_HeksaEnableCheckbox" xml:space="preserve"><value>Enable Heksa</value></data>
+  <data name="Settings_HeksaDescription" xml:space="preserve"><value>Shows headwords, the search box, and spelling fields in the word editor using the Idyerin script font (.ttf / .otf required).</value></data>
+  <data name="Settings_PickFileButton" xml:space="preserve"><value>Choose File</value></data>
+  <data name="Settings_HeksaMissingWarning" xml:space="preserve"><value>The font file couldn't be loaded, so the default font is used instead.</value></data>
+  <data name="Settings_HeksaSampleLabel" xml:space="preserve"><value>Sample: eaoiu heksa</value></data>
+  <data name="Settings_ResetDefaultButton" xml:space="preserve"><value>Reset to Defaults</value></data>
+  <data name="Settings_ReciprocalHeading" xml:space="preserve"><value>Reciprocal Relation Table</value></data>
+  <data name="Settings_ReciprocalNote" xml:space="preserve"><value> (one per line: term=counterpart)</value></data>
+  <data name="Settings_NoDictionaryWarning" xml:space="preserve"><value>Can't edit because no dictionary is open.</value></data>
+  <data name="Settings_PunctuationsNote" xml:space="preserve"><value> (characters ignored when sorting)</value></data>
+  <data name="Settings_IgnoredPatternNote" xml:space="preserve"><value> (a regular expression for the part to ignore when searching)</value></data>
+  <data name="Settings_DictDependentNote" xml:space="preserve"><value>Both of these are written to the dictionary file's zpdicOnline.</value></data>
+  <data name="Settings_BackgroundColorLabel" xml:space="preserve"><value>Background Color</value></data>
+  <data name="Settings_BackgroundColorNote" xml:space="preserve"><value> (e.g. #00B140 for chroma key; Transparent to see through)</value></data>
+  <data name="Settings_TopmostCheckbox" xml:space="preserve"><value>Always on top</value></data>
+  <data name="Settings_ShowTranslationsCheckbox" xml:space="preserve"><value>Show translations</value></data>
+  <data name="Settings_ShowContentsCheckbox" xml:space="preserve"><value>Also show content (etymology, usage, etc.)</value></data>
+  <data name="Settings_StreamWindowNote" xml:space="preserve"><value>The background color, font size scale, and always-on-top setting also apply to the word count window. Both are separate windows. In OBS, add a [Window Capture] source, pick "ZasDict Word Window" or "ZasDict Word Count Window", and apply a chroma key filter.</value></data>
+  <data name="Settings_BrowserOpenOnStartCheckbox" xml:space="preserve"><value>Open the browser tab at startup</value></data>
+  <data name="Settings_StartUrlLabel" xml:space="preserve"><value>Start URL</value></data>
+  <data name="Settings_StartUrlNote" xml:space="preserve"><value> (leave blank for the default search page)</value></data>
+  <data name="Settings_EditModeHeading" xml:space="preserve"><value>Edit Mode</value></data>
+  <data name="Settings_ModeLocal" xml:space="preserve"><value>Local Editing</value></data>
+  <data name="Settings_GitHubModeNote" xml:space="preserve"><value>In GitHub mode, autosave is disabled and [Load from GitHub] and [Commit] appear in the header.</value></data>
+  <data name="Settings_RepoLabel" xml:space="preserve"><value>Repository</value></data>
+  <data name="Settings_BranchLabel" xml:space="preserve"><value>Branch</value></data>
+  <data name="Settings_JsonPathLabel" xml:space="preserve"><value>Dictionary JSON Path</value></data>
+  <data name="Settings_JsonPathNote" xml:space="preserve"><value> (within the repository)</value></data>
+  <data name="Settings_JsonPathPlaceholder" xml:space="preserve"><value>e.g. dict/lexicon.json</value></data>
+  <data name="Settings_ChangelogPathLabel" xml:space="preserve"><value>Changelog CSV Path</value></data>
+  <data name="Settings_ChangelogPathNote" xml:space="preserve"><value> (within the repository; leave blank to disable reading and writing)</value></data>
+  <data name="Settings_ChangelogPathPlaceholder" xml:space="preserve"><value>e.g. dict/lexicon_changelog.csv</value></data>
+  <data name="Settings_TokenLabel" xml:space="preserve"><value>Access Token</value></data>
+  <data name="Settings_TokenPlaceholder" xml:space="preserve"><value>Personal access token (repo Contents read/write permission)</value></data>
+  <data name="Settings_TokenStorageNote" xml:space="preserve"><value>The token is stored in a separate file, not in settings.json.</value></data>
+  <data name="Settings_PickFontDialogTitle" xml:space="preserve"><value>Choose an Idyerin Script Font (Heksa)</value></data>
+  <data name="Settings_FontFilter" xml:space="preserve"><value>Fonts (*.ttf;*.otf)|*.ttf;*.otf|All files (*.*)|*.*</value></data>
+  <data name="Settings_TokenSaved" xml:space="preserve"><value>Token saved.</value></data>
+  <data name="Settings_TokenSaveFailed" xml:space="preserve"><value>Couldn't save the token: {0}</value></data>
+  <data name="Settings_TokenDeleted" xml:space="preserve"><value>Token deleted.</value></data>
+  <data name="GitHub_TokenHintSaved" xml:space="preserve"><value>The token is already saved ({0}). Entering a new one will overwrite it.</value></data>
+  <data name="GitHub_TokenHintMissing" xml:space="preserve"><value>A token with repo Contents read/write permission is required. Saved to: {0}</value></data>
+  <data name="Settings_AppliedStatus" xml:space="preserve"><value>Settings applied.</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
+  <data name="Settings_LanguageNote" xml:space="preserve"><value>Restart the app for the change to take effect.</value></data>
+
+  <!-- GitHub -->
+  <data name="GitHub_LoadButton" xml:space="preserve"><value>Load from GitHub</value></data>
+  <data name="GitHub_LoadButtonTooltip" xml:space="preserve"><value>Fetches the content from GitHub and reloads it locally</value></data>
+  <data name="GitHub_CommitButton" xml:space="preserve"><value>Commit</value></data>
+  <data name="GitHub_CommitButtonTooltip" xml:space="preserve"><value>Saves the local dictionary and changelog, then commits them to GitHub</value></data>
+  <data name="GitHub_CommitDialogTitle" xml:space="preserve"><value>Commit to GitHub</value></data>
+  <data name="GitHub_CommitSummaryLabel" xml:space="preserve"><value>What This Commit Includes</value></data>
+  <data name="GitHub_CommitMessageLabel" xml:space="preserve"><value>Commit Message</value></data>
+  <data name="GitHub_ConfigMissingRepo" xml:space="preserve"><value>Enter the repository and dictionary file path under Settings → GitHub.</value></data>
+  <data name="GitHub_ConfigMissingToken" xml:space="preserve"><value>Save an access token under Settings → GitHub.</value></data>
+  <data name="GitHub_Checking" xml:space="preserve"><value>Checking GitHub…</value></data>
+  <data name="GitHub_LoadFailedStatus" xml:space="preserve"><value>Failed to load from GitHub: {0}</value></data>
+  <data name="GitHub_NoDiff" xml:space="preserve"><value>There's no difference between local and remote.</value></data>
+  <data name="GitHub_LoadConfirmTitle" xml:space="preserve"><value>Load from GitHub</value></data>
+  <data name="GitHub_LoadConfirmQuestion" xml:space="preserve"><value>Discard local changes and reload from GitHub?</value></data>
+  <data name="GitHub_LoadConfirmTarget" xml:space="preserve"><value>Will overwrite: {0}</value></data>
+  <data name="GitHub_LoadConfirmYes" xml:space="preserve"><value>Load</value></data>
+  <data name="GitHub_Loading" xml:space="preserve"><value>Loading from GitHub…</value></data>
+  <data name="GitHub_ChangelogLoadFailedStatus" xml:space="preserve"><value>Failed to load the changelog: {0}</value></data>
+  <data name="GitHub_LoadedStatus" xml:space="preserve"><value>Loaded from GitHub ({0}/{1} @ {2}).</value></data>
+  <data name="GitHub_WriteFailedStatus" xml:space="preserve"><value>Failed to write locally: {0}</value></data>
+  <data name="GitHub_NoPendingChanges" xml:space="preserve"><value>There are no pending updates. The dictionary file's current content will be committed as-is.</value></data>
+  <data name="GitHub_DefaultCommitMessage" xml:space="preserve"><value>ZasDict: update</value></data>
+  <data name="GitHub_CommitMessageFormat" xml:space="preserve"><value>ZasDict: {0}{1}</value></data>
+  <data name="GitHub_AndMoreSuffix" xml:space="preserve"><value> and more</value></data>
+  <data name="GitHub_Committing" xml:space="preserve"><value>Committing…</value></data>
+  <data name="GitHub_CommitFailedStatus" xml:space="preserve"><value>Commit failed: {0}</value></data>
+  <data name="GitHub_Committed" xml:space="preserve"><value>Committed to GitHub.</value></data>
+  <data name="GitHub_TokenInvalidChars" xml:space="preserve"><value>The token contains characters that can't be used. Please enter it again.</value></data>
+  <data name="GitHub_FileNotFound" xml:space="preserve"><value>{0} ({1}) was not found.</value></data>
+  <data name="GitHub_FileTooLarge" xml:space="preserve"><value>The file is too large to fetch (encoding: {0}).</value></data>
+  <data name="GitHub_DownloadFailed" xml:space="preserve"><value>Download failed (HTTP {0}).</value></data>
+  <data name="GitHub_FetchOk" xml:space="preserve"><value>Fetched successfully</value></data>
+  <data name="Network_Timeout" xml:space="preserve"><value>The connection timed out. Check your network.</value></data>
+  <data name="GitHub_FetchFailed" xml:space="preserve"><value>Fetch failed: {0}</value></data>
+  <data name="GitHub_NoChangesToCommit" xml:space="preserve"><value>There are no changes to commit.</value></data>
+  <data name="GitHub_BranchFetchFailed" xml:space="preserve"><value>Failed to fetch the branch: {0}</value></data>
+  <data name="GitHub_BranchParseFailed" xml:space="preserve"><value>Couldn't parse the branch information.</value></data>
+  <data name="GitHub_CommitInfoFetchFailed" xml:space="preserve"><value>Failed to fetch the commit information: {0}</value></data>
+  <data name="GitHub_CommitInfoParseFailed" xml:space="preserve"><value>Couldn't parse the commit information.</value></data>
+  <data name="GitHub_TreeCreateFailed" xml:space="preserve"><value>Failed to create the tree: {0}</value></data>
+  <data name="GitHub_TreeParseFailed" xml:space="preserve"><value>Couldn't parse the tree response.</value></data>
+  <data name="GitHub_CommitCreateFailed" xml:space="preserve"><value>Failed to create the commit: {0}</value></data>
+  <data name="GitHub_CommitParseFailed" xml:space="preserve"><value>Couldn't parse the commit response.</value></data>
+  <data name="GitHub_RemoteUpdatedConflict" xml:space="preserve"><value>The remote has been updated. Reload from GitHub before committing.</value></data>
+  <data name="GitHub_BranchUpdateFailed" xml:space="preserve"><value>Failed to update the branch: {0}</value></data>
+  <data name="GitHub_CommitOk" xml:space="preserve"><value>Committed successfully</value></data>
+  <data name="GitHub_Http401" xml:space="preserve"><value>HTTP 401: The token is incorrect. Please enter it again.</value></data>
+  <data name="GitHub_Http403" xml:space="preserve"><value>HTTP 403: Insufficient permissions, or the call limit has been reached.</value></data>
+  <data name="GitHub_HttpGeneric" xml:space="preserve"><value>HTTP {0}: The request failed.</value></data>
+
+  <!-- Main / dictionary -->
+  <data name="Main_OpenDictionaryPrompt" xml:space="preserve"><value>Please open a dictionary.</value></data>
+  <data name="Main_NoDictionaryName" xml:space="preserve"><value>No dictionary</value></data>
+  <data name="Main_CountLabel" xml:space="preserve"><value>{0} / {1} words</value></data>
+  <data name="Main_WordCountLabel" xml:space="preserve"><value>{0} words</value></data>
+  <data name="Main_FontScaleStatus" xml:space="preserve"><value>Font size {0}%</value></data>
+  <data name="Main_NewDictionaryCreated" xml:space="preserve"><value>Created an empty dictionary. You'll choose a file name when you save.</value></data>
+  <data name="Main_OpenDialogTitle" xml:space="preserve"><value>Open an OTM-JSON Dictionary</value></data>
+  <data name="Main_OtmFilter" xml:space="preserve"><value>OTM-JSON (*.json)|*.json|All files (*.*)|*.*</value></data>
+  <data name="Main_LoadFailedStatus" xml:space="preserve"><value>Failed to load: {0}</value></data>
+  <data name="Main_LoadFailedTitle" xml:space="preserve"><value>Can't Open</value></data>
+  <data name="Main_LoadedStatus" xml:space="preserve"><value>Loaded {0}.</value></data>
+  <data name="Main_SaveDialogTitle" xml:space="preserve"><value>Save the Dictionary</value></data>
+  <data name="Main_SaveFailedStatus" xml:space="preserve"><value>Failed to save: {0}</value></data>
+  <data name="Main_SaveFailedTitle" xml:space="preserve"><value>Can't Save</value></data>
+  <data name="Main_SavedStatus" xml:space="preserve"><value>Saved to {0}.</value></data>
+  <data name="Main_ChangelogAppendFailedStatus" xml:space="preserve"><value>Failed to append to the changelog: {0}</value></data>
+  <data name="Main_NoSavePathStatus" xml:space="preserve"><value>No save location is set.</value></data>
+  <data name="Main_NewWordButton" xml:space="preserve"><value>+ Word</value></data>
+  <data name="Main_ExamplesButtonTooltip" xml:space="preserve"><value>Views and edits the dictionary's examples</value></data>
+  <data name="Main_UnsavedTooltip" xml:space="preserve"><value>There are unsaved changes</value></data>
+
+  <data name="Word_AddedStatus" xml:space="preserve"><value>Added "{0}".</value></data>
+  <data name="Word_UpdatedStatus" xml:space="preserve"><value>Updated "{0}".</value></data>
+  <data name="Word_DuplicatedStatus" xml:space="preserve"><value>Duplicated "{0}".</value></data>
+  <data name="Word_DeleteConfirmTitle" xml:space="preserve"><value>Delete Word</value></data>
+  <data name="Word_DeleteConfirmMessage" xml:space="preserve"><value>This will delete "{0}". Any relations pointing to it will also be removed.</value></data>
+  <data name="Word_DeletedStatus" xml:space="preserve"><value>Deleted "{0}".</value></data>
+  <data name="Word_RelationNotFoundStatus" xml:space="preserve"><value>Related word id={0} ({1}) was not found.</value></data>
+
+  <data name="Example_AddedStatus" xml:space="preserve"><value>Added the example.</value></data>
+  <data name="Example_UpdatedStatus" xml:space="preserve"><value>Updated the example.</value></data>
+  <data name="Example_DeleteConfirmTitle" xml:space="preserve"><value>Delete Example</value></data>
+  <data name="Example_DeleteConfirmMessage" xml:space="preserve"><value>This will delete "{0}".</value></data>
+  <data name="Example_DeletedStatus" xml:space="preserve"><value>Deleted the example.</value></data>
+
+  <data name="App_UnsavedCloseTitle" xml:space="preserve"><value>Unsaved Changes</value></data>
+  <data name="App_UnsavedCloseMessage" xml:space="preserve"><value>Changes to {0} haven't been saved.</value></data>
+  <data name="App_SaveAndExit" xml:space="preserve"><value>Save and Exit</value></data>
+  <data name="App_ExitWithoutSaving" xml:space="preserve"><value>Exit Without Saving</value></data>
+
+  <!-- OTM-JSON / document -->
+  <data name="Otm_ParseEmpty" xml:space="preserve"><value>The JSON parsed to nothing.</value></data>
+  <data name="Otm_NotAnObject" xml:space="preserve"><value>The top level of the OTM-JSON isn't an object.</value></data>
+  <data name="Doc_Untitled" xml:space="preserve"><value>(Untitled)</value></data>
+
+  <!-- Windows / menus -->
+  <data name="Window_StreamTitle" xml:space="preserve"><value>ZasDict Word Window</value></data>
+  <data name="Window_CountTitle" xml:space="preserve"><value>ZasDict Word Count Window</value></data>
+  <data name="Window_StreamPlaceholder" xml:space="preserve"><value>Select a word to display it here</value></data>
+  <data name="Window_StreamMenuOpen" xml:space="preserve"><value>Word Window</value></data>
+  <data name="Window_StreamMenuClose" xml:space="preserve"><value>Close Word Window</value></data>
+  <data name="Window_StreamMenuTooltip" xml:space="preserve"><value>Shows only the selected word, enlarged</value></data>
+  <data name="Window_CountMenuOpen" xml:space="preserve"><value>Word Count Window</value></data>
+  <data name="Window_CountMenuClose" xml:space="preserve"><value>Close Word Count Window</value></data>
+  <data name="Window_CountMenuTooltip" xml:space="preserve"><value>Shows only the dictionary's total word count, enlarged</value></data>
+
+  <!-- Dock -->
+  <data name="Dock_EmptyHint" xml:space="preserve"><value>Drag a tab here</value></data>
+  <data name="Dock_CloseAreaButton" xml:space="preserve"><value>Close This Pane</value></data>
+  <data name="Overlay_DropToFloatHint" xml:space="preserve"><value>Release to open as its own window</value></data>
+
+  <!-- Error overlay -->
+  <data name="Error_Title" xml:space="preserve"><value>Something Went Wrong</value></data>
+  <data name="Error_Message" xml:space="preserve"><value>This operation was cancelled, but you can keep using the app.
+
+{0}: {1}
+
+Detailed log: {2}</value></data>
+</root>

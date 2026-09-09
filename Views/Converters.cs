@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using ZasDictWin.Services;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
@@ -110,6 +111,18 @@ public sealed class StringToBrushConverter : IValueConverter
         catch (FormatException) { return Brushes.Transparent; }
         catch (NotSupportedException) { return Brushes.Transparent; }
     }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
+
+/// <summary>UI 文字列の <c>[en]</c> タグを落として素の文字列にする。ウィンドウの Title のように
+/// OS 側が描く場所は区間ごとにフォントを変えられないため、Views/LocalizedText.cs ではなく
+/// こちらを通す。</summary>
+public sealed class PlainTextConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => EnTag.Strip(value as string);
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
         => Binding.DoNothing;

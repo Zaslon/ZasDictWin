@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using System.Windows.Input;
 using System.Windows.Media;
 using ZasDictWin.Models;
+using ZasDictWin.Resources;
 using ZasDictWin.Services;
 
 namespace ZasDictWin.ViewModels;
@@ -42,9 +43,9 @@ public sealed class ChoiceViewModel : OverlayViewModel
         return this;
     }
 
-    public ChoiceViewModel AddCancel(string label = "キャンセル")
+    public ChoiceViewModel AddCancel(string? label = null)
     {
-        Choices.Add(new ChoiceItem { Label = label, Command = new RelayCommand(() => RequestClose?.Invoke()) });
+        Choices.Add(new ChoiceItem { Label = label ?? Strings.Common_Cancel, Command = new RelayCommand(() => RequestClose?.Invoke()) });
         return this;
     }
 }
@@ -58,7 +59,7 @@ public sealed class WordDetailViewModel : OverlayViewModel
     public WordDetailViewModel(MainViewModel main)
     {
         Main = main;
-        Title = "単語詳細";
+        Title = Strings.Detail_Title;
     }
 
     public MainViewModel Main { get; }
@@ -75,7 +76,7 @@ public sealed class SearchViewModel : OverlayViewModel
     public SearchViewModel(MainViewModel main)
     {
         Main = main;
-        Title = "検索";
+        Title = Strings.Search_Title;
     }
 
     public MainViewModel Main { get; }
@@ -93,7 +94,7 @@ public sealed class BrowserTabViewModel : OverlayViewModel
     {
         Main = main;
         Browser = browser;
-        Title = "ブラウザ";
+        Title = Strings.Browser_Title;
         Main.PropertyChanged += (_, e) =>
         {
             if (e.PropertyName == nameof(MainViewModel.IsBrowserShown)) Raise(nameof(IsContentShown));
@@ -121,8 +122,9 @@ public sealed class SettingsViewModel : OverlayViewModel
         _settings = settings;
         _doc = doc;
         _apply = apply;
-        Title = "設定";
+        Title = Strings.Settings_Title;
 
+        Language = settings.Language;
         SortOrder = settings.SortOrder;
         FontScale = settings.FontScale;
         AutoSave = settings.AutoSave;
@@ -167,6 +169,17 @@ public sealed class SettingsViewModel : OverlayViewModel
 
     private static string FormatReciprocal(IEnumerable<KeyValuePair<string, string>> map)
         => string.Join(Environment.NewLine, map.Select(kv => $"{kv.Key}={kv.Value}"));
+
+    private string _language = Languages.Default;
+
+    /// <summary>表示言語コード（Languages.All のいずれか）。x:Static で参照する UI 文字列は
+    /// 再起動しないと切り替わらない（Strings.cs 参照）ため、ここで選んでもすぐには反映しない。
+    /// プルダウンの選択表示は Mode（編集モード）と同じく PropertyChanged で追随させる必要があるので、
+    /// 素の自動プロパティにしない。</summary>
+    public string Language { get => _language; set => Set(ref _language, value); }
+
+    /// <summary>設定画面の言語プルダウンの選択肢。対応言語を増やすには Languages.All を編集する。</summary>
+    public IReadOnlyList<LanguageOption> AvailableLanguages => Languages.All;
 
     public string SortOrder { get; set; }
     public double FontScale { get; set; }
@@ -269,8 +282,8 @@ public sealed class SettingsViewModel : OverlayViewModel
     public bool HasGitHubToken => GitHubApi.LoadToken() is not null;
 
     public string GitHubTokenHint => HasGitHubToken
-        ? $"トークンは保存済みです（{GitHubApi.TokenPath}）。入れ直すと上書きします。"
-        : $"repo の Contents 読み書き権限を持つトークンが必要です。保存先: {GitHubApi.TokenPath}";
+        ? string.Format(Strings.GitHub_TokenHintSaved, GitHubApi.TokenPath)
+        : string.Format(Strings.GitHub_TokenHintMissing, GitHubApi.TokenPath);
 
     private string _gitHubTokenStatus = "";
     public string GitHubTokenStatus { get => _gitHubTokenStatus; private set => Set(ref _gitHubTokenStatus, value); }
@@ -288,11 +301,11 @@ public sealed class SettingsViewModel : OverlayViewModel
         {
             GitHubApi.SaveToken(GitHubTokenInput);
             GitHubTokenInput = "";
-            GitHubTokenStatus = "トークンを保存しました。";
+            GitHubTokenStatus = Strings.Settings_TokenSaved;
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            GitHubTokenStatus = $"トークンを保存できませんでした: {ex.Message}";
+            GitHubTokenStatus = string.Format(Strings.Settings_TokenSaveFailed, ex.Message);
         }
         Raise(nameof(HasGitHubToken));
         Raise(nameof(GitHubTokenHint));
@@ -301,7 +314,7 @@ public sealed class SettingsViewModel : OverlayViewModel
     private void DeleteGitHubToken()
     {
         GitHubApi.DeleteToken();
-        GitHubTokenStatus = "トークンを削除しました。";
+        GitHubTokenStatus = Strings.Settings_TokenDeleted;
         Raise(nameof(HasGitHubToken));
         Raise(nameof(GitHubTokenHint));
     }
@@ -310,14 +323,16 @@ public sealed class SettingsViewModel : OverlayViewModel
     {
         var dlg = new Microsoft.Win32.OpenFileDialog
         {
-            Title = "イジェール文字フォント（Heksa）を選択",
-            Filter = "フォント (*.ttf;*.otf)|*.ttf;*.otf|すべてのファイル (*.*)|*.*"
+            // OS が描くダイアログなので [en] は効かない。タグだけ落とす。
+            Title = EnTag.Strip(Strings.Settings_PickFontDialogTitle),
+            Filter = EnTag.Strip(Strings.Settings_FontFilter)
         };
         if (dlg.ShowDialog() == true) HeksaFontPath = dlg.FileName;
     }
 
     private void ApplyAll()
     {
+        _settings.Language = Language;
         _settings.SortOrder = string.IsNullOrWhiteSpace(SortOrder) ? TextProcessor.DefaultSortOrder : SortOrder;
         _settings.FontScale = Math.Clamp(FontScale, 0.6, 3.0);
         _settings.AutoSave = AutoSave;
@@ -385,7 +400,7 @@ public sealed class CommitViewModel : OverlayViewModel
 
     public CommitViewModel(string summary, string defaultMessage, Action<string> commit)
     {
-        Title = "GitHubへコミット";
+        Title = Strings.GitHub_CommitDialogTitle;
         Summary = summary;
         _message = defaultMessage;
         _commit = commit;

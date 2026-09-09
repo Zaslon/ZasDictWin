@@ -1,13 +1,15 @@
 <UserControl x:Class="ZasDictWin.Views.ChangelogPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+             xmlns:v="clr-namespace:ZasDictWin.Views"
+             xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <DockPanel Margin="24,20">
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button Content="CSV を選び直す" Command="{Binding RelinkChangelogCommand}" />
-                <Button Content="書き出す" Command="{Binding ExportChangelogCommand}" Margin="0" />
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Changelog_RelinkButton}" Command="{Binding RelinkChangelogCommand}" />
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Changelog_ExportButton}" Command="{Binding ExportChangelogCommand}" Margin="0" />
             </StackPanel>
             <!-- パスは 1 行。Label スタイルが Wrap を宣言しているので明示的に打ち消す -->
             <TextBlock Text="{Binding ChangelogPath}" Style="{StaticResource Label}" Margin="0"

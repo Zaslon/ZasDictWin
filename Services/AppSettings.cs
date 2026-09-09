@@ -11,6 +11,10 @@ public enum EditMode { Local, GitHub }
 
 public sealed class AppSettings
 {
+    // OS の言語ではなく "ja" を既定にする。settings.json にこの項目がまだ無い（i18n 対応前からの）
+    // 利用者が、端末の言語設定に関わらずこれまでどおり日本語のまま使い続けられるようにするため。
+    public string Language { get; set; } = "ja";
+
     public string? LastDictionaryPath { get; set; }
     public string? ChangelogPath { get; set; }
 

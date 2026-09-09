@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using ZasDictWin.Models;
+using ZasDictWin.Resources;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
@@ -56,9 +57,9 @@ public partial class SearchPanel : UserControl
         menu.Items = DataContext is MainViewModel vm && menu.DataContext is Word w
             ? new[]
             {
-                new MenuAction { Header = "編集", Command = vm.EditWordCommand, CommandParameter = w },
-                new MenuAction { Header = "複製", Command = vm.DuplicateWordCommand, CommandParameter = w },
-                new MenuAction { Header = "削除", Command = vm.DeleteWordCommand, CommandParameter = w },
+                new MenuAction { Header = Strings.Common_Edit, Command = vm.EditWordCommand, CommandParameter = w },
+                new MenuAction { Header = Strings.Common_Duplicate, Command = vm.DuplicateWordCommand, CommandParameter = w },
+                new MenuAction { Header = Strings.Common_Delete, Command = vm.DeleteWordCommand, CommandParameter = w },
             }
             : null;
     }

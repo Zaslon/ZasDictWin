@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.Web.WebView2.Core;
+using ZasDictWin.Resources;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
@@ -14,8 +15,7 @@ namespace ZasDictWin.Views;
 /// </summary>
 public partial class BrowserPanel : UserControl
 {
-    private const string RuntimeMissingMessage =
-        "WebView2 を起動できませんでした。Microsoft Edge または WebView2 Runtime をインストールすると使えます。";
+    private static string RuntimeMissingMessage => Strings.Browser_RuntimeMissing;
 
     private BrowserViewModel? _vm;
     private Task? _init;
@@ -131,7 +131,7 @@ public partial class BrowserPanel : UserControl
             {
                 _vm.ReportError(null);
                 _vm.ReportBusy(true);
-                _vm.ReportStatus($"読み込み中: {e.Uri}");
+                _vm.ReportStatus(string.Format(Strings.Browser_Loading, e.Uri));
             };
             core.NavigationCompleted += (_, e) =>
             {
@@ -140,7 +140,7 @@ public partial class BrowserPanel : UserControl
                 var title = core.DocumentTitle;
                 _vm.ReportStatus(e.IsSuccess
                     ? (string.IsNullOrEmpty(title) ? core.Source?.ToString() ?? "" : title)
-                    : $"読み込みに失敗しました（{e.WebErrorStatus}）");
+                    : string.Format(Strings.Browser_LoadFailed, e.WebErrorStatus));
             };
             // target=_blank のリンクは同じタブで開く（別ウィンドウは OBS に映らない）。
             core.NewWindowRequested += (_, e) =>
@@ -170,7 +170,7 @@ public partial class BrowserPanel : UserControl
         }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or COMException)
         {
-            _vm.ReportStatus($"開けません: {ex.Message}");
+            _vm.ReportStatus(string.Format(Strings.Browser_CannotOpen, ex.Message));
         }
     }
 

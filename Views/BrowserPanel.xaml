@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
-             xmlns:t="clr-namespace:ZasDictWin.Views">
+             xmlns:t="clr-namespace:ZasDictWin.Views"
+             xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <!-- 枠線と面は枠（DockGroupPanel）が描くので、ここは中身だけを持つ -->
     <Border Background="{StaticResource Panel}">
@@ -17,11 +18,11 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
                     <Button Content="←" Style="{StaticResource IconButton}" Command="{Binding BackCommand}"
-                            ToolTip="戻る" IsEnabled="{Binding CanGoBack}" />
+                            ToolTip="{x:Static res:Strings.Browser_Back}" IsEnabled="{Binding CanGoBack}" />
                     <Button Content="→" Style="{StaticResource IconButton}" Command="{Binding ForwardCommand}"
-                            ToolTip="進む" IsEnabled="{Binding CanGoForward}" />
+                            ToolTip="{x:Static res:Strings.Browser_Forward}" IsEnabled="{Binding CanGoForward}" />
                     <Button Content="⟳" Style="{StaticResource IconButton}" Command="{Binding ReloadCommand}"
-                            ToolTip="再読み込み" Margin="0" />
+                            ToolTip="{x:Static res:Strings.Browser_Reload}" Margin="0" />
                 </StackPanel>
                 <!-- アドレス欄。枠そのものは TextBox ではなく Border で描き、フォーカス中だけ
                      アクセント色に光らせる。半径は隣の戻る／進む／再読み込みボタン（Button
@@ -41,7 +42,7 @@
                     </Border.Style>
                     <TextBox x:Name="AddressBox" BorderThickness="0" Background="Transparent"
                              Padding="11,0" VerticalContentAlignment="Center"
-                             t:Placeholder.Text="アドレスまたは検索語句"
+                             t:Placeholder.Text="{x:Static res:Strings.Browser_AddressPlaceholder}"
                              Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}">
                         <TextBox.InputBindings>
                             <KeyBinding Key="Enter" Command="{Binding NavigateCommand}" />
@@ -82,8 +83,8 @@
                               Visibility="{Binding HasError, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
                 <StackPanel VerticalAlignment="Center" Margin="20"
                             Visibility="{Binding HasError, Converter={StaticResource BoolVis}}">
-                    <TextBlock Style="{StaticResource EmptyState}" Text="ページを表示できません" FontWeight="SemiBold" />
-                    <TextBlock Style="{StaticResource EmptyState}" Text="{Binding ErrorText}" Margin="24,4,24,0"
+                    <TextBlock Style="{StaticResource EmptyState}" t:LocalizedText.Text="{x:Static res:Strings.Browser_PageError}" FontWeight="SemiBold" />
+                    <TextBlock Style="{StaticResource EmptyState}" t:LocalizedText.Text="{Binding ErrorText}" Margin="24,4,24,0"
                                Opacity="0.8" />
                 </StackPanel>
             </Grid>

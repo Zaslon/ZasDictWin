@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Windows.Input;
 using ZasDictWin.Models;
+using ZasDictWin.Resources;
 using ZasDictWin.Services;
 
 namespace ZasDictWin.ViewModels;
@@ -49,7 +50,9 @@ public sealed class WordEditViewModel : OverlayViewModel
 
     private string _form = "";
     private string _relationQuery = "";
-    private string _relationTitle = "対義語";
+    // 入力欄の初期値であり、そのまま辞書データの関連語の見出しとして保存される。
+    // 区間ごとのフォント指定は効かないうえ、タグが辞書ファイルに残ってしまうので落とす。
+    private string _relationTitle = EnTag.Strip(Strings.Relation_DefaultTitle);
     private string _validationMessage = "";
 
     /// <summary>読み込み直後（何も打っていない状態）の内容。<see cref="HasChanges"/> の基準にする。</summary>
@@ -64,7 +67,7 @@ public sealed class WordEditViewModel : OverlayViewModel
         _commit = commit;
 
         Source = source;
-        Title = source is null ? "単語を追加" : "単語を編集";
+        Title = source is null ? Strings.WordEdit_AddTitle : Strings.WordEdit_EditTitle;
 
         if (source is not null)
         {
@@ -125,7 +128,7 @@ public sealed class WordEditViewModel : OverlayViewModel
             (!string.IsNullOrWhiteSpace(t.FormsText) || !string.IsNullOrWhiteSpace(t.Title)) &&
             !PosTitles.Contains(t.Title.Trim()));
         ValidationMessage = missing
-            ? "訳語の品詞を選択してください（各訳語で品詞を 1 つ選びます）。"
+            ? Strings.WordEdit_ValidationPos
             : "";
         return !missing;
     }
@@ -167,8 +170,8 @@ public sealed class WordEditViewModel : OverlayViewModel
     }
 
     public string RelationTitleHint => HintFor(RelationTitle) is { Length: > 0 } h
-        ? $"相手側には「{h}」が自動登録されます"
-        : "対照関係が未定義のため相手側には登録されません";
+        ? string.Format(Strings.WordEdit_ReciprocalHint, h)
+        : Strings.WordEdit_NoReciprocalHint;
 
     public string RelationQuery
     {

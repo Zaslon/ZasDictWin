@@ -1,5 +1,7 @@
+using System.Globalization;
 using System.Windows;
 using System.Windows.Threading;
+using ZasDictWin.Resources;
 using ZasDictWin.Services;
 
 namespace ZasDictWin;
@@ -17,6 +19,12 @@ public partial class App : Application
 
     protected override void OnStartup(StartupEventArgs e)
     {
+        // XAML の x:Static は各ウィンドウの InitializeComponent（＝StartupUri の MainWindow を含め
+        // base.OnStartup より前には作られない）で一度だけ評価されるので、UI 文字列の言語は
+        // それより前に確定させておく必要がある。MainViewModel も別途 AppSettings.Load() するが、
+        // 設定ファイルを読むだけの軽い処理なので二重読みを気にしない。
+        ApplyLanguage(AppSettings.Load().Language);
+
         // 既定の MessageBox は別 HWND なので OBS に映りません。ここでは記録と継続判断だけを行い、
         // 目に見える案内は MainWindow 側のオーバーレイに任せます。
         DispatcherUnhandledException += OnDispatcherUnhandledException;
@@ -44,6 +52,23 @@ public partial class App : Application
 
         Recent.Add(now);
         return true;
+    }
+
+    /// <summary>UI 文字列の言語を確定させる。CurrentCulture（日付・数値の書式）には触れない。
+    /// Strings.Get の参照先切り替えは Strings.SetLanguage が担う（Idyerin のような ICU に無い
+    /// 自作言語コードでは CultureInfo ベースの解決ができないため。Strings.cs の説明を参照）。
+    /// CurrentUICulture / DefaultThreadCurrentUICulture 自体は EllipsisMiddle の文字整形など
+    /// 文字列引き当て以外でも参照されるので、こちらは従来どおり合わせておく
+    /// （未知のコードでも CultureInfo の生成自体は例外にならないので安全）。
+    /// 対応言語の一覧は Languages.All（Resources/Languages.cs）を参照。</summary>
+    private static void ApplyLanguage(string language)
+    {
+        var code = Languages.Normalize(language);
+        Strings.SetLanguage(code);
+
+        var culture = new CultureInfo(code);
+        CultureInfo.CurrentUICulture = culture;
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
     }
 }
 

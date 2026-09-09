@@ -28,6 +28,10 @@
     <DebugType>embedded</DebugType>
     <!-- 参照 NuGet の .xml (WebView2 だけで 0.8MB) と .pdb を出力に持ち込まない。 -->
     <AllowedReferenceRelatedFileExtensions>none</AllowedReferenceRelatedFileExtensions>
+    <!-- Resources/Strings.*.resx は下の EmbeddedResource（WithCulture=false）で個別に本体 exe へ
+         埋め込んでおり、この一覧には従わない（詳細は Strings.cs 冒頭のコメントを参照）。
+         ここは参照 NuGet（WebView2 等）が独自に持つローカライズ済みサテライトを間引く役目だけなので、
+         対応言語を増やしてもここは触らなくてよい。 -->
     <SatelliteResourceLanguages>ja;en</SatelliteResourceLanguages>
 
     <!-- バージョンの末尾（パッチ番号）は VersionPatchFile に永続化する。ファイルの中身は
@@ -48,6 +52,23 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4191.47" />
+  </ItemGroup>
+
+  <!-- 新しい言語を追加するときのひな形。翻訳用のひな形でしかなくアプリには含めないので、
+       明示的にビルド対象から除外する。 -->
+  <ItemGroup>
+    <EmbeddedResource Remove="Resources\Strings.template.resx" />
+  </ItemGroup>
+
+  <!-- Strings.<コード>.resx（既定の Strings.resx 自身は除く）は、.NET が「実在する言語」と
+       認識できるコードにしか使えない標準のサテライトアセンブリ機構に頼らず、常に
+       WithCulture=false で本体 exe へ直接埋め込む。Idyerin（idz）のような ICU に無い自作の
+       言語コードだと、SatelliteResourceLanguages に足しても AssignCulture が「無効なカルチャ」
+       と判断してサテライト自体が作られず、選んでも例外も出ないまま既定言語に化けてしまうため
+       （詳しい経緯は Strings.cs 冒頭のコメントを参照）。この指定のおかげで対応言語を増やすときは
+       resx を置いて Languages.All に足すだけでよく、csproj 側の追加作業は不要。 -->
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\Strings.*.resx" WithCulture="false" />
   </ItemGroup>
 
   <!-- WebView2 パッケージは WPF 版と WinForms 版のラッパーを両方入れてくる。使うのは WPF 版だけで、

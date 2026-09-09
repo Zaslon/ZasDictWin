@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using ZasDictWin.Services;
 
 namespace ZasDictWin.Views;
 
@@ -12,6 +13,10 @@ namespace ZasDictWin.Views;
 /// 先頭と末尾を残す。既定の TextBlock スタイルは Wrap なので、使い所で NoWrap にする。
 /// Text はこのクラスが書き込むので、元文字列は Source 側にバインドすること
 /// （Text をバインドすると上書きして競合する）。
+///
+/// UI 文字列（Resources/Strings.*.resx）の <c>[en]</c> はここでは落とすだけで、区間ごとの
+/// フォント指定は効かない。切り詰めは 1 本の文字列を任意の位置で割る操作なので、区間に
+/// 分けた Inlines とは両立しないため。
 /// </summary>
 public static class EllipsisMiddle
 {
@@ -52,7 +57,7 @@ public static class EllipsisMiddle
     /// <summary>収まる先頭＋末尾の文字数を探索して Text に書き込む。</summary>
     private static void Update(TextBlock tb)
     {
-        var source = GetSource(tb);
+        var source = EnTag.Strip(GetSource(tb));
         if (string.IsNullOrEmpty(source))
         {
             SetText(tb, string.Empty);

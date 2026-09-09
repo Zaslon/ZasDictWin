@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ZasDictWin.Resources;
 
 namespace ZasDictWin.Services;
 
@@ -78,7 +79,7 @@ public static class GitHubApi
     public static async Task<GitHubFileResult> GetFileAsync(string owner, string repo, string path, string branch, string token)
     {
         if (!token.All(char.IsAscii))
-            return new GitHubFileResult(false, "トークンに使用できない文字が含まれています。入力し直してください。") { AuthFailed = true };
+            return new GitHubFileResult(false, Strings.GitHub_TokenInvalidChars) { AuthFailed = true };
 
         var url = $"{ApiBase}/repos/{Uri.EscapeDataString(owner)}/{Uri.EscapeDataString(repo)}/contents/{EscapePath(path)}?ref={Uri.EscapeDataString(branch)}";
         try
@@ -88,7 +89,7 @@ public static class GitHubApi
             var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
 
             if (response.StatusCode == HttpStatusCode.NotFound)
-                return new GitHubFileResult(false, $"{path}（{branch}）が見つかりません。") { NotFound = true };
+                return new GitHubFileResult(false, string.Format(Strings.GitHub_FileNotFound, path, branch)) { NotFound = true };
             if (response.StatusCode != HttpStatusCode.OK)
                 return Failure<GitHubFileResult>(response.StatusCode, (msg, auth) => new GitHubFileResult(false, msg) { AuthFailed = auth });
 
@@ -101,44 +102,42 @@ public static class GitHubApi
             {
                 var downloadUrl = node?["download_url"]?.GetValue<string>();
                 if (string.IsNullOrEmpty(downloadUrl))
-                    return new GitHubFileResult(false, $"ファイルが大きすぎて取得できません（encoding: {encoding}）。");
+                    return new GitHubFileResult(false, string.Format(Strings.GitHub_FileTooLarge, encoding));
 
                 using var dlRequest = new HttpRequestMessage(HttpMethod.Get, downloadUrl);
                 dlRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 using var dlResponse = await Http.SendAsync(dlRequest).ConfigureAwait(false);
                 if (!dlResponse.IsSuccessStatusCode)
-                    return new GitHubFileResult(false, $"ダウンロードに失敗しました（HTTP {(int)dlResponse.StatusCode}）。");
+                    return new GitHubFileResult(false, string.Format(Strings.GitHub_DownloadFailed, (int)dlResponse.StatusCode));
                 var text = await dlResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                return new GitHubFileResult(true, "取得成功", text);
+                return new GitHubFileResult(true, Strings.GitHub_FetchOk, text);
             }
 
             var content = node?["content"]?.GetValue<string>() ?? "";
             var decoded = Encoding.UTF8.GetString(Convert.FromBase64String(content.Replace("\n", "")));
-            return new GitHubFileResult(true, "取得成功", decoded);
+            return new GitHubFileResult(true, Strings.GitHub_FetchOk, decoded);
         }
         catch (TaskCanceledException)
         {
-            return new GitHubFileResult(false, "通信がタイムアウトしました。通信状態を確かめてください。");
+            return new GitHubFileResult(false, Strings.Network_Timeout);
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException or FormatException)
         {
-            return new GitHubFileResult(false, $"取得に失敗しました: {ex.Message}");
+            return new GitHubFileResult(false, string.Format(Strings.GitHub_FetchFailed, ex.Message));
         }
     }
 
     /// <summary>
-    /// 複数ファイルへの変更を 1 回のコミットにまとめる（Git Data API）。Contents API と違い個々の
-    /// sha は不要で、コミット直前のブランチ先端をそのつど基点にする。辞書 JSON と更新履歴 CSV を
-    /// 同時に変更しても、途中経過が別コミットに割れることはない。
+    /// 複数ファイルへの変更を 1 回のコミットにまとめる（Git Data API）。辞書 JSON と更新履歴 CSV をまとめるためのもの。
     /// </summary>
     public static async Task<GitHubCommitResult> CommitFilesAsync(
         string owner, string repo, string branch, string token,
         IReadOnlyList<GitHubFileChange> files, string message)
     {
         if (!token.All(char.IsAscii))
-            return new GitHubCommitResult(false, "トークンに使用できない文字が含まれています。入力し直してください。") { AuthFailed = true };
+            return new GitHubCommitResult(false, Strings.GitHub_TokenInvalidChars) { AuthFailed = true };
         if (files.Count == 0)
-            return new GitHubCommitResult(false, "コミットする変更がありません。");
+            return new GitHubCommitResult(false, Strings.GitHub_NoChangesToCommit);
 
         var repoBase = $"{ApiBase}/repos/{Uri.EscapeDataString(owner)}/{Uri.EscapeDataString(repo)}";
         try
@@ -150,16 +149,16 @@ public static class GitHubApi
             var getRefUrl = $"{repoBase}/git/ref/{branchRef}";
             var updateRefUrl = $"{repoBase}/git/refs/{branchRef}";
             var (refOk, refBody, refStatus) = await SendAsync(HttpMethod.Get, getRefUrl, token, null).ConfigureAwait(false);
-            if (!refOk) return Failure<GitHubCommitResult>(refStatus, (msg, auth) => new GitHubCommitResult(false, $"ブランチの取得に失敗しました: {msg}") { AuthFailed = auth });
+            if (!refOk) return Failure<GitHubCommitResult>(refStatus, (msg, auth) => new GitHubCommitResult(false, string.Format(Strings.GitHub_BranchFetchFailed, msg)) { AuthFailed = auth });
             var currentCommitSha = (JsonNode.Parse(refBody) as JsonObject)?["object"]?["sha"]?.GetValue<string>();
-            if (currentCommitSha is null) return new GitHubCommitResult(false, "ブランチ情報を解釈できませんでした。");
+            if (currentCommitSha is null) return new GitHubCommitResult(false, Strings.GitHub_BranchParseFailed);
 
             // 2. そのコミットが指すベースツリーの sha
             var commitUrl = $"{repoBase}/git/commits/{currentCommitSha}";
             var (commitOk, commitBody, commitStatus) = await SendAsync(HttpMethod.Get, commitUrl, token, null).ConfigureAwait(false);
-            if (!commitOk) return Failure<GitHubCommitResult>(commitStatus, (msg, auth) => new GitHubCommitResult(false, $"コミット情報の取得に失敗しました: {msg}") { AuthFailed = auth });
+            if (!commitOk) return Failure<GitHubCommitResult>(commitStatus, (msg, auth) => new GitHubCommitResult(false, string.Format(Strings.GitHub_CommitInfoFetchFailed, msg)) { AuthFailed = auth });
             var baseTreeSha = (JsonNode.Parse(commitBody) as JsonObject)?["tree"]?["sha"]?.GetValue<string>();
-            if (baseTreeSha is null) return new GitHubCommitResult(false, "コミット情報を解釈できませんでした。");
+            if (baseTreeSha is null) return new GitHubCommitResult(false, Strings.GitHub_CommitInfoParseFailed);
 
             // 3. 変更したファイルだけを乗せた新しいツリー（他のファイルはベースツリーからそのまま引き継がれる）
             var treeEntries = new JsonArray();
@@ -175,9 +174,9 @@ public static class GitHubApi
             }
             var treePayload = new JsonObject { ["base_tree"] = baseTreeSha, ["tree"] = treeEntries };
             var (treeOk, treeBody, treeStatus) = await SendAsync(HttpMethod.Post, $"{repoBase}/git/trees", token, treePayload).ConfigureAwait(false);
-            if (!treeOk) return Failure<GitHubCommitResult>(treeStatus, (msg, auth) => new GitHubCommitResult(false, $"ツリーの作成に失敗しました: {msg}") { AuthFailed = auth });
+            if (!treeOk) return Failure<GitHubCommitResult>(treeStatus, (msg, auth) => new GitHubCommitResult(false, string.Format(Strings.GitHub_TreeCreateFailed, msg)) { AuthFailed = auth });
             var newTreeSha = (JsonNode.Parse(treeBody) as JsonObject)?["sha"]?.GetValue<string>();
-            if (newTreeSha is null) return new GitHubCommitResult(false, "ツリーの応答を解釈できませんでした。");
+            if (newTreeSha is null) return new GitHubCommitResult(false, Strings.GitHub_TreeParseFailed);
 
             // 4. 新しいコミット
             var commitPayload = new JsonObject
@@ -187,9 +186,9 @@ public static class GitHubApi
                 ["parents"] = new JsonArray(currentCommitSha),
             };
             var (newCommitOk, newCommitBody, newCommitStatus) = await SendAsync(HttpMethod.Post, $"{repoBase}/git/commits", token, commitPayload).ConfigureAwait(false);
-            if (!newCommitOk) return Failure<GitHubCommitResult>(newCommitStatus, (msg, auth) => new GitHubCommitResult(false, $"コミットの作成に失敗しました: {msg}") { AuthFailed = auth });
+            if (!newCommitOk) return Failure<GitHubCommitResult>(newCommitStatus, (msg, auth) => new GitHubCommitResult(false, string.Format(Strings.GitHub_CommitCreateFailed, msg)) { AuthFailed = auth });
             var newCommitSha = (JsonNode.Parse(newCommitBody) as JsonObject)?["sha"]?.GetValue<string>();
-            if (newCommitSha is null) return new GitHubCommitResult(false, "コミットの応答を解釈できませんでした。");
+            if (newCommitSha is null) return new GitHubCommitResult(false, Strings.GitHub_CommitParseFailed);
 
             // 5. ブランチを新しいコミットへ進める。force を付けないので、他所が先に進めていたら
             //    fast-forward にならず失敗する（＝安全に弾かれる）。
@@ -198,19 +197,19 @@ public static class GitHubApi
             if (!updateOk)
             {
                 if (updateStatus is HttpStatusCode.UnprocessableEntity or HttpStatusCode.Conflict)
-                    return new GitHubCommitResult(false, "リモートが更新されています。GitHubから読み込み直してからコミットしてください。") { Conflict = true };
-                return Failure<GitHubCommitResult>(updateStatus, (msg, auth) => new GitHubCommitResult(false, $"ブランチの更新に失敗しました: {msg}") { AuthFailed = auth });
+                    return new GitHubCommitResult(false, Strings.GitHub_RemoteUpdatedConflict) { Conflict = true };
+                return Failure<GitHubCommitResult>(updateStatus, (msg, auth) => new GitHubCommitResult(false, string.Format(Strings.GitHub_BranchUpdateFailed, msg)) { AuthFailed = auth });
             }
 
-            return new GitHubCommitResult(true, "コミット成功");
+            return new GitHubCommitResult(true, Strings.GitHub_CommitOk);
         }
         catch (TaskCanceledException)
         {
-            return new GitHubCommitResult(false, "通信がタイムアウトしました。通信状態を確かめてください。");
+            return new GitHubCommitResult(false, Strings.Network_Timeout);
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException)
         {
-            return new GitHubCommitResult(false, $"コミットに失敗しました: {ex.Message}");
+            return new GitHubCommitResult(false, string.Format(Strings.GitHub_CommitFailedStatus, ex.Message));
         }
     }
 
@@ -238,9 +237,9 @@ public static class GitHubApi
     /// <summary>401 / 403 などをメッセージへ落とす。401 だけトークン起因として呼び出し側に伝える。</summary>
     private static T Failure<T>(HttpStatusCode status, Func<string, bool, T> make) => status switch
     {
-        HttpStatusCode.Unauthorized => make("HTTP 401: トークンが正しくありません。入力し直してください。", true),
-        HttpStatusCode.Forbidden => make("HTTP 403: 権限が不足しているか、呼び出し回数の上限に達しています。", false),
-        _ => make($"HTTP {(int)status}: 通信に失敗しました。", false)
+        HttpStatusCode.Unauthorized => make(Strings.GitHub_Http401, true),
+        HttpStatusCode.Forbidden => make(Strings.GitHub_Http403, false),
+        _ => make(string.Format(Strings.GitHub_HttpGeneric, (int)status), false)
     };
 
     /// <summary>Contents API の path はスラッシュ区切りのまま、各セグメントだけ escape する。</summary>

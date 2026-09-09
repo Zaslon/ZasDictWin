@@ -3,6 +3,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ZasDictWin.Models;
+using ZasDictWin.Resources;
 
 namespace ZasDictWin.Services;
 
@@ -27,9 +28,9 @@ public static class OtmJsonIo
     {
         var text = File.ReadAllText(path);
         var node = JsonNode.Parse(text, NodeOptions, DocumentOptions)
-                   ?? throw new InvalidDataException("JSON の解析結果が空です。");
+                   ?? throw new InvalidDataException(Strings.Otm_ParseEmpty);
         if (node is not JsonObject root)
-            throw new InvalidDataException("OTM-JSON のトップレベルがオブジェクトではありません。");
+            throw new InvalidDataException(Strings.Otm_NotAnObject);
 
         var words = new List<Word>();
         if (root["words"] is JsonArray arr)

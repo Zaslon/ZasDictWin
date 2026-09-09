@@ -3,11 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
         xmlns:v="clr-namespace:ZasDictWin.Views"
+        xmlns:res="clr-namespace:ZasDictWin.Resources"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
-        Title="{Binding WindowTitle}"
+        Title="{Binding WindowTitle, Converter={StaticResource PlainText}}"
         Width="1280" Height="800" MinWidth="900" MinHeight="600"
         Background="{StaticResource Ink}"
-        FontFamily="Yu Gothic UI"
+        FontFamily="{x:Static res:Strings.UIFont}"
         FontSize="{Binding BaseFontSize}"
         TextOptions.TextFormattingMode="Ideal"
         UseLayoutRounding="True"
@@ -63,12 +64,12 @@
                             <TextBlock Text="Z" FontSize="13" FontWeight="Bold" Foreground="#170F28"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="NoWrap" />
                         </Border>
-                        <TextBlock Text="{Binding DictionaryName}" FontWeight="SemiBold"
+                        <TextBlock v:LocalizedText.Text="{Binding DictionaryName}" FontWeight="SemiBold"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=15}"
                                    VerticalAlignment="Center" Margin="0,0,8,0" />
                         <!-- 未保存は「*」よりドット。ラベルと本文の間に記号を挟まない -->
                         <Ellipse Width="8" Height="8" Fill="{StaticResource Accent}" VerticalAlignment="Center"
-                                 ToolTip="未保存の変更があります"
+                                 ToolTip="{x:Static res:Strings.Main_UnsavedTooltip}"
                                  Visibility="{Binding IsDirty, Converter={StaticResource BoolVis}}" />
                     </StackPanel>
 
@@ -76,42 +77,42 @@
                          アイコンは検索欄の虫眼鏡（SearchPanel.xaml）と同じ Segoe MDL2 Assets。 -->
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
                         <Button Content="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                                Style="{StaticResource IconButton}" Click="Minimize_Click" ToolTip="最小化" Margin="0" />
+                                Style="{StaticResource IconButton}" Click="Minimize_Click" ToolTip="{x:Static res:Strings.Common_Minimize}" Margin="0" />
                         <Button x:Name="MaximizeRestoreButton" Content="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                                Style="{StaticResource IconButton}" Click="MaximizeRestore_Click" ToolTip="最大化" Margin="4,0,0,0" />
+                                Style="{StaticResource IconButton}" Click="MaximizeRestore_Click" ToolTip="{x:Static res:Strings.Common_Maximize}" Margin="4,0,0,0" />
                         <Button Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                                Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="閉じる" Margin="4,0,0,0" />
+                                Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="{x:Static res:Strings.Common_Close}" Margin="4,0,0,0" />
                     </StackPanel>
 
                     <WrapPanel HorizontalAlignment="Right" Orientation="Horizontal"
 TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}">
                         <!-- 開く・新規辞書・保存・別名で保存。項目は MainWindow.xaml.cs でまとめて詰める
                              （コマンドを直接渡したいので、Items は XAML の Binding ではなくコード側で組む）。 -->
-                        <v:MenuButton x:Name="FileMenuButton" Header="ファイル" />
+                        <v:MenuButton x:Name="FileMenuButton" Header="{x:Static res:Strings.Menu_File}" />
                         <!-- 統計・凡例・更新履歴・方言変換・IPA→綴りは、常設のタブ枠を食わない
                              独立ウィンドウとしてここから開く（MainWindow.xaml.cs が Items を詰める）。 -->
-                        <v:MenuButton x:Name="ToolsMenuButton" Header="ツール" />
+                        <v:MenuButton x:Name="ToolsMenuButton" Header="{x:Static res:Strings.Menu_Tools}" />
                         <!-- GitHubモードのときだけ現れる。設定 → GitHub でリポジトリ・トークンを登録すると使える。 -->
                         <Border Width="1" Background="{StaticResource Line}" Margin="6,5"
                                 Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}" />
-                        <Button Content="GitHubから読み込む" Style="{StaticResource ToolbarButton}" Command="{Binding LoadFromGitHubCommand}"
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.GitHub_LoadButton}" Style="{StaticResource ToolbarButton}" Command="{Binding LoadFromGitHubCommand}"
                                 Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}"
-                                ToolTip="GitHub の内容をローカルへ取得し、読み込み直します" />
+                                ToolTip="{x:Static res:Strings.GitHub_LoadButtonTooltip}" />
                         <!-- 唯一の塗りつぶし。取り消せない外向きの操作なので、押す前に他と見分けが付くようにする。 -->
-                        <Button Content="コミット" Style="{StaticResource PrimaryButton}" Command="{Binding CommitToGitHubCommand}"
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.GitHub_CommitButton}" Style="{StaticResource PrimaryButton}" Command="{Binding CommitToGitHubCommand}"
                                 Margin="4,0" Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}"
-                                ToolTip="ローカルの辞書・更新履歴を保存したうえで GitHub へコミットします" />
+                                ToolTip="{x:Static res:Strings.GitHub_CommitButtonTooltip}" />
                         <Border Width="1" Background="{StaticResource Line}" Margin="6,5" />
-                        <Button Content="＋ 単語" Style="{StaticResource ToolbarAccentButton}" Command="{Binding NewWordCommand}" />
-                        <Button Content="例文" Style="{StaticResource ToolbarButton}" Command="{Binding ShowExamplesCommand}"
-                                ToolTip="辞書の例文（examples）を一覧・編集します" />
-                        <Button Content="設定" Style="{StaticResource ToolbarButton}" Command="{Binding ShowSettingsCommand}" />
-                        <Button x:Name="BrowserButton" Content="ブラウザ" Style="{StaticResource ToolbarButton}"
-                                Command="{Binding ShowBrowserCommand}" ToolTip="ウェブブラウザのタブを開きます" />
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Main_NewWordButton}" Style="{StaticResource ToolbarAccentButton}" Command="{Binding NewWordCommand}" />
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Examples_Title}" Style="{StaticResource ToolbarButton}" Command="{Binding ShowExamplesCommand}"
+                                ToolTip="{x:Static res:Strings.Main_ExamplesButtonTooltip}" />
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Settings_Title}" Style="{StaticResource ToolbarButton}" Command="{Binding ShowSettingsCommand}" />
+                        <Button x:Name="BrowserButton" v:LocalizedText.Content="{x:Static res:Strings.Browser_Title}" Style="{StaticResource ToolbarButton}"
+                                Command="{Binding ShowBrowserCommand}" ToolTip="{x:Static res:Strings.Browser_ButtonTooltip}" />
                         <Border Width="1" Background="{StaticResource Line}" Margin="6,5" />
                         <!-- 単語ウィンドウ・単語数ウィンドウは独立した HWND で、開く／閉じるを切り替える。
                              項目名は開いているかどうかで変わるので、MainWindow.xaml.cs が開くたび組み直す。 -->
-                        <v:MenuButton x:Name="WindowMenuButton" Header="ウィンドウ" />
+                        <v:MenuButton x:Name="WindowMenuButton" Header="{x:Static res:Strings.Menu_Window}" />
                     </WrapPanel>
                 </DockPanel>
             </Border>
@@ -124,7 +125,7 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
                     <Border DockPanel.Dock="Right" Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
                             BorderThickness="1" CornerRadius="6" Padding="10,2" Margin="12,0,0,0" VerticalAlignment="Center">
-                        <TextBlock Text="{Binding CountLabel}" Foreground="{StaticResource Muted}"
+                        <TextBlock v:LocalizedText.Text="{Binding CountLabel}" Foreground="{StaticResource Muted}"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
                     </Border>
                     <!-- フッタは 1 行固定。折り返すと状況によってフッタの高さが変わり、下端の位置が動く -->
@@ -134,7 +135,7 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <Border.Background>
                             <SolidColorBrush x:Name="StatusFlashBrush" Color="{StaticResource AccentColor}" Opacity="0" />
                         </Border.Background>
-                        <TextBlock Text="{Binding Status}" Foreground="{StaticResource Muted}"
+                        <TextBlock v:LocalizedText.Text="{Binding Status}" Foreground="{StaticResource Muted}"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
                                    VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                     </Border>

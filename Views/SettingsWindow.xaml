@@ -3,11 +3,12 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:v="clr-namespace:ZasDictWin.Views"
         xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+        xmlns:res="clr-namespace:ZasDictWin.Resources"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
-        Title="{Binding Title, StringFormat={}ZasDict {0}}"
+        Title="{Binding Title, Converter={StaticResource PlainText}, StringFormat={}ZasDict {0}}"
         Width="820" Height="760" MinWidth="560" MinHeight="440"
         Background="{StaticResource Ink}"
-        FontFamily="Yu Gothic UI"
+        FontFamily="{x:Static res:Strings.UIFont}"
         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
         TextOptions.TextFormattingMode="Ideal"
         UseLayoutRounding="True"
@@ -29,8 +30,8 @@
                 MouseLeftButtonDown="Header_MouseLeftButtonDown">
             <DockPanel>
                 <Button DockPanel.Dock="Right" Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                        Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="閉じる" Margin="0" />
-                <TextBlock Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
+                        Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="{x:Static res:Strings.Common_Close}" Margin="0" />
+                <TextBlock v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
                            FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=15}" />
             </DockPanel>
         </Border>
@@ -38,67 +39,82 @@
         <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Line}"
                 BorderThickness="0,1,0,0" Padding="24,14">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="キャンセル" Command="{Binding CloseCommand}" />
-                <Button Content="適用" Style="{StaticResource PrimaryButton}" Command="{Binding ApplyCommand}" Margin="0" />
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" Command="{Binding CloseCommand}" />
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Settings_ApplyButton}" Style="{StaticResource PrimaryButton}" Command="{Binding ApplyCommand}" Margin="0" />
             </StackPanel>
         </Border>
 
         <!-- スクロール領域は窓の高さいっぱいまで使う。高さを固定すると
              文字サイズ倍率を上げたときに数行しか見えなくなる。 -->
         <TabControl Margin="24,14,24,0">
-            <TabItem Header="表示・動作">
+            <TabItem v:LocalizedText.Header="{x:Static res:Strings.Settings_TabGeneral}">
                 <!-- 設定は縦にだけ流す。横スクロールを許すと折り返し幅が測定のたびに変わり、
                      上下の並びがずれて見える（横に広い内容は折り返しと末尾省略で吸収させる） -->
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0,14,0,14">
-                        <TextBlock Text="文字サイズ倍率" Style="{StaticResource FieldLabel}" />
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_Language}" Style="{StaticResource FieldLabel}" />
+                        <!-- 選択肢は Resources/Languages.cs の一覧をそのまま出す。対応言語を増やす手順は
+                             同ファイルのコメントを参照（新しい Strings.<コード>.resx を用意し、一覧に1行足すだけ）。 -->
+                        <!-- DisplayMemberPath だと閉じた状態の表示（SelectionBoxItem）に反映されず
+                             LanguageOption の既定 ToString() がそのまま出てしまうため、ItemTemplate で明示する。 -->
+                        <ComboBox ItemsSource="{Binding AvailableLanguages}" SelectedValuePath="Code"
+                                  SelectedValue="{Binding Language}" Width="200" HorizontalAlignment="Left">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_LanguageNote}" Style="{StaticResource Label}" Margin="0,4,0,0" />
+
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_FontScaleLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,0" />
                         <TextBox Text="{Binding FontScale}" Width="120" HorizontalAlignment="Left" />
 
-                        <TextBlock Text="カスタム字順" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_SortOrderLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
                         <TextBox Text="{Binding SortOrder}" FontFamily="Consolas" />
 
-                        <CheckBox Content="編集したら自動で上書き保存する" IsChecked="{Binding AutoSave}" Margin="0,18,0,0" />
+                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_AutoSaveCheckbox}" IsChecked="{Binding AutoSave}" Margin="0,18,0,0" />
 
-                        <TextBlock Text="ウィンドウ" Style="{StaticResource SectionHeading}" Margin="0,22,0,8" />
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_WindowHeading}" Style="{StaticResource SectionHeading}" Margin="0,22,0,8" />
                         <StackPanel Orientation="Horizontal">
                             <StackPanel>
-                                <TextBlock Text="幅" Style="{StaticResource FieldLabel}" />
+                                <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_WidthLabel}" Style="{StaticResource FieldLabel}" />
                                 <TextBox Text="{Binding WindowWidth}" Width="100" />
                             </StackPanel>
                             <StackPanel Margin="16,0,0,0">
-                                <TextBlock Text="高さ" Style="{StaticResource FieldLabel}" />
+                                <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_HeightLabel}" Style="{StaticResource FieldLabel}" />
                                 <TextBox Text="{Binding WindowHeight}" Width="100" />
                             </StackPanel>
                         </StackPanel>
                         <!-- 最大化には作用しない（画面いっぱいに広げる操作まで比率で縛ると使いづらいため）。
                              端をつまんで縮める・広げる操作だけを、ここで決めた幅・高さの比率に矯正する。 -->
-                        <CheckBox Content="縦横比を固定する（端をつまんだリサイズを比率固定にします）"
+                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_AspectLockCheckbox}"
                                   IsChecked="{Binding WindowAspectLocked}" Margin="0,10,0,0" />
 
                         <TextBlock Style="{StaticResource SectionHeading}" Margin="0,22,0,8">
-                            <Run Text="イジェール文字フォント" /><Run Style="{StaticResource FieldNote}" Text="（Heksa）" />
+                            <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaHeading}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaAnnotation}" />
                         </TextBlock>
-                        <CheckBox Content="Heksa を有効にする" IsChecked="{Binding HeksaEnabled}" />
+                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_HeksaEnableCheckbox}" IsChecked="{Binding HeksaEnabled}" />
                         <TextBlock Style="{StaticResource Label}" Margin="0,2,0,0"
-                                   Text="見出し語・検索欄・単語エディタの綴り欄をイジェール文字フォントで表示します（.ttf / .otf が必要です）。" />
+                                   v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaDescription}" />
                         <DockPanel Margin="0,8,0,0">
-                            <Button DockPanel.Dock="Right" Content="ファイルを選択" Command="{Binding PickFontCommand}" Margin="8,0,0,0" />
+                            <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Settings_PickFileButton}" Command="{Binding PickFontCommand}" Margin="8,0,0,0" />
                             <TextBox Text="{Binding HeksaFontPath, UpdateSourceTrigger=PropertyChanged}" />
                         </DockPanel>
-                        <TextBlock Text="フォントファイルが読み込めないため、標準フォントで表示されます。"
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaMissingWarning}"
                                    Foreground="{StaticResource Danger}" Margin="0,8,0,0"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
                                    Visibility="{Binding IsFontMissing, Converter={StaticResource BoolVis}}" />
-                        <TextBlock Text="サンプル：eaoiu heksa" Margin="0,8,0,0"
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaSampleLabel}" Margin="0,8,0,0"
                                    FontFamily="{Binding PreviewFontFamily}"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}"
                                    Visibility="{Binding HasPreviewFont, Converter={StaticResource BoolVis}}" />
 
                         <DockPanel Margin="0,16,0,6">
-                            <Button DockPanel.Dock="Right" Content="既定に戻す" Style="{StaticResource GhostButton}"
+                            <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Settings_ResetDefaultButton}" Style="{StaticResource GhostButton}"
                                     Command="{Binding ResetReciprocalCommand}" Margin="0" />
                             <TextBlock Style="{StaticResource SectionHeading}" Margin="0" VerticalAlignment="Center">
-                                <Run Text="関係の対照表" /><Run Style="{StaticResource FieldNote}" Text="（1行に 見出し=相手側）" />
+                                <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_ReciprocalHeading}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_ReciprocalNote}" />
                             </TextBlock>
                         </DockPanel>
                         <TextBox Text="{Binding ReciprocalText}" AcceptsReturn="True" MinHeight="140"
@@ -107,32 +123,32 @@
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="辞書依存">
+            <TabItem v:LocalizedText.Header="{x:Static res:Strings.Settings_TabDictionary}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0,14,0,14">
-                        <TextBlock Text="辞書が開かれていないため編集できません。" Foreground="{StaticResource Muted}"
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_NoDictionaryWarning}" Foreground="{StaticResource Muted}"
                                    Visibility="{Binding HasDictionary, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
                         <StackPanel Visibility="{Binding HasDictionary, Converter={StaticResource BoolVis}}">
                             <TextBlock Style="{StaticResource FieldLabel}">
-                                <Run Text="punctuations" /><Run Style="{StaticResource FieldNote}" Text="（並べ替えで無視する文字）" />
+                                <Run Text="punctuations" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_PunctuationsNote}" />
                             </TextBlock>
                             <TextBox Text="{Binding Punctuations}" FontFamily="Consolas" />
                             <TextBlock Style="{StaticResource FieldLabel}" Margin="0,18,0,5">
-                                <Run Text="ignoredPattern" /><Run Style="{StaticResource FieldNote}" Text="（検索の際に無視する部分を表す正規表現）" />
+                                <Run Text="ignoredPattern" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_IgnoredPatternNote}" />
                             </TextBlock>
                             <TextBox Text="{Binding IgnoredPattern}" FontFamily="Consolas" />
-                            <TextBlock Text="この 2 つは辞書ファイルの zpdicOnline に書き込まれます。"
+                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_DictDependentNote}"
                                        Style="{StaticResource Label}" Margin="0,10,0,0" />
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="単語ウィンドウ">
+            <TabItem v:LocalizedText.Header="{x:Static res:Strings.Settings_TabStreamWindow}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0,14,0,14">
                         <TextBlock Style="{StaticResource FieldLabel}">
-                            <Run Text="背景色" /><Run Style="{StaticResource FieldNote}" Text="（クロマキーなら #00B140 など。透過するなら Transparent）" />
+                            <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_BackgroundColorLabel}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_BackgroundColorNote}" />
                         </TextBlock>
                         <DockPanel>
                             <Border DockPanel.Dock="Right" Width="44" Height="32" CornerRadius="6" Margin="8,0,0,0"
@@ -141,49 +157,49 @@
                             <TextBox Text="{Binding StreamBackground, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
                         </DockPanel>
 
-                        <TextBlock Text="文字サイズ倍率" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_FontScaleLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
                         <TextBox Text="{Binding StreamFontScale}" Width="120" HorizontalAlignment="Left" />
 
-                        <CheckBox Content="常に手前に表示する" IsChecked="{Binding StreamTopmost}" Margin="0,16,0,0" />
+                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_TopmostCheckbox}" IsChecked="{Binding StreamTopmost}" Margin="0,16,0,0" />
                         <!-- ここから下は単語ウィンドウだけの項目。単語数ウィンドウには出す中身が無い。 -->
-                        <CheckBox Content="訳語を表示する" IsChecked="{Binding StreamShowTranslations}" />
-                        <CheckBox Content="内容（語源・用例など）も表示する" IsChecked="{Binding StreamShowContents}" />
+                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_ShowTranslationsCheckbox}" IsChecked="{Binding StreamShowTranslations}" />
+                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_ShowContentsCheckbox}" IsChecked="{Binding StreamShowContents}" />
 
                         <TextBlock Style="{StaticResource Label}" Margin="0,14,0,0"
-                                   Text="背景色・文字サイズ倍率・常に手前に表示するは、単語数ウィンドウにも同じものが効きます。どちらも独立したウィンドウです。OBS では［ウィンドウキャプチャ］で ZasDict 単語ウィンドウ・ZasDict 単語数ウィンドウ を選び、クロマキーフィルタを掛けてください。" />
+                                   v:LocalizedText.Text="{x:Static res:Strings.Settings_StreamWindowNote}" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="ブラウザ">
+            <TabItem v:LocalizedText.Header="{x:Static res:Strings.Settings_TabBrowser}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0,14,0,14">
-                        <CheckBox Content="起動時にブラウザのタブを開く" IsChecked="{Binding BrowserVisible}" />
+                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_BrowserOpenOnStartCheckbox}" IsChecked="{Binding BrowserVisible}" />
 
                         <TextBlock Style="{StaticResource FieldLabel}" Margin="0,18,0,5">
-                            <Run Text="開始 URL" /><Run Style="{StaticResource FieldNote}" Text="（空にすると既定の検索ページ）" />
+                            <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_StartUrlLabel}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_StartUrlNote}" />
                         </TextBlock>
                         <TextBox Text="{Binding BrowserStartUrl, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
 
-            <TabItem Header="保存先">
+            <TabItem v:LocalizedText.Header="{x:Static res:Strings.Settings_TabStorage}">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0,14,0,14">
-                        <TextBlock Text="編集モード" Style="{StaticResource SectionHeading}" Margin="0,0,0,8" />
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_EditModeHeading}" Style="{StaticResource SectionHeading}" Margin="0,0,0,8" />
                         <WrapPanel>
-                            <ToggleButton Style="{StaticResource Chip}" Content="ローカル編集" Command="{Binding SetModeCommand}" CommandParameter="Local"
+                            <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ModeLocal}" Command="{Binding SetModeCommand}" CommandParameter="Local"
                                           IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Local}" />
                             <ToggleButton Style="{StaticResource Chip}" Content="GitHub" Command="{Binding SetModeCommand}" CommandParameter="GitHub"
                                           IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=GitHub}" />
                         </WrapPanel>
                         <TextBlock Style="{StaticResource Label}" Margin="0,8,0,0"
-                                   Text="GitHubモードでは自動保存が無効になり、ヘッダーに［GitHubから読み込む］［コミット］が現れます。" />
+                                   v:LocalizedText.Text="{x:Static res:Strings.Settings_GitHubModeNote}" />
 
                         <StackPanel Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}">
                             <TextBlock Style="{StaticResource FieldLabel}" Margin="0,18,0,5">
-                                <Run Text="リポジトリ" /><Run Style="{StaticResource FieldNote}" Text="（owner / repo）" />
+                                <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_RepoLabel}" /><Span Style="{StaticResource FieldNote}">（owner / repo）</Span>
                             </TextBlock>
                             <Grid>
                                 <Grid.ColumnDefinitions>
@@ -196,21 +212,21 @@
                                 <TextBox Grid.Column="2" Text="{Binding GitHubRepo}" v:Placeholder.Text="repo" />
                             </Grid>
 
-                            <TextBlock Text="ブランチ" Style="{StaticResource FieldLabel}" Margin="0,16,0,5" />
+                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_BranchLabel}" Style="{StaticResource FieldLabel}" Margin="0,16,0,5" />
                             <TextBox Text="{Binding GitHubBranch}" Width="220" HorizontalAlignment="Left" v:Placeholder.Text="main" />
 
                             <TextBlock Style="{StaticResource FieldLabel}" Margin="0,16,0,5">
-                                <Run Text="辞書 JSON のパス" /><Run Style="{StaticResource FieldNote}" Text="（リポジトリ内）" />
+                                <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_JsonPathLabel}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_JsonPathNote}" />
                             </TextBlock>
-                            <TextBox Text="{Binding GitHubJsonPath}" FontFamily="Consolas" v:Placeholder.Text="例: dict/lexicon.json" />
+                            <TextBox Text="{Binding GitHubJsonPath}" FontFamily="Consolas" v:Placeholder.Text="{x:Static res:Strings.Settings_JsonPathPlaceholder}" />
 
                             <TextBlock Style="{StaticResource FieldLabel}" Margin="0,16,0,5">
-                                <Run Text="更新履歴 CSV のパス" /><Run Style="{StaticResource FieldNote}" Text="（リポジトリ内。空欄なら読み書きしません）" />
+                                <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_ChangelogPathLabel}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_ChangelogPathNote}" />
                             </TextBlock>
-                            <TextBox Text="{Binding GitHubChangelogPath}" FontFamily="Consolas" v:Placeholder.Text="例: dict/lexicon_changelog.csv" />
+                            <TextBox Text="{Binding GitHubChangelogPath}" FontFamily="Consolas" v:Placeholder.Text="{x:Static res:Strings.Settings_ChangelogPathPlaceholder}" />
 
-                            <TextBlock Text="アクセストークン" Style="{StaticResource FieldLabel}" Margin="0,18,0,3" />
-                            <TextBlock Text="{Binding GitHubTokenHint}" Style="{StaticResource Label}" Margin="0,0,0,5" />
+                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_TokenLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,3" />
+                            <TextBlock v:LocalizedText.Text="{Binding GitHubTokenHint}" Style="{StaticResource Label}" Margin="0,0,0,5" />
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -219,17 +235,17 @@
                                 <!-- PasswordBox は Password をバインドできないため TextBox で受ける。
                                      保存すると即座に空へ戻すので、画面にトークンが残り続けることはない。 -->
                                 <TextBox Grid.Column="0" Text="{Binding GitHubTokenInput, UpdateSourceTrigger=PropertyChanged}"
-                                         v:Placeholder.Text="Personal Access Token（repo の Contents 読み書き権限）" FontFamily="Consolas" />
-                                <Button Grid.Column="1" Content="保存" Margin="6,0,0,0" Command="{Binding SaveGitHubTokenCommand}" />
+                                         v:Placeholder.Text="{x:Static res:Strings.Settings_TokenPlaceholder}" FontFamily="Consolas" />
+                                <Button Grid.Column="1" v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Margin="6,0,0,0" Command="{Binding SaveGitHubTokenCommand}" />
                             </Grid>
                             <DockPanel Margin="0,6,0,0">
-                                <Button DockPanel.Dock="Right" Content="削除" Style="{StaticResource GhostButton}"
+                                <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource GhostButton}"
                                         Command="{Binding DeleteGitHubTokenCommand}" Margin="0" />
-                                <TextBlock Text="{Binding GitHubTokenStatus}" Style="{StaticResource Label}" Margin="0" VerticalAlignment="Center" />
+                                <TextBlock v:LocalizedText.Text="{Binding GitHubTokenStatus}" Style="{StaticResource Label}" Margin="0" VerticalAlignment="Center" />
                             </DockPanel>
 
                             <TextBlock Style="{StaticResource Label}" Margin="0,16,0,0"
-                                       Text="トークンは settings.json ではなく別ファイルに保存されます。" />
+                                       v:LocalizedText.Text="{x:Static res:Strings.Settings_TokenStorageNote}" />
                         </StackPanel>
                     </StackPanel>
                 </ScrollViewer>

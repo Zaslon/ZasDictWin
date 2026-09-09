@@ -1,18 +1,20 @@
 <UserControl x:Class="ZasDictWin.Views.IpaPanel"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+             xmlns:v="clr-namespace:ZasDictWin.Views"
+             xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="24,20">
         <StackPanel>
-            <TextBlock Text="IPA" Style="{StaticResource Label}" />
+            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Ipa_Title}" Style="{StaticResource Label}" />
             <TextBox Text="{Binding IpaInput, UpdateSourceTrigger=PropertyChanged, Delay=120}"
                      FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}" />
-            <TextBlock Text="イジェール語音写" Style="{StaticResource Label}" Margin="0,16,0,4" />
+            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Ipa_SpellingLabel}" Style="{StaticResource Label}" Margin="0,16,0,4" />
             <TextBox Text="{Binding IpaSpelling, Mode=OneWay}" IsReadOnly="True"
                      FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}" />
             <TextBlock Style="{StaticResource Label}" Margin="0,10,0,0"
-                       Text="(a|b) は候補が複数あることを表します。" />
+                       v:LocalizedText.Text="{x:Static res:Strings.Ipa_CandidateHint}" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>

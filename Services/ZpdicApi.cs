@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using ZasDictWin.Resources;
 
 namespace ZasDictWin.Services;
 
@@ -72,7 +73,7 @@ public static class ZpdicApi
         // HTTP ヘッダーは latin-1 しか通らないので、非 ASCII のキーは送る前に弾く。
         if (!apiKey.All(char.IsAscii))
         {
-            return new ExampleOfferResult(false, "APIキーに使用できない文字が含まれています。入力し直してください。")
+            return new ExampleOfferResult(false, Strings.Zpdic_KeyInvalidChars)
             { KeyRejected = true };
         }
 
@@ -87,36 +88,36 @@ public static class ZpdicApi
 
             var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
             var offer = JsonNode.Parse(body)?["exampleOffer"] as JsonObject;
-            if (offer is null) return new ExampleOfferResult(false, "応答を解釈できませんでした。");
+            if (offer is null) return new ExampleOfferResult(false, Strings.Zpdic_ResponseParseFailed);
 
             var author = offer["author"]?.GetValue<string>() ?? "";
             return new ExampleOfferResult(
                 true,
-                author.Length > 0 ? $"照会成功（作者: {author}）" : "照会成功",
+                author.Length > 0 ? string.Format(Strings.Zpdic_FetchOkWithAuthor, author) : Strings.Zpdic_FetchOk,
                 offer["translation"]?.GetValue<string>() ?? "",
                 offer["supplement"]?.GetValue<string>() ?? "",
                 author);
         }
         catch (TaskCanceledException)
         {
-            return new ExampleOfferResult(false, "照会がタイムアウトしました。通信状態を確かめてください。");
+            return new ExampleOfferResult(false, Strings.Zpdic_Timeout);
         }
         catch (Exception ex) when (ex is HttpRequestException or JsonException)
         {
-            return new ExampleOfferResult(false, $"照会に失敗しました: {ex.Message}");
+            return new ExampleOfferResult(false, string.Format(Strings.Zpdic_FetchFailed, ex.Message));
         }
     }
 
     private static ExampleOfferResult Failure(HttpStatusCode status, int number) => status switch
     {
         HttpStatusCode.BadRequest =>
-            new ExampleOfferResult(false, "HTTP 400: リクエストの内容が誤っています。"),
+            new ExampleOfferResult(false, Strings.Zpdic_Http400),
         HttpStatusCode.Unauthorized =>
-            new ExampleOfferResult(false, "HTTP 401: APIキーが正しくありません。入力し直してください。") { KeyRejected = true },
+            new ExampleOfferResult(false, Strings.Zpdic_Http401) { KeyRejected = true },
         HttpStatusCode.NotFound =>
-            new ExampleOfferResult(false, $"HTTP 404: No. {number} の例文は存在しません。") { NotFound = true },
+            new ExampleOfferResult(false, string.Format(Strings.Zpdic_Http404, number)) { NotFound = true },
         HttpStatusCode.TooManyRequests =>
-            new ExampleOfferResult(false, "HTTP 429: 呼び出し回数の上限に達しています。"),
-        _ => new ExampleOfferResult(false, $"HTTP {(int)status}: 照会に失敗しました。")
+            new ExampleOfferResult(false, Strings.Zpdic_Http429),
+        _ => new ExampleOfferResult(false, string.Format(Strings.Zpdic_HttpGeneric, (int)status))
     };
 }

@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Animation;
+using ZasDictWin.Resources;
 using ZasDictWin.Services;
 using ZasDictWin.ViewModels;
 
@@ -44,10 +45,10 @@ public partial class MainWindow : Window
         // Command は ViewModel の RelayCommand をそのまま渡すだけなので、Binding は使わずここで詰める。
         FileMenuButton.Items = new[]
         {
-            new MenuAction { Header = "開く", ToolTip = "Ctrl+O", Command = _vm.OpenCommand },
-            new MenuAction { Header = "新規辞書", Command = _vm.NewDictionaryCommand },
-            new MenuAction { Header = "保存", ToolTip = "Ctrl+S", Command = _vm.SaveCommand, IsPrimary = true },
-            new MenuAction { Header = "別名で保存", ToolTip = "Ctrl+Shift+S", Command = _vm.SaveAsCommand },
+            new MenuAction { Header = Strings.Menu_Open, ToolTip = "Ctrl+O", Command = _vm.OpenCommand },
+            new MenuAction { Header = Strings.Menu_NewDictionary, Command = _vm.NewDictionaryCommand },
+            new MenuAction { Header = Strings.Common_Save, ToolTip = "Ctrl+S", Command = _vm.SaveCommand, IsPrimary = true },
+            new MenuAction { Header = Strings.Menu_SaveAs, ToolTip = "Ctrl+Shift+S", Command = _vm.SaveAsCommand },
         };
 
         // 統計・凡例・更新履歴・方言変換・IPA→綴りは、常設のタブ枠を割かないよう独立ウィンドウで開く。
@@ -55,11 +56,11 @@ public partial class MainWindow : Window
         // すでに開いていれば作り直さず、そのタブを表に出すだけ（ボタンはグレーアウトさせない）。
         ToolsMenuButton.Items = new[]
         {
-            new MenuAction { Header = "変換", Command = _vm.ShowDialectToolCommand },
-            new MenuAction { Header = "IPA", Command = _vm.ShowIpaToolCommand },
-            new MenuAction { Header = "統計", Command = _vm.ShowStatsCommand },
-            new MenuAction { Header = "凡例", Command = _vm.ShowLegendCommand },
-            new MenuAction { Header = "更新履歴", Command = _vm.ShowChangelogCommand },
+            new MenuAction { Header = Strings.Dialect_Title, Command = _vm.ShowDialectToolCommand },
+            new MenuAction { Header = Strings.Ipa_Title, Command = _vm.ShowIpaToolCommand },
+            new MenuAction { Header = Strings.Stats_Title, Command = _vm.ShowStatsCommand },
+            new MenuAction { Header = Strings.Legend_Title, Command = _vm.ShowLegendCommand },
+            new MenuAction { Header = Strings.Changelog_Title, Command = _vm.ShowChangelogCommand },
         };
 
         // 配信用の独立ウィンドウ。項目名が開閉で変わるので、開く直前に組み直す。
@@ -165,11 +166,9 @@ public partial class MainWindow : Window
         try
         {
             var vm = new ChoiceViewModel(
-                "問題が発生しました",
-                $"この操作は中止しましたが、アプリはそのまま続けられます。\n\n" +
-                $"{ex.GetType().Name}: {ex.Message}\n\n" +
-                $"詳しい記録: {ErrorLog.FilePath}");
-            vm.AddCancel("閉じる");
+                Strings.Error_Title,
+                string.Format(Strings.Error_Message, ex.GetType().Name, ex.Message, ErrorLog.FilePath));
+            vm.AddCancel(Strings.Common_Close);
             _vm.ShowOverlay(vm);
         }
         catch (Exception overlayEx)
@@ -245,7 +244,7 @@ public partial class MainWindow : Window
         var maximized = WindowState == WindowState.Maximized;
         // MDL2 Assets: ChromeMaximize (E922) / ChromeRestore (E923)
         MaximizeRestoreButton.Content = maximized ? "\uE923" : "\uE922";
-        MaximizeRestoreButton.ToolTip = maximized ? "元のサイズに戻す" : "最大化";
+        MaximizeRestoreButton.ToolTip = maximized ? Strings.Common_Restore : Strings.Common_Maximize;
     }
 
     // ---- 独立ウィンドウ（窓の外へ持ち出したタブ）----------------------------------------
@@ -350,14 +349,14 @@ public partial class MainWindow : Window
         {
             new MenuAction
             {
-                Header = _stream is null ? "単語ウィンドウ" : "単語ウィンドウを閉じる",
-                ToolTip = "選択中の単語だけを大きく表示します",
+                Header = _stream is null ? Strings.Window_StreamMenuOpen : Strings.Window_StreamMenuClose,
+                ToolTip = Strings.Window_StreamMenuTooltip,
                 Command = new RelayCommand(ToggleStreamWindow),
             },
             new MenuAction
             {
-                Header = _count is null ? "単語数ウィンドウ" : "単語数ウィンドウを閉じる",
-                ToolTip = "辞書の総語数だけを大きく表示します",
+                Header = _count is null ? Strings.Window_CountMenuOpen : Strings.Window_CountMenuClose,
+                ToolTip = Strings.Window_CountMenuTooltip,
                 Command = new RelayCommand(ToggleCountWindow),
             },
         };

@@ -3,15 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="clr-namespace:ZasDictWin.Models"
              xmlns:v="clr-namespace:ZasDictWin.Views"
-             xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+             xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <Border Style="{StaticResource OverlayCard}">
         <DockPanel>
             <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
                 <DockPanel>
-                    <TextBlock DockPanel.Dock="Right" Text="{Binding IdLabel}" Style="{StaticResource Label}"
+                    <TextBlock DockPanel.Dock="Right" v:LocalizedText.Text="{Binding IdLabel}" Style="{StaticResource Label}"
                                Margin="12,0,0,0" VerticalAlignment="Center" TextWrapping="NoWrap" />
-                    <TextBlock Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
+                    <TextBlock v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
                 </DockPanel>
             </Border>
@@ -19,11 +20,11 @@
             <!-- 操作はフッタに固定。入力欄が伸びてもボタンが画面外に出ないようにする -->
             <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
                 <DockPanel>
-                    <Button DockPanel.Dock="Right" Content="キャンセル" Style="{StaticResource GhostButton}"
+                    <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" Style="{StaticResource GhostButton}"
                             Command="{Binding CancelCommand}" Margin="0" />
                     <StackPanel Orientation="Horizontal">
-                        <Button Content="保存" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" />
-                        <Button Content="削除" Style="{StaticResource DangerButton}" Command="{Binding DeleteCommand}" />
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" />
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}" Command="{Binding DeleteCommand}" />
                     </StackPanel>
                 </DockPanel>
             </Border>
@@ -31,35 +32,35 @@
             <ScrollViewer Margin="24,14,24,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel>
 
-                    <TextBlock Text="{Binding ValidationMessage}" Foreground="{StaticResource Danger}" Margin="0,0,0,10"
+                    <TextBlock v:LocalizedText.Text="{Binding ValidationMessage}" Foreground="{StaticResource Danger}" Margin="0,0,0,10"
                                Visibility="{Binding ValidationMessage, Converter={StaticResource NullVis}}" />
 
-                    <TextBlock Text="文（必須）" Style="{StaticResource Label}" />
+                    <TextBlock v:LocalizedText.Text="{x:Static res:Strings.ExampleEdit_SentenceLabel}" Style="{StaticResource Label}" />
                     <TextBox Text="{Binding Sentence, UpdateSourceTrigger=PropertyChanged}"
                              AcceptsReturn="True" TextWrapping="Wrap" MinLines="2" MaxLines="6"
                              VerticalScrollBarVisibility="Auto"
                              FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}"
                              FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}" />
 
-                    <TextBlock Text="訳" Style="{StaticResource Label}" Margin="0,14,0,4" />
+                    <TextBlock v:LocalizedText.Text="{x:Static res:Strings.ExampleEdit_TranslationLabel}" Style="{StaticResource Label}" Margin="0,14,0,4" />
                     <TextBox Text="{Binding TranslationText, UpdateSourceTrigger=PropertyChanged}"
                              AcceptsReturn="True" TextWrapping="Wrap" MinLines="2" MaxLines="6"
                              VerticalScrollBarVisibility="Auto" />
 
-                    <TextBlock Text="補足" Style="{StaticResource Label}" Margin="0,14,0,4" />
+                    <TextBlock v:LocalizedText.Text="{x:Static res:Strings.ExampleEdit_SupplementLabel}" Style="{StaticResource Label}" Margin="0,14,0,4" />
                     <TextBox Text="{Binding Supplement, UpdateSourceTrigger=PropertyChanged}"
                              AcceptsReturn="True" TextWrapping="Wrap" MinLines="1" MaxLines="4"
                              VerticalScrollBarVisibility="Auto" />
 
-                    <TextBlock Text="タグ（カンマ区切り）" Style="{StaticResource Label}" Margin="0,14,0,4" />
+                    <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Tags_CommaHint}" Style="{StaticResource Label}" Margin="0,14,0,4" />
                     <TextBox Text="{Binding TagsText, UpdateSourceTrigger=PropertyChanged}"
-                             v:Placeholder.Text="例: 挨拶, 日常" />
+                             v:Placeholder.Text="{x:Static res:Strings.ExampleEdit_TagsPlaceholder}" />
 
                     <!-- 関連単語。単語エディタの関連語と同じく、検索欄と候補ボタンをその場に置く
                          （別ウィンドウの選択ダイアログは OBS のウィンドウキャプチャに映らないため） -->
                     <Border Style="{StaticResource FilterCard}" Margin="0,18,0,0">
                         <StackPanel>
-                            <TextBlock Text="関連単語" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
+                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.ExampleEdit_RelatedWordsHeading}" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
 
                             <ItemsControl ItemsSource="{Binding Words}">
                                 <ItemsControl.ItemsPanel>
@@ -84,7 +85,7 @@
 
                             <TextBox Margin="0,4,0,0"
                                      Text="{Binding WordQuery, UpdateSourceTrigger=PropertyChanged, Delay=120}"
-                                     v:Placeholder.Text="単語を検索して追加…"
+                                     v:Placeholder.Text="{x:Static res:Strings.ExampleEdit_WordSearchPlaceholder}"
                                      FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
 
                             <ItemsControl ItemsSource="{Binding WordCandidates}" Margin="0,4,0,0">
@@ -110,11 +111,11 @@
                     <!-- 出典。ComboBox は一覧が別 HWND になって配信に映らないため、自前の v:DropDown を使う -->
                     <Border Style="{StaticResource FilterCard}" Margin="0,14,0,16">
                         <StackPanel>
-                            <TextBlock Text="出典" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
+                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.ExampleEdit_SourceHeading}" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
 
                             <!-- 保存するのは API 名（Catalog）だけなので、選択肢の実体は SelectedCatalog で受ける -->
                             <v:DropDown ItemsSource="{Binding Catalogs}" SelectedItem="{Binding SelectedCatalog}"
-                                        DisplayMemberPath="Label" Placeholder="出典を選ぶ" />
+                                        DisplayMemberPath="Label" Placeholder="{x:Static res:Strings.ExampleEdit_SourcePlaceholder}" />
 
                             <!-- 「自作」は照会先が無いので、番号と照会ボタンごと隠す -->
                             <StackPanel Visibility="{Binding IsOnlineCatalog, Converter={StaticResource BoolVis}}">
@@ -127,15 +128,15 @@
                                     <TextBlock Grid.Column="0" Text="No." Foreground="{StaticResource Muted}"
                                                VerticalAlignment="Center" Margin="0,0,8,0" TextWrapping="NoWrap" />
                                     <TextBox Grid.Column="1" Text="{Binding OfferNumberText, UpdateSourceTrigger=PropertyChanged}" />
-                                    <Button Grid.Column="2" Content="照会" Margin="6,0,0,0"
+                                    <Button Grid.Column="2" v:LocalizedText.Content="{x:Static res:Strings.ExampleEdit_FetchButton}" Margin="6,0,0,0"
                                             Command="{Binding FetchCommand}" />
                                 </Grid>
-                                <TextBlock Text="照会すると訳と補足が上書きされます。" Style="{StaticResource Label}" Margin="0,6,0,0" />
+                                <TextBlock v:LocalizedText.Text="{x:Static res:Strings.ExampleEdit_FetchHint}" Style="{StaticResource Label}" Margin="0,6,0,0" />
 
-                                <TextBlock Text="{Binding OfferStatus}" Margin="0,6,0,0"
+                                <TextBlock v:LocalizedText.Text="{Binding OfferStatus}" Margin="0,6,0,0"
                                            Visibility="{Binding OfferStatus, Converter={StaticResource NullVis}}" />
 
-                                <TextBlock Text="{Binding ApiKeyHint}" Style="{StaticResource Label}" Margin="0,12,0,4" />
+                                <TextBlock v:LocalizedText.Text="{Binding ApiKeyHint}" Style="{StaticResource Label}" Margin="0,12,0,4" />
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -144,8 +145,8 @@
                                     <!-- PasswordBox は Password をバインドできないため TextBox で受ける。
                                          保存すると即座に空へ戻すので、画面にキーが残り続けることはない。 -->
                                     <TextBox Grid.Column="0" Text="{Binding ApiKeyInput, UpdateSourceTrigger=PropertyChanged}"
-                                             v:Placeholder.Text="APIキー" FontFamily="Consolas" />
-                                    <Button Grid.Column="1" Content="キーを保存" Margin="6,0,0,0"
+                                             v:Placeholder.Text="{x:Static res:Strings.Label_ApiKeyPlaceholder}" FontFamily="Consolas" />
+                                    <Button Grid.Column="1" v:LocalizedText.Content="{x:Static res:Strings.ExampleEdit_SaveKeyButton}" Margin="6,0,0,0"
                                             Command="{Binding SaveApiKeyCommand}" />
                                 </Grid>
                             </StackPanel>
