@@ -29,6 +29,9 @@ public static class Markdown
             Background = Brushes.Transparent,
             // FlowDocument は載せた先から文字色を継がず、既定の黒のままになる。暗い面に描くので明示する。
             Foreground = Res("Text", 0xEAEDF6),
+            // 描くのは辞書の凡例（辞書データ）なので、表示言語のフォントではなく辞書データ用を使う。
+            // 器から継がないぶん今は窓のフォントに引きずられないが、継承の有無に頼らず明示しておく。
+            FontFamily = ZasDictWin.Resources.Strings.ContentFont,
             FontSize = S(14, scale),
         };
         foreach (var block in RenderBlocks(MarkdownParser.Parse(source), 0.0, scale))

@@ -6,9 +6,11 @@
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:res="clr-namespace:ZasDictWin.Resources">
 
-    <Border Style="{StaticResource OverlayCard}">
+    <Border Style="{StaticResource OverlayCard}"
+>
         <DockPanel>
-            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
+            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1"
+>
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Right" v:LocalizedText.Text="{Binding IdLabel}" Style="{StaticResource Label}"
                                Margin="12,0,0,0" VerticalAlignment="Center" TextWrapping="NoWrap" />
@@ -98,6 +100,7 @@
                                                 <TextBlock Text="{Binding DisplayForm}" Margin="0,0,12,0"
                                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
                                                 <TextBlock Text="{Binding TranslationSummary}" Foreground="{StaticResource Muted}"
+                                                           FontFamily="{x:Static res:Strings.ContentFont}"
                                                            FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
                                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="520" />
                                             </StackPanel>

@@ -13,13 +13,15 @@
             </StackPanel>
             <!-- パスは 1 行。Label スタイルが Wrap を宣言しているので明示的に打ち消す -->
             <TextBlock Text="{Binding ChangelogPath}" Style="{StaticResource Label}" Margin="0"
+                       FontFamily="{x:Static res:Strings.ContentFont}"
                        VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
         </DockPanel>
 
         <!-- 列幅は固定 px にせず、SharedSizeGroup で全行そろえて内容に合わせる。
              固定にすると文字サイズ倍率を上げたとき「CHANGE」等が折り返す。
              スコープを見出し行と本文の共通の親にしているため、見出しの列幅も本文とそろう。 -->
-        <Grid Grid.IsSharedSizeScope="True">
+        <!-- 見出し行も本文も CSV の中身（辞書データ）なので、窓の UI フォントは継がせない。 -->
+        <Grid Grid.IsSharedSizeScope="True" TextElement.FontFamily="{x:Static res:Strings.ContentFont}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="*" />

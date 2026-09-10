@@ -34,7 +34,9 @@
             <!-- 品詞・タグの内訳は横流れの文字列ではなくグリッド状に整列させる。
                  SharedSizeGroup（更新履歴と同じ手法）で全セルの名称列・件数列の幅をそろえ、
                  WrapPanel で折り返す。固定 px を使わないので文字サイズ倍率にも追従する。 -->
-            <ItemsControl ItemsSource="{Binding PosItems}" Grid.IsSharedSizeScope="True" Margin="0,2,0,0">
+            <!-- 品詞名・タグ名は辞書データなので、窓の UI フォントは継がせない。 -->
+            <ItemsControl ItemsSource="{Binding PosItems}" Grid.IsSharedSizeScope="True" Margin="0,2,0,0"
+                          FontFamily="{x:Static res:Strings.ContentFont}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal" />
@@ -58,7 +60,8 @@
             </ItemsControl>
 
             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Label_Tags}" Style="{StaticResource SectionHeading}" />
-            <ItemsControl ItemsSource="{Binding TagItems}" Grid.IsSharedSizeScope="True" Margin="0,2,0,0">
+            <ItemsControl ItemsSource="{Binding TagItems}" Grid.IsSharedSizeScope="True" Margin="0,2,0,0"
+                          FontFamily="{x:Static res:Strings.ContentFont}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal" />
