@@ -41,7 +41,7 @@
                     <TextBox Text="{Binding Sentence, UpdateSourceTrigger=PropertyChanged}"
                              AcceptsReturn="True" TextWrapping="Wrap" MinLines="2" MaxLines="6"
                              VerticalScrollBarVisibility="Auto"
-                             FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}"
+                             FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=FieldFamily}"
                              FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}" />
 
                     <TextBlock v:LocalizedText.Text="{x:Static res:Strings.ExampleEdit_TranslationLabel}" Style="{StaticResource Label}" Margin="0,14,0,4" />
@@ -88,7 +88,7 @@
                             <TextBox Margin="0,4,0,0"
                                      Text="{Binding WordQuery, UpdateSourceTrigger=PropertyChanged, Delay=120}"
                                      v:Placeholder.Text="{x:Static res:Strings.ExampleEdit_WordSearchPlaceholder}"
-                                     FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
+                                     FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=FieldFamily}" />
 
                             <ItemsControl ItemsSource="{Binding WordCandidates}" Margin="0,4,0,0">
                                 <ItemsControl.ItemTemplate>

@@ -15,9 +15,9 @@
                 <TextBox x:Name="QueryBox"
                          Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=80}"
                          KeyDown="QueryBox_KeyDown"
-                         FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}"
+                         FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=FieldFamily}"
                          v:Placeholder.Text="{x:Static res:Strings.Search_Placeholder}"
-                         Padding="30,6,32,6" />
+                         Padding="30,12,32,12" />
                 <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="13"
                            Foreground="{StaticResource Muted}" HorizontalAlignment="Left" VerticalAlignment="Center"
                            Margin="12,0,0,0" IsHitTestVisible="False" />

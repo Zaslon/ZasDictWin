@@ -45,7 +45,7 @@
                          読めなくなる。案内文字（Placeholder）は UI 文字列なので、TextBox のテンプレート側で
                          UI フォントに戻している（Themes/Theme.xaml）。 -->
                     <TextBox x:Name="AddressBox" BorderThickness="0" Background="Transparent"
-                             Padding="11,0" VerticalContentAlignment="Center"
+                             Padding="22,0" VerticalContentAlignment="Center"
                              FontFamily="{x:Static res:Strings.EnFont}"
                              t:Placeholder.Text="{x:Static res:Strings.Browser_AddressPlaceholder}"
                              Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}">

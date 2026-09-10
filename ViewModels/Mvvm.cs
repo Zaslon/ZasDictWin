@@ -66,7 +66,7 @@ public abstract class OverlayViewModel : ViewModelBase
     /// <summary>
     /// 行き先を覚えていないとき、本体のタブ束ではなく独立ウィンドウとして開くか。
     /// 常設の枠を割きたくないツール類だけが真にする。どちらで開いても、
-    /// あとからタブを掴んで窓の内と外を行き来させられる。
+    /// あとからタブを掴んでウィンドウの内と外を行き来させられる。
     /// </summary>
     public virtual bool PrefersFloating => false;
 
@@ -118,7 +118,57 @@ public sealed class HeadwordFontState : ViewModelBase
     public static FontFamily Fallback { get; } = new("Yu Gothic UI");
 
     private FontFamily _family = Fallback;
-    public FontFamily Family { get => _family; set => Set(ref _family, value); }
+
+    public FontFamily Family
+    {
+        get => _family;
+        set
+        {
+            if (!Set(ref _family, value)) return;
+            _fieldFamily = WithRoomForFallback(value);
+            Raise(nameof(FieldFamily));
+        }
+    }
+
+    private FontFamily _fieldFamily = Fallback;
+
+    /// <summary>
+    /// 入力欄（TextBox）に当てる見出し語フォント。表示だけの器（TextBlock）には
+    /// <see cref="Family"/> をそのまま使う（行が広がって一覧の表示件数が減るため）。
+    /// </summary>
+    public FontFamily FieldFamily => _fieldFamily;
+
+    /// <summary>
+    /// 行の高さを日本語のフォールバック対象（<see cref="Fallback"/>）分に底上げしたフォントを返す。
+    /// WPF の行の箱は主フォントの Baseline / LineSpacing だけで決まり、字が無くて別のフォントへ
+    /// 落ちた分（Heksa に無い日本語など）が背高でも広がらない。直接LineHeightは変更できないため、
+    /// 元のフォントだけを指す合成フォント（.CompositeFont と同じ仕組み）を組んで数値をそちらに持たせる。
+    /// 値は em に対する比なので、文字サイズ倍率を変えても同じ割合で広がる。
+    /// </summary>
+    private static FontFamily WithRoomForFallback(FontFamily family)
+    {
+        if (family.Baseline >= Fallback.Baseline && family.LineSpacing >= Fallback.LineSpacing) return family;
+
+        try
+        {
+            var roomy = new FontFamily
+            {
+                Baseline = Math.Max(family.Baseline, Fallback.Baseline),
+                LineSpacing = Math.Max(family.LineSpacing, Fallback.LineSpacing)
+            };
+            // 行き先は絶対の綴りで渡す。合成フォントは基準 URI を持てないため、Source の
+            // "./〜.ttf#〜" という相対の綴りのままだと元のフォントに届かず、黙って既定のフォントで描かれる。
+            var target = family.BaseUri is null ? family.Source : $"{family.BaseUri}{family.Source.TrimStart('.', '/')}";
+            roomy.FamilyMaps.Add(new FontFamilyMap { Unicode = "0000-10FFFF", Target = target, Scale = 1.0 });
+            return roomy;
+        }
+        catch (ArgumentException ex)
+        {
+            // 組めなくても入力はできる（上端が切れるだけ）ので、元のフォントで続ける。
+            ErrorLog.Write($"入力欄用フォントの合成 ({family.Source})", ex);
+            return family;
+        }
+    }
 
     /// <summary>
     /// ttf / otf を FontFamily として読み込む。Fonts.GetFontFamilies はファイルパスではなく
