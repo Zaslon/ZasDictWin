@@ -1,7 +1,8 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:v="clr-namespace:ZasDictWin.Views"
-                    xmlns:vm="clr-namespace:ZasDictWin.ViewModels">
+                    xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+                    xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <v:BoolToVisibilityConverter x:Key="BoolVis" />
     <v:EnumMatchConverter x:Key="EnumMatch" />
@@ -312,9 +313,12 @@
                         <Grid>
                             <ScrollViewer x:Name="PART_ContentHost" Margin="{TemplateBinding Padding}" />
                             <!-- 案内文字は 1 行。NoWrap を書かないと暗黙の TextBlock スタイル（Wrap）が効いて
-                                 折り返してしまい、TextTrimming が働かない -->
+                                 折り返してしまい、TextTrimming が働かない。
+                                 入力欄の中身と違って必ず UI 文字列なので、入力欄側のフォント
+                                 （URL 欄の en、綴り欄の Heksa、パス欄の Consolas）は継がせない。 -->
                             <TextBlock x:Name="ph"
                                        v:LocalizedText.Text="{Binding Path=(v:Placeholder.Text), RelativeSource={RelativeSource TemplatedParent}}"
+                                       FontFamily="{x:Static res:Strings.UIFont}"
                                        Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                                        Foreground="{StaticResource Muted}"
                                        TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"

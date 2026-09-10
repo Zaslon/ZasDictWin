@@ -61,7 +61,11 @@
                                   SelectedValue="{Binding Language}" Width="200" HorizontalAlignment="Left">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
-                                    <TextBlock Text="{Binding Name}" />
+                                    <!-- 言語名はどれも「その言語自身での表記」なので、表示中の言語の
+                                         UI フォントを継ぐと自分以外の名前が読めなくなる（Idyerin 表示なら
+                                         "日本語" も "English" もイジェール文字で描かれる）。
+                                         どの名前も字を持つ Strings.EnFont に固定する。 -->
+                                    <TextBlock Text="{Binding Name}" FontFamily="{x:Static res:Strings.EnFont}" />
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
