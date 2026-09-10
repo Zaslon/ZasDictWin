@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using ZasDictWin.Models;
+using ZasDictWin.Resources;
 using ZasDictWin.Services;
 using ZasDictWin.ViewModels;
 
@@ -92,6 +93,14 @@ public static class EtymologyText
             {
                 BindingOperations.SetBinding(run, TextElement.FontFamilyProperty,
                     new Binding(nameof(HeadwordFontState.Family)) { Source = HeadwordFontState.Instance });
+            }
+            else
+            {
+                // イジェール語でない区間は器から継ぐのではなく、辞書データ用のフォントを明示する。
+                // 器（詳細欄・単語ウィンドウ）の既定は表示言語の UI フォントで、Idyerin を選ぶと
+                // Heksa になる。継いだままだと造語者・言語略称・和訳まで同じイジェール文字で描かれ、
+                // Etymology.Split で割った意味が画面上に出なくなる。
+                run.FontFamily = Strings.ContentFont;
             }
             yield return run;
         }

@@ -92,6 +92,24 @@ public static class Strings
         }
     }
 
+    private static FontFamily? _contentFont;
+
+    /// <summary>辞書データ（訳語・内容欄など）を描くフォント。表示中の言語ではなく、既定言語
+    /// （Strings.resx）の Meta_UIFontFamily を常に参照する。辞書の中身は表示言語を切り替えても
+    /// 日本語のままなので、UI 用のフォント（Idyerin なら Heksa）を継がせると、日本語が字を持たない
+    /// フォントから別のフォントへ落ちて行の高さが足りなくなり、語源欄の描き分けも器の既定フォントに
+    /// 飲まれて消える。</summary>
+    public static FontFamily ContentFont
+    {
+        get
+        {
+            if (_contentFont is not null) return _contentFont;
+            var value = Neutral.GetString("Meta_UIFontFamily");
+            _contentFont = new FontFamily(string.IsNullOrWhiteSpace(value) ? "Yu Gothic UI" : value);
+            return _contentFont;
+        }
+    }
+
     public static string Common_Cancel => Get();
     public static string Common_Close => Get();
     public static string Common_Save => Get();
