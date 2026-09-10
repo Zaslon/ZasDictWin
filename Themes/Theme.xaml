@@ -600,14 +600,41 @@
         </Setter>
     </Style>
 
+    <!-- タブとページを一枚の面としてつなげる。選択タブの塗り・枠をページ側と揃え、
+         タブの下端 1px をページの上枠に重ねて継ぎ目を消す。ページ側を塗らずにタブだけを塗ると、
+         タブと中身が別の面に見えて切り離される。 -->
     <Style TargetType="TabControl">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Background" Value="{StaticResource Panel}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="Padding" Value="14,0" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <Border Grid.Row="1" Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="0,8,8,8" Padding="{TemplateBinding Padding}">
+                            <!-- 名前は PART_SelectedContentHost 固定。TabControl はこの名前で
+                                 ページの差し替え先を探す。 -->
+                            <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" />
+                        </Border>
+                        <!-- ヘッダーを前面に置き、選択タブがページの上枠を隠せるようにする -->
+                        <TabPanel Grid.Row="0" Panel.ZIndex="1" IsItemsHost="True"
+                                  KeyboardNavigation.TabIndex="1" />
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
-    <!-- 選択タブは下線だけで示す（面を塗るより軽い）。
-         文字色と太さは TabItem 本体ではなくヘッダーの Border（bd）に載せること。TabItem の
+    <!-- 文字色と太さは TabItem 本体ではなくヘッダーの Border（bd）に載せること。TabItem の
          Content（＝タブページの中身）は論理ツリー上 TabItem の子なので、TabControl の
          表示領域に描かれていても TabItem からの継承が届く。Foreground や FontWeight を
          TabItem に置くと、選択中のページの中身まで丸ごとその色・太さになる。
@@ -615,11 +642,14 @@
     <Style TargetType="TabItem">
         <Setter Property="Padding" Value="14,7" />
         <Setter Property="Cursor" Value="Hand" />
+        <!-- 下の -1 はページ枠との重ね代。0 に戻すと選択タブとページの間に枠線が残って分断される -->
+        <Setter Property="Margin" Value="0,0,2,-1" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
                     <Grid>
-                        <Border x:Name="bd" Background="Transparent" CornerRadius="8,8,0,0"
+                        <Border x:Name="bd" Background="Transparent" BorderBrush="Transparent"
+                                BorderThickness="1,1,1,0" CornerRadius="8,8,0,0"
                                 Padding="{TemplateBinding Padding}"
                                 TextElement.Foreground="{StaticResource Muted}">
                             <!-- ContentSource="Header" は必須。省略すると ContentPresenter が TabItem.Content、
@@ -630,18 +660,22 @@
                             <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"
                                               VerticalAlignment="Center" />
                         </Border>
-                        <Border x:Name="ul" Height="2" VerticalAlignment="Bottom" CornerRadius="1"
+                        <!-- 選択を示すアクセントは上辺に置く。下辺に置くとページとの境界線に見える。
+                             左右の余白は角丸をまたがないための逃げ。 -->
+                        <Border x:Name="ul" Height="2" Margin="9,1,9,0" VerticalAlignment="Top" CornerRadius="1"
                                 Background="{StaticResource AccentFill}" Opacity="0" />
                     </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="bd" Property="TextElement.Foreground" Value="{StaticResource Text}" />
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
                             <Setter TargetName="ul" Property="Opacity" Value="0.4" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="bd" Property="TextElement.Foreground" Value="{StaticResource Text}" />
                             <Setter TargetName="bd" Property="TextElement.FontWeight" Value="SemiBold" />
-                            <Setter TargetName="bd" Property="Background" Value="#121A28" />
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource Panel}" />
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Line}" />
                             <Setter TargetName="ul" Property="Opacity" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -749,6 +783,10 @@
     </Style>
 
     <!-- タブの見出し。掴んで別の枠へ運ぶ取っ手も兼ねる（v:OverlayDrag.IsGrip） -->
+    <!-- 枠のタブ。表に出ているタブは中身と同じ面（Panel）で塗り、下端をタブ列の区切り線に 1px
+         重ねて中身と一枚につなげる。裏のタブは Raised の粒として下に隙間を空け、浮かせて見せる。
+         高さは行なりに伸ばす（VerticalAlignment は既定の Stretch）。閉じるボタンの有無でタブの
+         背は変わるので、伸ばさないと表のタブが区切り線まで届かず、中身との間に隙間が残る。 -->
     <Style x:Key="DockTab" TargetType="Border">
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Background" Value="{StaticResource Raised}" />
@@ -756,16 +794,32 @@
         <Setter Property="BorderThickness" Value="1" />
         <!-- 閉じるボタンの有無に関わらず左右対称。片方だけ小さくすると、閉じるボタンの無い
              据え置きタブ（検索・単語詳細）で文字列が右へ寄って見える。 -->
-        <Setter Property="Padding" Value="9,2,9,2" />
-        <Setter Property="Margin" Value="0,0,5,0" />
+        <Setter Property="Padding" Value="9,4,9,4" />
+        <Setter Property="Margin" Value="0,0,5,3" />
         <Setter Property="TextElement.Foreground" Value="{StaticResource Muted}" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsActive}" Value="True">
-                <Setter Property="Background" Value="{StaticResource AccentDim}" />
-                <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+                <Setter Property="Background" Value="{StaticResource Panel}" />
+                <Setter Property="BorderThickness" Value="1,1,1,0" />
+                <Setter Property="CornerRadius" Value="6,6,0,0" />
+                <!-- 下の -1 は区切り線との重ね代。0 に戻すと線がタブの下を通り、中身と切り離されて見える。
+                     文字は箱の中央に来るので、下へ伸びたぶん（裏のタブの隙間 3px＋下枠 1px＋重ね代 1px）は
+                     Padding 下に足して中央を押し戻し、裏のタブと文字の高さを揃える。 -->
+                <Setter Property="Margin" Value="0,0,5,-1" />
+                <Setter Property="Padding" Value="9,4,9,9" />
                 <Setter Property="TextElement.Foreground" Value="{StaticResource Text}" />
             </DataTrigger>
         </Style.Triggers>
+    </Style>
+
+    <!-- 表に出ているタブの目印。下辺に置くと中身との境目に見えるため上辺に置く。
+         左右は Padding のぶん内側に入り、角丸をまたがない。 -->
+    <Style x:Key="DockTabMark" TargetType="Border">
+        <Setter Property="Height" Value="2" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Margin" Value="0,-4,0,0" />
+        <Setter Property="CornerRadius" Value="1" />
+        <Setter Property="Background" Value="{StaticResource AccentFill}" />
     </Style>
 
     <!-- 幅・高さを引っ張るつまみ。太さは呼び出し側が決め、ここは色の出し分けだけを持つ -->

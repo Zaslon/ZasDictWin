@@ -12,9 +12,10 @@
         <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}" BorderThickness="1">
             <DockPanel>
                 <!-- タブ列。1 枚でも出す（掴んで別の枠へ運ぶ取っ手を兼ねるため）。
-                     まだタブの無い枠には並べるものが無いので出さない。 -->
+                     まだタブの無い枠には並べるものが無いので出さない。
+                     下余白は 0。表に出ているタブがここを跨いで区切り線まで届き、中身と地続きになる。 -->
                 <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}"
-                        BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="6,5"
+                        BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="10,8,10,0"
                         Visibility="{Binding HasItems, Converter={StaticResource BoolVis}}">
                     <ItemsControl ItemsSource="{Binding Items}">
                         <ItemsControl.ItemsPanel>
@@ -27,18 +28,22 @@
                                 <!-- 据え置きのタブ（検索・単語詳細）は運べるが閉じられない。 -->
                                 <Border MouseDown="Tab_MouseDown" Style="{StaticResource DockTab}"
                                         v:OverlayDrag.IsGrip="True">
-                                    <StackPanel Orientation="Horizontal">
-                                        <!-- 見出しは 1 行。長い題は末尾を省略してタブの幅を暴れさせない -->
-                                        <TextBlock v:LocalizedText.Text="{Binding Title}" VerticalAlignment="Center" MaxWidth="150"
-                                                   TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
-                                        <!-- Width/Height を固定しない。IconButton の FontSize は文字サイズ倍率に連動して
-                                             大きくなるため、箱を固定すると倍率を上げたときに ✕ がはみ出す。
-                                             MinWidth/MinHeight（IconButton 側）を床にして箱ごと追従させる。 -->
-                                        <Button Content="✕" Style="{StaticResource IconButton}"
-                                                Margin="6,0,0,0" Command="{Binding CloseCommand}"
-                                                Visibility="{Binding IsPinned, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
-                                    </StackPanel>
+                                    <Grid>
+                                        <StackPanel Orientation="Horizontal">
+                                            <!-- 見出しは 1 行。長い題は末尾を省略してタブの幅を暴れさせない -->
+                                            <TextBlock v:LocalizedText.Text="{Binding Title}" VerticalAlignment="Center" MaxWidth="150"
+                                                       TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
+                                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                                            <!-- Width/Height を固定しない。IconButton の FontSize は文字サイズ倍率に連動して
+                                                 大きくなるため、箱を固定すると倍率を上げたときに ✕ がはみ出す。
+                                                 MinWidth/MinHeight（IconButton 側）を床にして箱ごと追従させる。 -->
+                                            <Button Content="✕" Style="{StaticResource IconButton}"
+                                                    Margin="6,0,0,0" Command="{Binding CloseCommand}"
+                                                    Visibility="{Binding IsPinned, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
+                                        </StackPanel>
+                                        <Border Style="{StaticResource DockTabMark}"
+                                                Visibility="{Binding IsActive, Converter={StaticResource BoolVis}}" />
+                                    </Grid>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
