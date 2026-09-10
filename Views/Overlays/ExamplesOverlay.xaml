@@ -6,9 +6,11 @@
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:res="clr-namespace:ZasDictWin.Resources">
 
-    <Border Style="{StaticResource OverlayCard}">
+    <Border Style="{StaticResource OverlayCard}"
+>
         <DockPanel>
-            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1">
+            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1"
+>
                 <DockPanel>
                     <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Close}" Style="{StaticResource GhostButton}"
                             Command="{Binding CloseCommand}" Margin="0" />
@@ -42,7 +44,9 @@
                     <ItemsControl ItemsSource="{Binding Examples}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type m:Example}">
+                                <!-- 訳とタグは辞書データなので、窓の UI フォントは継がせない（文は Heksa）。 -->
                                 <Button HorizontalContentAlignment="Left" Margin="0,0,0,6" Padding="12,8"
+                                        FontFamily="{x:Static res:Strings.ContentFont}"
                                         Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}">
                                     <StackPanel>

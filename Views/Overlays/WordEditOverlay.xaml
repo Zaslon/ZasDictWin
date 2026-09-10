@@ -100,7 +100,8 @@
                                                 Command="{Binding DataContext.RemoveContentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                 CommandParameter="{Binding}" />
                                         <!-- 内容欄の種類は選択肢（choices.json の ContentTypes）から選ぶため、既存行のタイトルは編集不可にする -->
-                                        <TextBlock Text="{Binding Title}" Style="{StaticResource Label}" Margin="0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding Title}" Style="{StaticResource Label}" Margin="0" VerticalAlignment="Center"
+                                                   FontFamily="{x:Static res:Strings.ContentFont}" />
                                     </DockPanel>
                                     <TextBox Text="{Binding Text, UpdateSourceTrigger=PropertyChanged}"
                                              AcceptsReturn="True" TextWrapping="Wrap" MinHeight="72" VerticalScrollBarVisibility="Auto" />
@@ -131,7 +132,7 @@
                                 <Button Style="{StaticResource GhostButton}" Margin="0,0,6,6"
                                         Command="{Binding DataContext.AddContentTypeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                         CommandParameter="{Binding}">
-                                    <TextBlock Text="{Binding StringFormat=＋ {0}}" />
+                                    <TextBlock Text="{Binding StringFormat=＋ {0}}" FontFamily="{x:Static res:Strings.ContentFont}" />
                                 </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -185,6 +186,7 @@
                                                 <TextBlock Text="{Binding DisplayForm}" Margin="0,0,12,0"
                                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
                                                 <TextBlock Text="{Binding TranslationSummary}" Foreground="{StaticResource Muted}"
+                                                           FontFamily="{x:Static res:Strings.ContentFont}"
                                                            FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
                                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="520" />
                                             </StackPanel>

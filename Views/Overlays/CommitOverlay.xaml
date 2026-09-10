@@ -20,7 +20,8 @@
             <StackPanel Margin="0,14,0,0">
                 <TextBlock v:LocalizedText.Text="{x:Static res:Strings.GitHub_CommitSummaryLabel}" Style="{StaticResource Label}" />
                 <ScrollViewer MaxHeight="140" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Margin="0,2,0,0">
-                    <TextBlock Text="{Binding Summary}" Foreground="{StaticResource Muted}" />
+                    <!-- 中身は「操作＋見出し語」の並び（辞書データ）。窓の UI フォントは継がせない。 -->
+                    <TextBlock Text="{Binding Summary}" Foreground="{StaticResource Muted}" FontFamily="{x:Static res:Strings.ContentFont}" />
                 </ScrollViewer>
 
                 <TextBlock v:LocalizedText.Text="{x:Static res:Strings.GitHub_CommitMessageLabel}" Style="{StaticResource Label}" Margin="0,14,0,4" />

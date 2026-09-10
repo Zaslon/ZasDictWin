@@ -37,7 +37,13 @@
             <!-- 詳細面は縦スクロールのみ。横に流すと本文の折り返し位置が測定のたびに移り、
                  見出しと本文の並びがずれて見える -->
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <StackPanel DataContext="{Binding SelectedWord}">
+                <!-- ここから下は辞書データなので、表示言語の UI フォントではなく辞書データ用の
+                     フォントで描く。WPF の行の高さは主フォントの LineSpacing で決まり、字が無くて
+                     別のフォントへ落ちた分は背が高くても行を広げないため、Idyerin 表示（主フォントが
+                     Heksa）のままだと日本語を含む本文の行が詰まって字が欠ける。
+                     この中に混じる UI 文字列（節の見出し）だけ、個別に UI フォントへ戻している。 -->
+                <StackPanel DataContext="{Binding SelectedWord}"
+                            TextElement.FontFamily="{x:Static res:Strings.ContentFont}">
 
                     <!-- 本文は v:SelectableText（読み取り専用の TextBox）で置く。TextBlock の文字は
                          マウスで選べず、辞書の中身を他所へ写せないため。見出し・小見出しはそのまま。 -->
@@ -90,7 +96,8 @@
                     <Border Style="{StaticResource DetailSection}"
                             Visibility="{Binding Variations.Count, Converter={StaticResource CountVis}}">
                         <StackPanel>
-                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Label_Variations}" Style="{StaticResource DetailSectionHeading}" />
+                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Label_Variations}" Style="{StaticResource DetailSectionHeading}"
+                                       FontFamily="{x:Static res:Strings.UIFont}" />
                             <ItemsControl ItemsSource="{Binding Variations}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:Variation}">
@@ -158,7 +165,8 @@
                     <Border Style="{StaticResource DetailSection}"
                             Visibility="{Binding DataContext.RelatedExamples.Count, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource CountVis}}">
                         <StackPanel>
-                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Detail_RelatedExamples}" Style="{StaticResource DetailSectionHeading}" />
+                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Detail_RelatedExamples}" Style="{StaticResource DetailSectionHeading}"
+                                       FontFamily="{x:Static res:Strings.UIFont}" />
                             <ItemsControl ItemsSource="{Binding DataContext.RelatedExamples, RelativeSource={RelativeSource AncestorType=UserControl}}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:Example}">

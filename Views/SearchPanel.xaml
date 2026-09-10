@@ -77,7 +77,9 @@
                 </ListBox.ItemContainerStyle>
                 <ListBox.ItemTemplate>
                     <DataTemplate DataType="{x:Type m:Word}">
-                        <Grid>
+                        <!-- 行の中身は辞書データ。訳語は表示言語を変えても日本語のままなので、
+                             窓の UI フォント（Idyerin なら Heksa）は継がせない。 -->
+                        <Grid TextElement.FontFamily="{x:Static res:Strings.ContentFont}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />

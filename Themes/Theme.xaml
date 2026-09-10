@@ -305,6 +305,10 @@
              縦中央なら余白が上下に割れて逃げ場ができる（ブラウザの URL 欄と同じ収まり方）。
              複数行の入力欄は下の Trigger で上寄せへ戻す。中身が箱の中央に浮いて見えてしまうため。 -->
         <Setter Property="VerticalContentAlignment" Value="Center" />
+        <!-- 入力欄の中身は UI 文字列ではなく辞書データや設定値なので、表示言語のフォントは継がせない。
+             継ぐと Idyerin 表示で主フォントが Heksa になり、日本語が字を持たないフォントから落ちて
+             行の高さが足りなくなる（欄ごとの指定は個別に上書きする。綴り欄の Heksa、パス欄の Consolas）。 -->
+        <Setter Property="FontFamily" Value="{x:Static res:Strings.ContentFont}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -883,8 +887,11 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <!-- 暗黙の TextBlock スタイル（Wrap）が効くと、選んだ値が折り返して
-                                 行の高さが揺れるため、どちらも 1 行に固定する -->
+                                 行の高さが揺れるため、どちらも 1 行に固定する。
+                                 選んだ値は辞書データ（品詞・関係名）なので、入力欄と同じく表示言語の
+                                 フォントは継がせない。案内文字（ph）は UI 文字列なのでそのまま。 -->
                             <TextBlock x:Name="txt" Grid.Column="0" Text="{TemplateBinding SelectionText}"
+                                       FontFamily="{x:Static res:Strings.ContentFont}"
                                        Foreground="{TemplateBinding Foreground}"
                                        Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                                        TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
@@ -948,6 +955,10 @@
 
     <Style x:Key="DropDownList" TargetType="ListBox" BasedOn="{StaticResource {x:Type ListBox}}">
         <Setter Property="Padding" Value="0" />
+        <!-- 一覧に並ぶのは辞書データ（品詞・関係名）。器は AdornerLayer なので窓の
+             フォントを継いでしまう。階層メニュー（v:MenuButton）は中身が UI 文字列なので、
+             同じ器でもこの Style は使わない。 -->
+        <Setter Property="FontFamily" Value="{x:Static res:Strings.ContentFont}" />
     </Style>
 
     <!-- 階層メニューのボタン（v:MenuButton）。見た目は隣に並ぶ ToolbarButton に合わせ、
