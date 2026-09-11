@@ -782,11 +782,91 @@
         <Setter Property="Padding" Value="0" />
     </Style>
 
+    <!-- 設定画面のタブ。選択中の見出しに枠とアクセントバーを付け、ドッキングのタブ群と同じ見え方に揃える。 -->
+    <Style x:Key="SettingsTabControl" TargetType="TabControl">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ItemContainerStyle">
+            <Setter.Value>
+                <Style TargetType="TabItem">
+                    <Setter Property="Foreground" Value="{StaticResource Muted}" />
+                    <Setter Property="Background" Value="{StaticResource Ink}" />
+                    <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+                    <Setter Property="BorderThickness" Value="1,1,1,0" />
+                    <Setter Property="Padding" Value="12,8,12,8" />
+                    <Setter Property="Margin" Value="0,0,8,0" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="TabItem">
+                                <Border x:Name="Root"
+                                        Padding="{TemplateBinding Padding}"
+                                        Margin="{TemplateBinding Margin}"
+                                        Background="{TemplateBinding Background}"
+                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                        CornerRadius="6,6,0,0"
+                                        SnapsToDevicePixels="True">
+                                    <Grid>
+                                        <ContentPresenter ContentSource="Header"
+                                                          HorizontalAlignment="Center"
+                                                          VerticalAlignment="Center"
+                                                          RecognizesAccessKey="True"
+                                                          TextElement.Foreground="{TemplateBinding Foreground}" />
+                                        <Border x:Name="Underline"
+                                                Height="2"
+                                                VerticalAlignment="Bottom"
+                                                Margin="0,0,0,-3"
+                                                Background="{StaticResource AccentFill}"
+                                                CornerRadius="1"
+                                                Visibility="Collapsed" />
+                                    </Grid>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource Text}" />
+                                    </Trigger>
+                                    <Trigger Property="IsSelected" Value="True">
+                                        <Setter Property="Foreground" Value="{StaticResource Text}" />
+                                        <Setter Property="Background" Value="{StaticResource Panel}" />
+                                        <Setter Property="Margin" Value="0,0,8,-1" />
+                                        <Setter Property="Padding" Value="12,8,12,9" />
+                                        <Setter TargetName="Underline" Property="Visibility" Value="Visible" />
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TabControl">
+                    <Grid KeyboardNavigation.TabNavigation="Local">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <TabPanel Grid.Row="0" IsItemsHost="True" Margin="0" />
+                        <Border Grid.Row="1"
+                                Background="{StaticResource Panel}"
+                                BorderBrush="{StaticResource Line}"
+                                BorderThickness="1"
+                                CornerRadius="8">
+                            <ContentPresenter ContentSource="SelectedContent" />
+                        </Border>
+                    </Grid>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- タブの見出し。掴んで別の枠へ運ぶ取っ手も兼ねる（v:OverlayDrag.IsGrip） -->
     <!-- 枠のタブ。表裏とも「上のみ丸め・下辺フラット」の同じ形にそろえ、区切り線の上に
          並ぶタブ列として見せる。表裏の違いは色だけで出す（表＝中身と同じ Panel で地続き、
-         裏＝暗い Ink で沈める）。裏を丸ごと丸めたり浮かせたりすると、タブ列から切り離された
-         別のボタンに見えてしまう。表だけ下端を区切り線に 1px 重ねて中身と一枚につなげる。
+         裏＝暗い Ink で沈める）。表だけ下端を区切り線に 1px 重ねて中身と一枚につなげる。
          高さは行なりに伸ばす（VerticalAlignment は既定の Stretch）。閉じるボタンの有無でタブの
          背は変わるので、伸ばさないと表のタブが区切り線まで届かず、中身との間に隙間が残る。 -->
     <Style x:Key="DockTab" TargetType="Border">
@@ -812,13 +892,11 @@
         </Style.Triggers>
     </Style>
 
-    <!-- 表に出ているタブの目印。上辺に置くと閉じるボタンや見出しと窮屈に重なるうえ、
-         タブ列の外側（区切り線より上）にはみ出す置き場所が要る。下辺なら角が
-         スクエア（CornerRadius の下 2 つが 0）なので隅をまたぐ心配もなく、タブの中に収まる。 -->
+    <!-- 表に出ているタブの目印。下線 -->
     <Style x:Key="DockTabMark" TargetType="Border">
         <Setter Property="Height" Value="2" />
         <Setter Property="VerticalAlignment" Value="Bottom" />
-        <Setter Property="Margin" Value="0,0,0,1" />
+        <Setter Property="Margin" Value="0,0,0,-3" />
         <Setter Property="CornerRadius" Value="1" />
         <Setter Property="Background" Value="{StaticResource AccentFill}" />
     </Style>
