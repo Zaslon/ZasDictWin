@@ -46,7 +46,7 @@
 
         <!-- スクロール領域は窓の高さいっぱいまで使う。高さを固定すると
              文字サイズ倍率を上げたときに数行しか見えなくなる。 -->
-        <TabControl Margin="24,14,24,14">
+        <TabControl Margin="24,14,24,14" Style="{StaticResource SettingsTabControl}">
             <TabItem v:LocalizedText.Header="{x:Static res:Strings.Settings_TabGeneral}">
                 <!-- 設定は縦にだけ流す。横スクロールを許すと折り返し幅が測定のたびに変わり、
                      上下の並びがずれて見える（横に広い内容は折り返しと末尾省略で吸収させる） -->
