@@ -783,41 +783,42 @@
     </Style>
 
     <!-- タブの見出し。掴んで別の枠へ運ぶ取っ手も兼ねる（v:OverlayDrag.IsGrip） -->
-    <!-- 枠のタブ。表に出ているタブは中身と同じ面（Panel）で塗り、下端をタブ列の区切り線に 1px
-         重ねて中身と一枚につなげる。裏のタブは Raised の粒として下に隙間を空け、浮かせて見せる。
+    <!-- 枠のタブ。表裏とも「上のみ丸め・下辺フラット」の同じ形にそろえ、区切り線の上に
+         並ぶタブ列として見せる。表裏の違いは色だけで出す（表＝中身と同じ Panel で地続き、
+         裏＝暗い Ink で沈める）。裏を丸ごと丸めたり浮かせたりすると、タブ列から切り離された
+         別のボタンに見えてしまう。表だけ下端を区切り線に 1px 重ねて中身と一枚につなげる。
          高さは行なりに伸ばす（VerticalAlignment は既定の Stretch）。閉じるボタンの有無でタブの
          背は変わるので、伸ばさないと表のタブが区切り線まで届かず、中身との間に隙間が残る。 -->
     <Style x:Key="DockTab" TargetType="Border">
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Background" Value="{StaticResource Raised}" />
+        <Setter Property="CornerRadius" Value="6,6,0,0" />
+        <Setter Property="Background" Value="{StaticResource Ink}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
-        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderThickness" Value="1,1,1,0" />
         <!-- 閉じるボタンの有無に関わらず左右対称。片方だけ小さくすると、閉じるボタンの無い
              据え置きタブ（検索・単語詳細）で文字列が右へ寄って見える。 -->
         <Setter Property="Padding" Value="9,4,9,4" />
-        <Setter Property="Margin" Value="0,0,5,3" />
+        <Setter Property="Margin" Value="0,0,5,0" />
         <Setter Property="TextElement.Foreground" Value="{StaticResource Muted}" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsActive}" Value="True">
                 <Setter Property="Background" Value="{StaticResource Panel}" />
-                <Setter Property="BorderThickness" Value="1,1,1,0" />
-                <Setter Property="CornerRadius" Value="6,6,0,0" />
                 <!-- 下の -1 は区切り線との重ね代。0 に戻すと線がタブの下を通り、中身と切り離されて見える。
-                     文字は箱の中央に来るので、下へ伸びたぶん（裏のタブの隙間 3px＋下枠 1px＋重ね代 1px）は
-                     Padding 下に足して中央を押し戻し、裏のタブと文字の高さを揃える。 -->
+                     文字は箱の中央に来るので、下へ伸びたぶん（重ね代 1px）は Padding 下に足して
+                     中央を押し戻し、裏のタブと文字の高さを揃える。 -->
                 <Setter Property="Margin" Value="0,0,5,-1" />
-                <Setter Property="Padding" Value="9,4,9,9" />
+                <Setter Property="Padding" Value="9,4,9,5" />
                 <Setter Property="TextElement.Foreground" Value="{StaticResource Text}" />
             </DataTrigger>
         </Style.Triggers>
     </Style>
 
-    <!-- 表に出ているタブの目印。下辺に置くと中身との境目に見えるため上辺に置く。
-         左右は Padding のぶん内側に入り、角丸をまたがない。 -->
+    <!-- 表に出ているタブの目印。上辺に置くと閉じるボタンや見出しと窮屈に重なるうえ、
+         タブ列の外側（区切り線より上）にはみ出す置き場所が要る。下辺なら角が
+         スクエア（CornerRadius の下 2 つが 0）なので隅をまたぐ心配もなく、タブの中に収まる。 -->
     <Style x:Key="DockTabMark" TargetType="Border">
         <Setter Property="Height" Value="2" />
-        <Setter Property="VerticalAlignment" Value="Top" />
-        <Setter Property="Margin" Value="0,-4,0,0" />
+        <Setter Property="VerticalAlignment" Value="Bottom" />
+        <Setter Property="Margin" Value="0,0,0,1" />
         <Setter Property="CornerRadius" Value="1" />
         <Setter Property="Background" Value="{StaticResource AccentFill}" />
     </Style>
