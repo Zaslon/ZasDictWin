@@ -235,7 +235,7 @@
   <data name="Settings_FontScaleLabel" xml:space="preserve"><value>文字サイズ倍率</value></data>
   <data name="Settings_SortOrderLabel" xml:space="preserve"><value>カスタム字順</value></data>
   <data name="Settings_AutoSaveCheckbox" xml:space="preserve"><value>編集したら自動で上書き保存する</value></data>
-  <data name="Settings_WindowHeading" xml:space="preserve"><value>ウィンドウ</value></data>
+  <data name="Settings_WindowHeading" xml:space="preserve"><value>ウィンドウ：</value></data>
   <data name="Settings_WidthLabel" xml:space="preserve"><value>幅</value></data>
   <data name="Settings_HeightLabel" xml:space="preserve"><value>高さ</value></data>
   <data name="Settings_AspectLockCheckbox" xml:space="preserve"><value>縦横比を固定する（端をつまんだリサイズを比率固定にします）</value></data>
@@ -343,6 +343,7 @@
   <data name="Main_NoDictionaryName" xml:space="preserve"><value>辞書なし</value></data>
   <data name="Main_CountLabel" xml:space="preserve"><value>{0} / {1} 語</value></data>
   <data name="Main_WordCountLabel" xml:space="preserve"><value>{0}語</value></data>
+  <data name="Main_VersionLabel" xml:space="preserve"><value>v{0}</value></data>
   <data name="Main_FontScaleStatus" xml:space="preserve"><value>文字サイズ {0} %</value></data>
   <data name="Main_NewDictionaryCreated" xml:space="preserve"><value>空の辞書を作成しました。保存時にファイル名を指定します。</value></data>
   <data name="Main_OpenDialogTitle" xml:space="preserve"><value>OTM-JSON 辞書を開く</value></data>

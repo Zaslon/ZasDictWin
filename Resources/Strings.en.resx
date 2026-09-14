@@ -235,7 +235,7 @@
   <data name="Settings_FontScaleLabel" xml:space="preserve"><value>Font Size Scale</value></data>
   <data name="Settings_SortOrderLabel" xml:space="preserve"><value>Custom Sort Order</value></data>
   <data name="Settings_AutoSaveCheckbox" xml:space="preserve"><value>Automatically save changes as you edit</value></data>
-  <data name="Settings_WindowHeading" xml:space="preserve"><value>Window</value></data>
+  <data name="Settings_WindowHeading" xml:space="preserve"><value>Window:</value></data>
   <data name="Settings_WidthLabel" xml:space="preserve"><value>Width</value></data>
   <data name="Settings_HeightLabel" xml:space="preserve"><value>Height</value></data>
   <data name="Settings_AspectLockCheckbox" xml:space="preserve"><value>Lock the aspect ratio (keeps edge-drag resizing proportional)</value></data>
@@ -343,6 +343,7 @@
   <data name="Main_NoDictionaryName" xml:space="preserve"><value>No dictionary</value></data>
   <data name="Main_CountLabel" xml:space="preserve"><value>{0} / {1} words</value></data>
   <data name="Main_WordCountLabel" xml:space="preserve"><value>{0} words</value></data>
+  <data name="Main_VersionLabel" xml:space="preserve"><value>v{0}</value></data>
   <data name="Main_FontScaleStatus" xml:space="preserve"><value>Font size {0}%</value></data>
   <data name="Main_NewDictionaryCreated" xml:space="preserve"><value>Created an empty dictionary. You'll choose a file name when you save.</value></data>
   <data name="Main_OpenDialogTitle" xml:space="preserve"><value>Open an OTM-JSON Dictionary</value></data>

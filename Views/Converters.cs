@@ -76,6 +76,27 @@ public sealed class ScaleFontSizeConverter : IValueConverter
 }
 
 /// <summary>
+/// ConverterParameter に書いた基準の Thickness（"left,top,right,bottom" または "all" の1値）に、
+/// バインドされた文字サイズ倍率を掛けて返す。固定 px の余白は、文字サイズ倍率を上げると
+/// 拡大された文字に対して相対的に狭く見える（詰まって見える）ため、枠まわりの余白にも使う。
+/// </summary>
+public sealed class ScaleThicknessConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var scale = value is double d ? d : 1.0;
+        var parts = (parameter as string ?? "0").Split(',');
+        double P(int i) => double.TryParse(parts[Math.Min(i, parts.Length - 1)], NumberStyles.Float, CultureInfo.InvariantCulture, out var v) ? v : 0.0;
+        return parts.Length >= 4
+            ? new Thickness(P(0) * scale, P(1) * scale, P(2) * scale, P(3) * scale)
+            : new Thickness(P(0) * scale);
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
+
+/// <summary>
 /// 分割の下見の位置。枠の実寸と <see cref="SplitPreview"/> から、これから新しくできる側だけが
 /// 残るような余白を返す。枠いっぱいに敷いた着色を、この余白で割る位置まで削って見せる。
 /// </summary>

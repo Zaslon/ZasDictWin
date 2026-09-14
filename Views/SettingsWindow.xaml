@@ -24,6 +24,21 @@
                              CornerRadius="0" UseAeroCaptionButtons="False" />
     </shell:WindowChrome.WindowChrome>
 
+    <Window.Resources>
+        <!-- 各タブの中身。内枠と文字の間の余白は ScrollViewer の Padding で取る（既定テンプレートでは
+             Padding がスクロール領域側だけに掛かるので、スクロールバーは内枠の縁に付いたまま、
+             文字だけが縁から離れる）。中の StackPanel に Margin を付けると、スクロールバーまで
+             一緒に内側へ寄ってしまう。
+             設定は縦にだけ流す。横スクロールを許すと折り返し幅が測定のたびに変わり、
+             上下の並びがずれて見える（横に広い内容は折り返しと末尾省略で吸収させる）。 -->
+        <Style x:Key="SettingsPage" TargetType="ScrollViewer">
+            <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+            <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+            <Setter Property="Padding"
+                    Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleThickness}, ConverterParameter=20\,16\,20\,16}" />
+        </Style>
+    </Window.Resources>
+
     <DockPanel>
         <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
                 BorderThickness="0,0,0,1" Padding="16,10"
@@ -45,20 +60,24 @@
         </Border>
 
         <!-- スクロール領域は窓の高さいっぱいまで使う。高さを固定すると
-             文字サイズ倍率を上げたときに数行しか見えなくなる。 -->
-        <TabControl Margin="24,14,24,14" Style="{StaticResource SettingsTabControl}">
+             文字サイズ倍率を上げたときに数行しか見えなくなる。
+             周りの余白も文字サイズ倍率に追従させる。固定 px のままだと、倍率を上げるほど
+             拡大された文字に対して余白だけ相対的に狭く見え、窓の縁に文字が迫って見える。 -->
+        <TabControl Style="{StaticResource SettingsTabControl}"
+                    Margin="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleThickness}, ConverterParameter=12\,10\,12\,12}">
             <TabItem v:LocalizedText.Header="{x:Static res:Strings.Settings_TabGeneral}">
-                <!-- 設定は縦にだけ流す。横スクロールを許すと折り返し幅が測定のたびに変わり、
-                     上下の並びがずれて見える（横に広い内容は折り返しと末尾省略で吸収させる） -->
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="0,14,0,14">
+                <ScrollViewer Style="{StaticResource SettingsPage}">
+                    <StackPanel>
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_Language}" Style="{StaticResource FieldLabel}" />
                         <!-- 選択肢は Resources/Languages.cs の一覧をそのまま出す。対応言語を増やす手順は
                              同ファイルのコメントを参照（新しい Strings.<コード>.resx を用意し、一覧に1行足すだけ）。 -->
                         <!-- DisplayMemberPath だと閉じた状態の表示（SelectionBoxItem）に反映されず
                              LanguageOption の既定 ToString() がそのまま出てしまうため、ItemTemplate で明示する。 -->
+                        <!-- Width は文字サイズ倍率に追従させる（固定幅のままだと拡大時に選択中の言語名が
+                             欄からはみ出す）。ConverterParameter は倍率 1 のときの幅。 -->
                         <ComboBox ItemsSource="{Binding AvailableLanguages}" SelectedValuePath="Code"
-                                  SelectedValue="{Binding Language}" Width="200" HorizontalAlignment="Left">
+                                  SelectedValue="{Binding Language}" HorizontalAlignment="Left"
+                                  Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=200}">
                             <ComboBox.ItemTemplate>
                                 <DataTemplate>
                                     <!-- 言語名はどれも「その言語自身での表記」なので、表示中の言語の
@@ -72,7 +91,8 @@
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_LanguageNote}" Style="{StaticResource Label}" Margin="0,4,0,0" />
 
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_FontScaleLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,0" />
-                        <TextBox Text="{Binding FontScale}" Width="120" HorizontalAlignment="Left" />
+                        <TextBox Text="{Binding FontScale}" HorizontalAlignment="Left"
+                                 Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=120}" />
 
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_SortOrderLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
                         <TextBox Text="{Binding SortOrder}" FontFamily="Consolas" />
@@ -83,11 +103,13 @@
                         <StackPanel Orientation="Horizontal">
                             <StackPanel>
                                 <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_WidthLabel}" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding WindowWidth}" Width="100" />
+                                <TextBox Text="{Binding WindowWidth}"
+                                         Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=100}" />
                             </StackPanel>
                             <StackPanel Margin="16,0,0,0">
                                 <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_HeightLabel}" Style="{StaticResource FieldLabel}" />
-                                <TextBox Text="{Binding WindowHeight}" Width="100" />
+                                <TextBox Text="{Binding WindowHeight}"
+                                         Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=100}" />
                             </StackPanel>
                         </StackPanel>
                         <!-- 最大化には作用しない（画面いっぱいに広げる操作まで比率で縛ると使いづらいため）。
@@ -128,8 +150,8 @@
             </TabItem>
 
             <TabItem v:LocalizedText.Header="{x:Static res:Strings.Settings_TabDictionary}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="0,14,0,14">
+                <ScrollViewer Style="{StaticResource SettingsPage}">
+                    <StackPanel>
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_NoDictionaryWarning}" Foreground="{StaticResource Muted}"
                                    Visibility="{Binding HasDictionary, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
                         <StackPanel Visibility="{Binding HasDictionary, Converter={StaticResource BoolVis}}">
@@ -149,8 +171,8 @@
             </TabItem>
 
             <TabItem v:LocalizedText.Header="{x:Static res:Strings.Settings_TabStreamWindow}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="0,14,0,14">
+                <ScrollViewer Style="{StaticResource SettingsPage}">
+                    <StackPanel>
                         <TextBlock Style="{StaticResource FieldLabel}">
                             <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_BackgroundColorLabel}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_BackgroundColorNote}" />
                         </TextBlock>
@@ -162,7 +184,8 @@
                         </DockPanel>
 
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_FontScaleLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
-                        <TextBox Text="{Binding StreamFontScale}" Width="120" HorizontalAlignment="Left" />
+                        <TextBox Text="{Binding StreamFontScale}" HorizontalAlignment="Left"
+                                 Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=120}" />
 
                         <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_TopmostCheckbox}" IsChecked="{Binding StreamTopmost}" Margin="0,16,0,0" />
                         <!-- ここから下は単語ウィンドウだけの項目。単語数ウィンドウには出す中身が無い。 -->
@@ -176,8 +199,8 @@
             </TabItem>
 
             <TabItem v:LocalizedText.Header="{x:Static res:Strings.Settings_TabBrowser}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="0,14,0,14">
+                <ScrollViewer Style="{StaticResource SettingsPage}">
+                    <StackPanel>
                         <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_BrowserOpenOnStartCheckbox}" IsChecked="{Binding BrowserVisible}" />
 
                         <TextBlock Style="{StaticResource FieldLabel}" Margin="0,18,0,5">
@@ -189,8 +212,8 @@
             </TabItem>
 
             <TabItem v:LocalizedText.Header="{x:Static res:Strings.Settings_TabStorage}">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                    <StackPanel Margin="0,14,0,14">
+                <ScrollViewer Style="{StaticResource SettingsPage}">
+                    <StackPanel>
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_EditModeHeading}" Style="{StaticResource SectionHeading}" Margin="0,0,0,8" />
                         <WrapPanel>
                             <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ModeLocal}" Command="{Binding SetModeCommand}" CommandParameter="Local"
@@ -217,7 +240,8 @@
                             </Grid>
 
                             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_BranchLabel}" Style="{StaticResource FieldLabel}" Margin="0,16,0,5" />
-                            <TextBox Text="{Binding GitHubBranch}" Width="220" HorizontalAlignment="Left" v:Placeholder.Text="main" />
+                            <TextBox Text="{Binding GitHubBranch}" HorizontalAlignment="Left" v:Placeholder.Text="main"
+                                     Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=220}" />
 
                             <TextBlock Style="{StaticResource FieldLabel}" Margin="0,16,0,5">
                                 <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_JsonPathLabel}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_JsonPathNote}" />

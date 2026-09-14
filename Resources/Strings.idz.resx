@@ -61,7 +61,7 @@
 
   <!-- Meta（訳文ではなく表示設定。値は WPF の FontFamily 文字列。カンマ区切りで書けば
        前から順にフォールバックする（例: "MyConlangFont, Yu Gothic UI"）） -->
-  <data name="Meta_UIFontFamily" xml:space="preserve"><value>Fazik regular</value></data>
+  <data name="Meta_UIFontFamily" xml:space="preserve"><value>Endrata regular</value></data>
 
   <!-- Common -->
   <data name="Common_Cancel" xml:space="preserve"><value>Padoze</value></data>
@@ -78,23 +78,23 @@
   <data name="Common_KeepEditing" xml:space="preserve"><value>Coskomu anaroge</value></data>
 
   <!-- Menu -->
-  <data name="Menu_File" xml:space="preserve"><value>ファイル</value></data>
-  <data name="Menu_Tools" xml:space="preserve"><value>ツール</value></data>
+  <data name="Menu_File" xml:space="preserve"><value>Ceidvade</value></data>
+  <data name="Menu_Tools" xml:space="preserve"><value>Ruk</value></data>
   <data name="Menu_Window" xml:space="preserve"><value>S'ensand</value></data>
   <data name="Menu_Open" xml:space="preserve"><value>Ebane</value></data>
-  <data name="Menu_NewDictionary" xml:space="preserve"><value>新規辞書</value></data>
-  <data name="Menu_SaveAs" xml:space="preserve"><value>別名で保存</value></data>
+  <data name="Menu_NewDictionary" xml:space="preserve"><value>Kairuzem amin</value></data>
+  <data name="Menu_SaveAs" xml:space="preserve"><value>Asdere nomian amin</value></data>
 
   <!-- Search / Detail -->
   <data name="Search_Title" xml:space="preserve"><value>Sgeze</value></data>
-  <data name="Search_Placeholder" xml:space="preserve"><value>Fedegaiu rudoe</value></data>
+  <data name="Search_Placeholder" xml:space="preserve"><value>Fadegaiu rudoe</value></data>
   <data name="Search_ModeForward" xml:space="preserve"><value>Ski</value></data>
   <data name="Search_ModePartial" xml:space="preserve"><value>Abskaesk</value></data>
   <data name="Search_ModeBackward" xml:space="preserve"><value>Itt</value></data>
   <data name="Search_ModeExact" xml:space="preserve"><value>Sim</value></data>
-  <data name="Search_ScopeForm" xml:space="preserve"><value>Fedegai</value></data>
+  <data name="Search_ScopeForm" xml:space="preserve"><value>Fadegai</value></data>
   <data name="Label_Translation" xml:space="preserve"><value>Tortonesk</value></data>
-  <data name="Search_ScopeBoth" xml:space="preserve"><value>両方</value></data>
+  <data name="Search_ScopeBoth" xml:space="preserve"><value>Bagun</value></data>
   <data name="Search_ScopeFullText" xml:space="preserve"><value>Sabadara</value></data>
   <data name="Search_NoResults" xml:space="preserve"><value>該当する見出し語はありません</value></data>
   <data name="Search_NoResultsHint" xml:space="preserve"><value>検索モードを「部分」、対象を「全文」にしてみてください</value></data>
@@ -104,11 +104,11 @@
   <data name="Detail_EmptyHint" xml:space="preserve"><value>左の一覧から選ぶと、ここに内容が出ます</value></data>
   <data name="Label_Variations" xml:space="preserve"><value>変化形</value></data>
   <data name="Detail_RelatedExamples" xml:space="preserve"><value>参照例文</value></data>
-  <data name="Label_Headwords" xml:space="preserve"><value>Fedegai</value></data>
+  <data name="Label_Headwords" xml:space="preserve"><value>Fadegai</value></data>
 
   <!-- Browser -->
-  <data name="Browser_Title" xml:space="preserve"><value>ブラウザ</value></data>
-  <data name="Browser_ButtonTooltip" xml:space="preserve"><value>ウェブブラウザのタブを開きます</value></data>
+  <data name="Browser_Title" xml:space="preserve"><value>Barkimaresk</value></data>
+  <data name="Browser_ButtonTooltip" xml:space="preserve"><value>Barkimaresku ebane</value></data>
   <data name="Browser_Back" xml:space="preserve"><value>戻る</value></data>
   <data name="Browser_Forward" xml:space="preserve"><value>進む</value></data>
   <data name="Browser_Reload" xml:space="preserve"><value>再読み込み</value></data>
@@ -131,9 +131,9 @@
   <data name="Changelog_RelinkedStatus" xml:space="preserve"><value>更新履歴を [en]{0}[/en] に連携しました。</value></data>
   <data name="Changelog_OldFormDetail" xml:space="preserve"><value>Fadoan: {0}</value></data>
 
-  <!-- Stats -->
+  <!-- Stats -->]
   <data name="Stats_Title" xml:space="preserve"><value>統計</value></data>
-  <data name="Examples_Title" xml:space="preserve"><value>例文</value></data>
+  <data name="Examples_Title" xml:space="preserve"><value>Soraberesk</value></data>
   <data name="Stats_HomonymLabel" xml:space="preserve"><value>同綴りの見出し語 </value></data>
   <data name="Stats_AverageLengthLabel" xml:space="preserve"><value>  ／  平均文字数 </value></data>
   <data name="Stats_PosHeading" xml:space="preserve"><value>品詞（訳語のタイトル）</value></data>
@@ -156,7 +156,7 @@
   <data name="Legend_Title" xml:space="preserve"><value>凡例</value></data>
 
   <!-- Examples overlay -->
-  <data name="Examples_AddButton" xml:space="preserve"><value>＋ 例文</value></data>
+  <data name="Examples_AddButton" xml:space="preserve"><value>+ Soraberesk</value></data>
   <data name="Examples_FilterHint" xml:space="preserve"><value>例文・訳・補足・タグを部分一致で絞り込みます。</value></data>
   <data name="Examples_SearchPlaceholder" xml:space="preserve"><value>例文を検索…</value></data>
   <data name="Examples_Empty" xml:space="preserve"><value>表示できる例文がありません。［＋ 例文］から追加できます。</value></data>
@@ -235,14 +235,14 @@
   <data name="Settings_FontScaleLabel" xml:space="preserve"><value>文字サイズ倍率</value></data>
   <data name="Settings_SortOrderLabel" xml:space="preserve"><value>カスタム字順</value></data>
   <data name="Settings_AutoSaveCheckbox" xml:space="preserve"><value>編集したら自動で上書き保存する</value></data>
-  <data name="Settings_WindowHeading" xml:space="preserve"><value>ウィンドウ</value></data>
-  <data name="Settings_WidthLabel" xml:space="preserve"><value>幅</value></data>
-  <data name="Settings_HeightLabel" xml:space="preserve"><value>高さ</value></data>
+  <data name="Settings_WindowHeading" xml:space="preserve"><value>S'ensand:</value></data>
+  <data name="Settings_WidthLabel" xml:space="preserve"><value>Tevato</value></data>
+  <data name="Settings_HeightLabel" xml:space="preserve"><value>Tai</value></data>
   <data name="Settings_AspectLockCheckbox" xml:space="preserve"><value>縦横比を固定する（端をつまんだリサイズを比率固定にします）</value></data>
-  <data name="Settings_HeksaHeading" xml:space="preserve"><value>イジェール文字フォント</value></data>
+  <data name="Settings_HeksaHeading" xml:space="preserve"><value>Funeruzemanseresk Id'erin</value></data>
   <data name="Settings_HeksaAnnotation" xml:space="preserve"><value>（Heksa）</value></data>
-  <data name="Settings_HeksaEnableCheckbox" xml:space="preserve"><value>Heksa を有効にする</value></data>
-  <data name="Settings_HeksaDescription" xml:space="preserve"><value>見出し語・検索欄・単語エディタの綴り欄をイジェール文字フォントで表示します（.ttf / .otf が必要です）。</value></data>
+  <data name="Settings_HeksaEnableCheckbox" xml:space="preserve"><value>Heksau cegire</value></data>
+  <data name="Settings_HeksaDescription" xml:space="preserve"><value>見出し語・検索欄・単語エディタの綴り欄をイジェール文字フォントで表示します（[en].ttf / .otf[/en] が必要です）。</value></data>
   <data name="Settings_PickFileButton" xml:space="preserve"><value>ファイルを選択</value></data>
   <data name="Settings_HeksaMissingWarning" xml:space="preserve"><value>フォントファイルが読み込めないため、標準フォントで表示されます。</value></data>
   <data name="Settings_HeksaSampleLabel" xml:space="preserve"><value>サンプル：eaoiu heksa</value></data>
@@ -252,7 +252,7 @@
   <data name="Settings_NoDictionaryWarning" xml:space="preserve"><value>辞書が開かれていないため編集できません。</value></data>
   <data name="Settings_PunctuationsNote" xml:space="preserve"><value>（並べ替えで無視する文字）</value></data>
   <data name="Settings_IgnoredPatternNote" xml:space="preserve"><value>（検索の際に無視する部分を表す正規表現）</value></data>
-  <data name="Settings_DictDependentNote" xml:space="preserve"><value>この 2 つは辞書ファイルの zpdicOnline に書き込まれます。</value></data>
+  <data name="Settings_DictDependentNote" xml:space="preserve"><value>この 2 つは辞書ファイルの ZpdicOnline に書き込まれます。</value></data>
   <data name="Settings_BackgroundColorLabel" xml:space="preserve"><value>背景色</value></data>
   <data name="Settings_BackgroundColorNote" xml:space="preserve"><value>（クロマキーなら #00B140 など。透過するなら Transparent）</value></data>
   <data name="Settings_TopmostCheckbox" xml:space="preserve"><value>常に手前に表示する</value></data>
@@ -260,19 +260,19 @@
   <data name="Settings_ShowContentsCheckbox" xml:space="preserve"><value>内容（語源・用例など）も表示する</value></data>
   <data name="Settings_StreamWindowNote" xml:space="preserve"><value>背景色・文字サイズ倍率・常に手前に表示するは、単語数ウィンドウにも同じものが効きます。どちらも独立したウィンドウです。OBS では［ウィンドウキャプチャ］で ZasDict 単語ウィンドウ・ZasDict 単語数ウィンドウ を選び、クロマキーフィルタを掛けてください。</value></data>
   <data name="Settings_BrowserOpenOnStartCheckbox" xml:space="preserve"><value>起動時にブラウザのタブを開く</value></data>
-  <data name="Settings_StartUrlLabel" xml:space="preserve"><value>開始 URL</value></data>
+  <data name="Settings_StartUrlLabel" xml:space="preserve"><value>開始 [en]URL[/en]</value></data>
   <data name="Settings_StartUrlNote" xml:space="preserve"><value>（空にすると既定の検索ページ）</value></data>
   <data name="Settings_EditModeHeading" xml:space="preserve"><value>編集モード</value></data>
   <data name="Settings_ModeLocal" xml:space="preserve"><value>ローカル編集</value></data>
-  <data name="Settings_GitHubModeNote" xml:space="preserve"><value>[en]GitHub[/en]モードでは自動保存が無効になり、ヘッダーに［GitHubから読み込む］［コミット］が現れます。</value></data>
+  <data name="Settings_GitHubModeNote" xml:space="preserve"><value>[en]GitHub[/en]モードでは自動保存が無効になり、ヘッダーに［[en]GitHub[/en]から読み込む］［コミット］が現れます。</value></data>
   <data name="Settings_RepoLabel" xml:space="preserve"><value>リポジトリ</value></data>
   <data name="Settings_BranchLabel" xml:space="preserve"><value>ブランチ</value></data>
-  <data name="Settings_JsonPathLabel" xml:space="preserve"><value>辞書 JSON のパス</value></data>
+  <data name="Settings_JsonPathLabel" xml:space="preserve"><value>辞書 [en]JSON[/en] のパス</value></data>
   <data name="Settings_JsonPathNote" xml:space="preserve"><value>（リポジトリ内）</value></data>
-  <data name="Settings_JsonPathPlaceholder" xml:space="preserve"><value>例: dict/lexicon.json</value></data>
-  <data name="Settings_ChangelogPathLabel" xml:space="preserve"><value>更新履歴 CSV のパス</value></data>
+  <data name="Settings_JsonPathPlaceholder" xml:space="preserve"><value>例: [en]dict/lexicon.json[/en]</value></data>
+  <data name="Settings_ChangelogPathLabel" xml:space="preserve"><value>更新履歴 [en]CSV[/en] のパス</value></data>
   <data name="Settings_ChangelogPathNote" xml:space="preserve"><value>（リポジトリ内。空欄なら読み書きしません）</value></data>
-  <data name="Settings_ChangelogPathPlaceholder" xml:space="preserve"><value>例: dict/lexicon_changelog.csv</value></data>
+  <data name="Settings_ChangelogPathPlaceholder" xml:space="preserve"><value>例: [en]dict/lexicon_changelog.csv[/en]</value></data>
   <data name="Settings_TokenLabel" xml:space="preserve"><value>アクセストークン</value></data>
   <data name="Settings_TokenPlaceholder" xml:space="preserve"><value>Personal Access Token（repo の Contents 読み書き権限）</value></data>
   <data name="Settings_TokenStorageNote" xml:space="preserve"><value>トークンは settings.json ではなく別ファイルに保存されます。</value></data>
@@ -288,13 +288,13 @@
   <data name="Settings_LanguageNote" xml:space="preserve"><value>変更を反映するにはアプリを再起動します。</value></data>
 
   <!-- GitHub -->
-  <data name="GitHub_LoadButton" xml:space="preserve"><value>[en]GitHub[/en]から読み込む</value></data>
+  <data name="GitHub_LoadButton" xml:space="preserve"><value>[en]GitHub[/en]hur rudoe</value></data>
   <data name="GitHub_LoadButtonTooltip" xml:space="preserve"><value>[en]GitHub[/en] の内容をローカルへ取得し、読み込み直します</value></data>
-  <data name="GitHub_CommitButton" xml:space="preserve"><value>コミット</value></data>
+  <data name="GitHub_CommitButton" xml:space="preserve"><value>Mire</value></data>
   <data name="GitHub_CommitButtonTooltip" xml:space="preserve"><value>ローカルの辞書・更新履歴を保存したうえで [en]GitHub[/en] へコミットします</value></data>
-  <data name="GitHub_CommitDialogTitle" xml:space="preserve"><value>[en]GitHub[/en]へコミット</value></data>
-  <data name="GitHub_CommitSummaryLabel" xml:space="preserve"><value>今回コミットする内容</value></data>
-  <data name="GitHub_CommitMessageLabel" xml:space="preserve"><value>コミットメッセージ</value></data>
+  <data name="GitHub_CommitDialogTitle" xml:space="preserve"><value>[en]GitHub[/en]nir mire</value></data>
+  <data name="GitHub_CommitSummaryLabel" xml:space="preserve"><value>Mar mirin</value></data>
+  <data name="GitHub_CommitMessageLabel" xml:space="preserve"><value>Catui mirin</value></data>
   <data name="GitHub_ConfigMissingRepo" xml:space="preserve"><value>設定 → [en]GitHub[/en] でリポジトリと辞書ファイルのパスを入力してください。</value></data>
   <data name="GitHub_ConfigMissingToken" xml:space="preserve"><value>設定 → [en]GitHub[/en] でアクセストークンを保存してください。</value></data>
   <data name="GitHub_Checking" xml:space="preserve"><value>[en]GitHub[/en]の内容を確認中…</value></data>
@@ -340,10 +340,11 @@
 
   <!-- Main / dictionary -->
   <data name="Main_OpenDictionaryPrompt" xml:space="preserve"><value>辞書を開いてください。</value></data>
-  <data name="Main_NoDictionaryName" xml:space="preserve"><value>辞書なし</value></data>
-  <data name="Main_CountLabel" xml:space="preserve"><value>{0} / {1} 語</value></data>
-  <data name="Main_WordCountLabel" xml:space="preserve"><value>{0}語</value></data>
-  <data name="Main_FontScaleStatus" xml:space="preserve"><value>文字サイズ {0} %</value></data>
+  <data name="Main_NoDictionaryName" xml:space="preserve"><value>Mon kairuzem</value></data>
+  <data name="Main_CountLabel" xml:space="preserve"><value>Kai: {0} / {1}</value></data>
+  <data name="Main_WordCountLabel" xml:space="preserve"><value>Kai:{0}</value></data>
+  <data name="Main_VersionLabel" xml:space="preserve"><value>beia:{0}</value></data>
+  <data name="Main_FontScaleStatus" xml:space="preserve"><value>Tebak kain {0} %</value></data>
   <data name="Main_NewDictionaryCreated" xml:space="preserve"><value>空の辞書を作成しました。保存時にファイル名を指定します。</value></data>
   <data name="Main_OpenDialogTitle" xml:space="preserve"><value>OTM-JSON 辞書を開く</value></data>
   <data name="Main_OtmFilter" xml:space="preserve"><value>OTM-JSON (*.json)|*.json|すべてのファイル (*.*)|*.*</value></data>
@@ -356,14 +357,14 @@
   <data name="Main_SavedStatus" xml:space="preserve"><value>[en]{0}[/en] に保存しました。</value></data>
   <data name="Main_ChangelogAppendFailedStatus" xml:space="preserve"><value>更新履歴の追記に失敗しました: [en]{0}[/en]</value></data>
   <data name="Main_NoSavePathStatus" xml:space="preserve"><value>保存先が決まっていません。</value></data>
-  <data name="Main_NewWordButton" xml:space="preserve"><value>＋ 単語</value></data>
+  <data name="Main_NewWordButton" xml:space="preserve"><value>+ Kai</value></data>
   <data name="Main_ExamplesButtonTooltip" xml:space="preserve"><value>辞書の例文（examples）を一覧・編集します</value></data>
   <data name="Main_UnsavedTooltip" xml:space="preserve"><value>未保存の変更があります</value></data>
 
   <data name="Word_AddedStatus" xml:space="preserve"><value>"{0}"を追加しました。</value></data>
   <data name="Word_UpdatedStatus" xml:space="preserve"><value>"{0}"を更新しました。</value></data>
   <data name="Word_DuplicatedStatus" xml:space="preserve"><value>"{0}"を複製しました。</value></data>
-  <data name="Word_DeleteConfirmTitle" xml:space="preserve"><value>単語を削除</value></data>
+  <data name="Word_DeleteConfirmTitle" xml:space="preserve"><value>Kaiu satide</value></data>
   <data name="Word_DeleteConfirmMessage" xml:space="preserve"><value>"{0}"を削除します。この単語を指している関係も外れます。</value></data>
   <data name="Word_DeletedStatus" xml:space="preserve"><value>"{0}"を削除しました。</value></data>
   <data name="Word_RelationNotFoundStatus" xml:space="preserve"><value>関係先 id={0}（{1}）が見つかりません。</value></data>

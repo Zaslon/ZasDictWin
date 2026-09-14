@@ -10,6 +10,7 @@
     <v:CountToVisibilityConverter x:Key="CountVis" />
     <v:StringToBrushConverter x:Key="StringBrush" />
     <v:ScaleFontSizeConverter x:Key="ScaleFont" />
+    <v:ScaleThicknessConverter x:Key="ScaleThickness" />
     <v:SplitMarginConverter x:Key="SplitMargin" />
     <v:PlainTextConverter x:Key="PlainText" />
 
@@ -497,17 +498,28 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
-                    <StackPanel Orientation="Horizontal" Background="Transparent">
-                        <Border x:Name="box" Width="18" Height="18" CornerRadius="5"
+                    <!-- 横並びの StackPanel だと ContentPresenter に無限の幅が渡ってしまい、
+                         文字サイズ倍率を上げた長い項目名が折り返さずウィンドウの外へはみ出す。
+                         Grid で右列の幅を有限に区切ることで、既定の TextBlock スタイル（Wrap）が効くようにする。
+                         箱の大きさ自体も文字サイズ倍率で伸ばさないと、拡大時に文字だけ大きくなって
+                         チェック済みかどうかが見分けにくい豆粒のまま残る。 -->
+                    <Grid Background="Transparent">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Border x:Name="box" Grid.Column="0" CornerRadius="5"
+                                Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}"
+                                Height="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}"
                                 Background="{StaticResource Field}" BorderBrush="{StaticResource Line}"
                                 BorderThickness="1" VerticalAlignment="Center">
                             <Path x:Name="check" Data="M 3.4,8.6 L 7.0,12.0 L 14.2,4.6"
                                   Stroke="#170F28" StrokeThickness="2.2"
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Stretch="None" Visibility="Collapsed" />
+                                  Stretch="Uniform" Margin="4" Visibility="Collapsed" />
                         </Border>
-                        <ContentPresenter Margin="8,0,0,0" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
-                    </StackPanel>
+                        <ContentPresenter Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="box" Property="Background" Value="{StaticResource AccentFill}" />

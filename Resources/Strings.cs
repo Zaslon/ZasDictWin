@@ -21,8 +21,8 @@ public static class Strings
 
     private static ResourceManager _active = Neutral;
 
-    /// <summary>参照先を切り替える。Languages.All にある未知の呼び方をされても
-    /// （resx が万一見当たらなくても）既定言語へ静かに落として起動を続けられるようにする。</summary>
+    /// <summary>参照先を切り替える。resx が万一見当たらなくても
+    /// デフォルトへフォールバックさせる。</summary>
     public static void SetLanguage(string code)
     {
         if (code == Languages.Default)
@@ -69,7 +69,7 @@ public static class Strings
 
     /// <summary>XAML の FontFamily へはこちら（FontFamily 型）を渡す。x:Static は型コンバーターを
     /// 通さないため、Meta_UIFontFamily（string）を直接 FontFamily プロパティに書くと、値が正しくても
-    /// 「'Yu Gothic UI' は、プロパティ 'FontFamily' の有効な値ではありません」で必ず落ちる。</summary>
+    /// 「'Yu Gothic UI' は、プロパティ 'FontFamily' の有効な値ではありません」でエラーになる。</summary>
     public static FontFamily UIFont => _uiFont ??= new FontFamily(Meta_UIFontFamily);
 
     // 表示言語に関わらず常に Strings.en.resx を指す別系統のリソースマネージャー。SetLanguage で
@@ -95,10 +95,7 @@ public static class Strings
     private static FontFamily? _contentFont;
 
     /// <summary>辞書データ（訳語・内容欄など）を描くフォント。表示中の言語ではなく、既定言語
-    /// （Strings.resx）の Meta_UIFontFamily を常に参照する。辞書の中身は表示言語を切り替えても
-    /// 日本語のままなので、UI 用のフォント（Idyerin なら Heksa）を継がせると、日本語が字を持たない
-    /// フォントから別のフォントへ落ちて行の高さが足りなくなり、語源欄の描き分けも器の既定フォントに
-    /// 飲まれて消える。</summary>
+    /// （Strings.resx）の Meta_UIFontFamily を常に参照する。辞書データはUIの言語に依存しないため。</summary>
     public static FontFamily ContentFont
     {
         get
@@ -375,6 +372,7 @@ public static class Strings
     public static string Main_NoDictionaryName => Get();
     public static string Main_CountLabel => Get();
     public static string Main_WordCountLabel => Get();
+    public static string Main_VersionLabel => Get();
     public static string Main_FontScaleStatus => Get();
     public static string Main_NewDictionaryCreated => Get();
     public static string Main_OpenDialogTitle => Get();

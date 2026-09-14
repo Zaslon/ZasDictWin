@@ -190,7 +190,7 @@ public sealed class MainViewModel : ViewModelBase
     public string WordCountLabel => string.Format(Strings.Main_WordCountLabel, _doc?.Words.Count ?? 0);
 
     /// <summary>AssemblyVersion（csproj の ApplyVersionPatch が組み立てる）をそのまま表示する。</summary>
-    public string VersionLabel => "v" + (System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "?");
+    public string VersionLabel => string.Format(Strings.Main_VersionLabel, System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "?");
 
     public bool IsGitHubMode => Settings.Mode == EditMode.GitHub;
 
