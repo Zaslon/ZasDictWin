@@ -17,50 +17,46 @@
     <!-- 配色トークン。キー名は参照側（オーバーレイ含む）との契約なので、調整は値だけで行う。
          Ink=窓 / Panel=ヘッダ・カード / Raised=ボタン と役割で揃える。影系 Effect は一切使わない方針
          （ビットマップ化されると文字がにじみ、OBS のウィンドウキャプチャ画質を落とすため）。 -->
-    <Color x:Key="InkColor">#0B0E15</Color>
-    <Color x:Key="PanelColor">#141A26</Color>
-    <Color x:Key="RaisedColor">#1F2738</Color>
-    <Color x:Key="LineColor">#2C364B</Color>
-    <Color x:Key="AccentColor">#A78BFA</Color>
+    <Color x:Key="InkColor">#181818</Color>
+    <Color x:Key="PanelColor">#1E1E1E</Color>
+    <Color x:Key="RaisedColor">#2E2E2E</Color>
+    <Color x:Key="LineColor">#363636</Color>
+    <Color x:Key="AccentColor">#A18CF7</Color>
+    <!-- 塗りつぶし用のアクセント。文字色・枠用の Accent は暗い面で読める明るさに寄せてあり、
+         そのまま白文字の下地にすると文字が沈むため、面だけ一段濃い色を使う。 -->
+    <Color x:Key="AccentFillColor">#7F6DF2</Color>
+    <!-- タブ列・ヘッダ・フッタなど、中身（Panel）を囲む枠側の面 -->
+    <Color x:Key="ChromeColor">#262626</Color>
 
     <SolidColorBrush x:Key="Ink" Color="{StaticResource InkColor}" />
     <SolidColorBrush x:Key="Panel" Color="{StaticResource PanelColor}" />
     <SolidColorBrush x:Key="Raised" Color="{StaticResource RaisedColor}" />
     <SolidColorBrush x:Key="Line" Color="{StaticResource LineColor}" />
     <SolidColorBrush x:Key="Accent" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="Text" Color="#EAEDF6" />
-    <SolidColorBrush x:Key="Muted" Color="#93A2BE" />
-    <SolidColorBrush x:Key="Danger" Color="#EE6A66" />
-    <SolidColorBrush x:Key="Scrim" Color="#D9070910" />
+    <SolidColorBrush x:Key="Text" Color="#DADADA" />
+    <SolidColorBrush x:Key="Muted" Color="#A3A3A3" />
+    <SolidColorBrush x:Key="Danger" Color="#FB464C" />
+    <SolidColorBrush x:Key="Scrim" Color="#CC0A0A0A" />
+    <!-- 塗りつぶした面（AccentFill / DangerFill）に載せる文字 -->
+    <SolidColorBrush x:Key="OnFill" Color="#FFFFFF" />
 
     <!-- 上記から分岐する細部用 -->
-    <SolidColorBrush x:Key="Field" Color="#0F141E" />
-    <SolidColorBrush x:Key="RowHover" Color="#1B2333" />
-    <SolidColorBrush x:Key="AccentDim" Color="#2A2450" />
+    <SolidColorBrush x:Key="Field" Color="#262626" />
+    <SolidColorBrush x:Key="RowHover" Color="#2A2A2A" />
+    <SolidColorBrush x:Key="AccentDim" Color="#2F2B45" />
     <!-- ドロップ先として着色する枠の面。下の中身を透かして「どの枠に入るか」を見せる -->
     <SolidColorBrush x:Key="DropFill" Color="{StaticResource AccentColor}" Opacity="0.22" />
     <!-- 結合で消える側の面。タブは残る枠へ移るが、枠そのものは無くなるので色を分ける -->
-    <SolidColorBrush x:Key="JoinFill" Color="#EE6A66" Opacity="0.20" />
-    <SolidColorBrush x:Key="ThumbBrush" Color="#3B4763" />
-    <SolidColorBrush x:Key="ThumbHover" Color="#516087" />
+    <SolidColorBrush x:Key="JoinFill" Color="#FB464C" Opacity="0.20" />
+    <SolidColorBrush x:Key="ThumbBrush" Color="#3A3A3A" />
+    <SolidColorBrush x:Key="ThumbHover" Color="#4D4D4D" />
 
-    <!-- アクセント面。保存ボタン・ロゴ・選択マーカーで同じグラデーションを使い、単色より奥行きを出す -->
-    <LinearGradientBrush x:Key="AccentFill" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#B7A0FF" Offset="0" />
-        <GradientStop Color="#8A6BF2" Offset="1" />
-    </LinearGradientBrush>
-    <LinearGradientBrush x:Key="DangerFill" StartPoint="0,0" EndPoint="1,1">
-        <GradientStop Color="#F5877F" Offset="0" />
-        <GradientStop Color="#DC5250" Offset="1" />
-    </LinearGradientBrush>
-    <LinearGradientBrush x:Key="HeaderFill" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#1B2231" Offset="0" />
-        <GradientStop Color="#141A26" Offset="1" />
-    </LinearGradientBrush>
-    <LinearGradientBrush x:Key="FooterFill" StartPoint="0,0" EndPoint="0,1">
-        <GradientStop Color="#111722" Offset="0" />
-        <GradientStop Color="#171E2C" Offset="1" />
-    </LinearGradientBrush>
+    <!-- 面はすべて単色。グラデーションは縁に明暗の段が出て、隣り合う面との境目が二重に見える。
+         キー名は参照側との契約なので、Fill の名前のまま単色ブラシにしてある。 -->
+    <SolidColorBrush x:Key="AccentFill" Color="{StaticResource AccentFillColor}" />
+    <SolidColorBrush x:Key="DangerFill" Color="#E5484D" />
+    <SolidColorBrush x:Key="HeaderFill" Color="{StaticResource ChromeColor}" />
+    <SolidColorBrush x:Key="FooterFill" Color="{StaticResource ChromeColor}" />
 
     <Style TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -119,8 +115,8 @@
         <Setter Property="Margin" Value="24" />
     </Style>
 
-    <!-- ボタン。hover / press は白・黒のヴェールで表現する。背景そのものを書き換えると
-         Primary などのグラデーションが潰えるため、重ねる方式に統一している。
+    <!-- ボタン。hover / press は背景を書き換えず、白・黒のヴェールを重ねて表現する。
+         こうしておくと Primary / Danger など塗り色の違う派生ごとに hover 色を用意せずに済む。
          hover で枠色も変えないのは、Primary/Danger の枠を灰色に汚さないため。 -->
     <Style TargetType="Button">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -137,7 +133,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="bd" CornerRadius="8"
+                    <Border x:Name="bd" CornerRadius="5"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
@@ -145,13 +141,13 @@
                             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               Margin="{TemplateBinding Padding}" />
-                            <Border x:Name="veil" CornerRadius="7" Background="#FFFFFF" Opacity="0"
+                            <Border x:Name="veil" CornerRadius="4" Background="#FFFFFF" Opacity="0"
                                     IsHitTestVisible="False" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="veil" Property="Opacity" Value="0.07" />
+                            <Setter TargetName="veil" Property="Opacity" Value="0.06" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="veil" Property="Background" Value="#000000" />
@@ -171,14 +167,14 @@
 
     <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="{StaticResource AccentFill}" />
-        <Setter Property="Foreground" Value="#170F28" />
+        <Setter Property="Foreground" Value="{StaticResource OnFill}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
 
     <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="{StaticResource DangerFill}" />
-        <Setter Property="Foreground" Value="#1D0C0C" />
+        <Setter Property="Foreground" Value="{StaticResource OnFill}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
@@ -219,7 +215,8 @@
         <Setter Property="FontWeight" Value="SemiBold" />
     </Style>
 
-    <!-- 戻る／進むなど、記号一文字を並べるツールバー用 -->
+    <!-- 戻る／進むなど、記号一文字を並べるツールバー用。文字色だけの変化だと当たり判定の広さが
+         見えないので、hover では薄い面も出して押せる範囲を示す。 -->
     <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="MinWidth" Value="32" />
         <Setter Property="MinHeight" Value="28" />
@@ -232,8 +229,20 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Foreground" Value="{StaticResource Text}" />
+                <Setter Property="Background" Value="{StaticResource RowHover}" />
             </Trigger>
         </Style.Triggers>
+    </Style>
+
+    <!-- タブの閉じるボタン。IconButton の床（32×28）だとタブの背が伸びて列が間延びするため、
+         箱を小さくする。記号はフォント倍率に連動させ、床だけを下げる。 -->
+    <Style x:Key="TabCloseButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Setter Property="MinWidth" Value="18" />
+        <Setter Property="MinHeight" Value="18" />
+        <Setter Property="Padding" Value="3" />
+        <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+        <Setter Property="Content" Value="&#xE711;" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=9}" />
     </Style>
 
     <!-- ウィンドウを閉じるボタン。hover で他の IconButton と違い赤面にして、押すと閉じる操作だと
@@ -242,7 +251,7 @@
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Background" Value="{StaticResource DangerFill}" />
-                <Setter Property="Foreground" Value="#1D0C0C" />
+                <Setter Property="Foreground" Value="{StaticResource OnFill}" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -251,7 +260,7 @@
          （全面をアクセント色で塗ると 8 個並んだときに主張が強すぎるため）。 -->
     <!-- chip の角は「長丸（CornerRadius=999）」ではなく角丸にする。ピルだと文字数の少ない
          項目（「訳語」「名詞」など）がほぼ真円に見えて、隣の角丸のボタンや入力欄と形が揃わない。
-         半径はボタンの 8・カードの 12 より一段小さい 6 で、要素の大きさと段を合わせている。 -->
+         半径はボタンの 5・カードの 10 より一段小さい 4 で、要素の大きさと段を合わせている。 -->
     <Style x:Key="Chip" TargetType="ToggleButton">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="Background" Value="Transparent" />
@@ -262,11 +271,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
-                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}"
+                    <Border x:Name="bd" CornerRadius="4" Background="{TemplateBinding Background}"
                             BorderBrush="{StaticResource Line}" BorderThickness="1">
                         <Grid>
                             <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
-                            <Border x:Name="veil" CornerRadius="5" Background="#FFFFFF" Opacity="0" IsHitTestVisible="False" />
+                            <Border x:Name="veil" CornerRadius="3" Background="#FFFFFF" Opacity="0" IsHitTestVisible="False" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -277,8 +286,7 @@
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="veil" Property="Opacity" Value="0.07" />
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
+                            <Setter TargetName="veil" Property="Opacity" Value="0.06" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45" />
@@ -312,7 +320,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
-                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                    <Border x:Name="bd" CornerRadius="5" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
                             <!-- ここに Margin="{TemplateBinding Padding}" を足さないこと。TextBox は
@@ -373,7 +381,7 @@
                             <ColumnDefinition />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <Border x:Name="bd" Grid.ColumnSpan="2" CornerRadius="8" Background="{TemplateBinding Background}"
+                        <Border x:Name="bd" Grid.ColumnSpan="2" CornerRadius="5" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" />
                         <ContentPresenter Grid.Column="0" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                                            IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}"
@@ -394,7 +402,7 @@
                         <Popup x:Name="popup" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade"
                                Focusable="False" IsOpen="{TemplateBinding IsDropDownOpen}"
                                Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
-                            <Border Background="{StaticResource Panel}" BorderBrush="{StaticResource Line}"
+                            <Border Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
                                     BorderThickness="1" CornerRadius="8" Margin="0,4,0,0" Padding="4">
                                 <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto">
                                     <ItemsPresenter />
@@ -426,7 +434,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBoxItem">
-                    <Border x:Name="bd" CornerRadius="6" Background="Transparent">
+                    <Border x:Name="bd" CornerRadius="4" Background="Transparent">
                         <ContentPresenter Margin="{TemplateBinding Padding}" />
                     </Border>
                     <ControlTemplate.Triggers>
@@ -508,13 +516,13 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Border x:Name="box" Grid.Column="0" CornerRadius="5"
+                        <Border x:Name="box" Grid.Column="0" CornerRadius="4"
                                 Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}"
                                 Height="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}"
                                 Background="{StaticResource Field}" BorderBrush="{StaticResource Line}"
                                 BorderThickness="1" VerticalAlignment="Center">
                             <Path x:Name="check" Data="M 3.4,8.6 L 7.0,12.0 L 14.2,4.6"
-                                  Stroke="#170F28" StrokeThickness="2.2"
+                                  Stroke="{StaticResource OnFill}" StrokeThickness="2.2"
                                   StrokeStartLineCap="Round" StrokeEndLineCap="Round"
                                   Stretch="Uniform" Margin="4" Visibility="Collapsed" />
                         </Border>
@@ -523,7 +531,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="box" Property="Background" Value="{StaticResource AccentFill}" />
-                            <Setter TargetName="box" Property="BorderBrush" Value="{StaticResource Accent}" />
+                            <Setter TargetName="box" Property="BorderBrush" Value="{StaticResource AccentFill}" />
                             <Setter TargetName="check" Property="Visibility" Value="Visible" />
                         </Trigger>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -541,7 +549,7 @@
     <!-- ツールチップは既定が白背景なので、ダークテーマに合わせたカードに差し替える -->
     <Style TargetType="ToolTip">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
-        <Setter Property="Background" Value="#242D42" />
+        <Setter Property="Background" Value="{StaticResource Raised}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="10,6" />
@@ -560,7 +568,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
                     <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter VerticalAlignment="Center" />
                     </Border>
@@ -587,7 +595,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="bd" CornerRadius="8" Background="Transparent" Padding="{TemplateBinding Padding}">
+                    <Border x:Name="bd" CornerRadius="5" Background="Transparent" Padding="{TemplateBinding Padding}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="3" />
@@ -715,7 +723,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
-                    <Border x:Name="tb" CornerRadius="4" Margin="2" Background="{StaticResource ThumbBrush}" />
+                    <Border x:Name="tb" CornerRadius="3" Margin="2" Background="{StaticResource ThumbBrush}" />
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="tb" Property="Background" Value="{StaticResource ThumbHover}" />
@@ -731,7 +739,7 @@
 
     <Style TargetType="ScrollBar">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Width" Value="11" />
+        <Setter Property="Width" Value="10" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ScrollBar">
@@ -754,7 +762,7 @@
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Horizontal">
                 <Setter Property="Width" Value="Auto" />
-                <Setter Property="Height" Value="11" />
+                <Setter Property="Height" Value="10" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ScrollBar">
@@ -781,20 +789,23 @@
     <!-- オーバーレイ本体。影は使わず、枠と面の差だけで窓から浮いて見せる -->
     <Style x:Key="Card" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource Panel}" />
-        <Setter Property="BorderBrush" Value="#3C4761" />
+        <Setter Property="BorderBrush" Value="#424242" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="10" />
         <Setter Property="Padding" Value="20" />
     </Style>
 
-    <!-- オーバーレイの外枠。必ず辺に付くので、枠と角の丸みは束ねる DockGroupPanel 側に任せ、
+    <!-- オーバーレイの外枠。必ず枠（DockGroupPanel）いっぱいに敷かれ、境目の線も枠の側が描くので、
          ここは面の色だけを持つ。 -->
     <Style x:Key="OverlayCard" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource Panel}" />
         <Setter Property="Padding" Value="0" />
     </Style>
 
-    <!-- 設定画面のタブ。選択中の見出しに枠とアクセントバーを付け、ドッキングのタブ群と同じ見え方に揃える。 -->
+    <!-- 設定画面のタブ。ドッキングのタブ（DockTab）と同じ見え方に揃える。裏のタブは文字だけ、
+         表のタブだけを中身と同じ Panel で塗り、上と左右の枠を付けて下端を中身の上枠に 1px 重ねる。
+         タブ列を中身の左端から少し内へ寄せてあるのは、中身の角丸と表のタブの左辺が重なって
+         角が欠けて見えるのを避けるため。 -->
     <Style x:Key="SettingsTabControl" TargetType="TabControl">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
@@ -804,11 +815,11 @@
             <Setter.Value>
                 <Style TargetType="TabItem">
                     <Setter Property="Foreground" Value="{StaticResource Muted}" />
-                    <Setter Property="Background" Value="{StaticResource Ink}" />
-                    <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderBrush" Value="Transparent" />
                     <Setter Property="BorderThickness" Value="1,1,1,0" />
-                    <Setter Property="Padding" Value="12,8,12,8" />
-                    <Setter Property="Margin" Value="0,0,8,0" />
+                    <Setter Property="Padding" Value="12,7,12,7" />
+                    <Setter Property="Margin" Value="0,0,2,0" />
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="TabItem">
@@ -820,31 +831,23 @@
                                         BorderThickness="{TemplateBinding BorderThickness}"
                                         CornerRadius="6,6,0,0"
                                         SnapsToDevicePixels="True">
-                                    <Grid>
-                                        <ContentPresenter ContentSource="Header"
-                                                          HorizontalAlignment="Center"
-                                                          VerticalAlignment="Center"
-                                                          RecognizesAccessKey="True"
-                                                          TextElement.Foreground="{TemplateBinding Foreground}" />
-                                        <Border x:Name="Underline"
-                                                Height="2"
-                                                VerticalAlignment="Bottom"
-                                                Margin="0,0,0,-3"
-                                                Background="{StaticResource AccentFill}"
-                                                CornerRadius="1"
-                                                Visibility="Collapsed" />
-                                    </Grid>
+                                    <ContentPresenter ContentSource="Header"
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      RecognizesAccessKey="True"
+                                                      TextElement.Foreground="{TemplateBinding Foreground}" />
                                 </Border>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource Text}" />
+                                        <Setter Property="Background" Value="{StaticResource Raised}" />
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource Text}" />
                                         <Setter Property="Background" Value="{StaticResource Panel}" />
-                                        <Setter Property="Margin" Value="0,0,8,-1" />
-                                        <Setter Property="Padding" Value="12,8,12,9" />
-                                        <Setter TargetName="Underline" Property="Visibility" Value="Visible" />
+                                        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+                                        <Setter Property="Margin" Value="0,0,2,-1" />
+                                        <Setter Property="Padding" Value="12,7,12,8" />
                                     </Trigger>
                                 </ControlTemplate.Triggers>
                             </ControlTemplate>
@@ -861,7 +864,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <TabPanel Grid.Row="0" IsItemsHost="True" Margin="0" />
+                        <TabPanel Grid.Row="0" IsItemsHost="True" Margin="6,0,6,0" Panel.ZIndex="1" />
                         <Border Grid.Row="1"
                                 Background="{StaticResource Panel}"
                                 BorderBrush="{StaticResource Line}"
@@ -876,56 +879,86 @@
     </Style>
 
     <!-- タブの見出し。掴んで別の枠へ運ぶ取っ手も兼ねる（v:OverlayDrag.IsGrip） -->
-    <!-- 枠のタブ。表裏とも「上のみ丸め・下辺フラット」の同じ形にそろえ、区切り線の上に
-         並ぶタブ列として見せる。表裏の違いは色だけで出す（表＝中身と同じ Panel で地続き、
-         裏＝暗い Ink で沈める）。表だけ下端を区切り線に 1px 重ねて中身と一枚につなげる。
+    <!-- 枠のタブ。裏のタブは面も枠も持たず、タブ列（HeaderFill）に文字だけを置く。裏まで箱で囲むと
+         タブが増えたときに縦線ばかりが並び、表のタブを探しにくい。表のタブだけを中身と同じ Panel で
+         塗り、上と左右に枠を付けて、下端を区切り線に 1px 重ねて中身と一枚につなげる。
+         裏にも同じ太さの透明な枠を持たせてあるのは、表裏の切り替えで文字の位置がずれないようにするため。
          高さは行なりに伸ばす（VerticalAlignment は既定の Stretch）。閉じるボタンの有無でタブの
          背は変わるので、伸ばさないと表のタブが区切り線まで届かず、中身との間に隙間が残る。 -->
     <Style x:Key="DockTab" TargetType="Border">
         <Setter Property="CornerRadius" Value="6,6,0,0" />
-        <Setter Property="Background" Value="{StaticResource Ink}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="BorderThickness" Value="1,1,1,0" />
         <!-- 閉じるボタンの有無に関わらず左右対称。片方だけ小さくすると、閉じるボタンの無い
              据え置きタブ（検索・単語詳細）で文字列が右へ寄って見える。 -->
-        <Setter Property="Padding" Value="9,4,9,4" />
-        <Setter Property="Margin" Value="0,0,5,0" />
+        <Setter Property="Padding" Value="10,5,10,5" />
+        <Setter Property="Margin" Value="0,0,2,0" />
         <Setter Property="TextElement.Foreground" Value="{StaticResource Muted}" />
         <Style.Triggers>
+            <!-- hover は表のタブより前に書く。後に書くと表のタブに触れたときに面が上書きされ、
+                 中身との地続きが切れる。 -->
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource Raised}" />
+                <Setter Property="TextElement.Foreground" Value="{StaticResource Text}" />
+            </Trigger>
             <DataTrigger Binding="{Binding IsActive}" Value="True">
                 <Setter Property="Background" Value="{StaticResource Panel}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Line}" />
                 <!-- 下の -1 は区切り線との重ね代。0 に戻すと線がタブの下を通り、中身と切り離されて見える。
                      文字は箱の中央に来るので、下へ伸びたぶん（重ね代 1px）は Padding 下に足して
                      中央を押し戻し、裏のタブと文字の高さを揃える。 -->
-                <Setter Property="Margin" Value="0,0,5,-1" />
-                <Setter Property="Padding" Value="9,4,9,5" />
+                <Setter Property="Margin" Value="0,0,2,-1" />
+                <Setter Property="Padding" Value="10,5,10,6" />
                 <Setter Property="TextElement.Foreground" Value="{StaticResource Text}" />
             </DataTrigger>
         </Style.Triggers>
     </Style>
 
-    <!-- 表に出ているタブの目印。下線 -->
-    <Style x:Key="DockTabMark" TargetType="Border">
-        <Setter Property="Height" Value="2" />
-        <Setter Property="VerticalAlignment" Value="Bottom" />
-        <Setter Property="Margin" Value="0,0,0,-3" />
-        <Setter Property="CornerRadius" Value="1" />
-        <Setter Property="Background" Value="{StaticResource AccentFill}" />
+    <!-- タブの閉じるボタンの出し分け。表のタブと、カーソルが乗っているタブでだけ見せる。
+         Visibility ではなく Opacity で消すのは、出し入れのたびにタブの幅が変わって列が揺れるため。
+         祖先の Border は DockTab（ボタン自身のテンプレート内の Border は子孫なので当たらない）。 -->
+    <Style x:Key="DockTabCloseButton" TargetType="Button" BasedOn="{StaticResource TabCloseButton}">
+        <Setter Property="Opacity" Value="0" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsActive}" Value="True">
+                <Setter Property="Opacity" Value="1" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+                <Setter Property="Opacity" Value="1" />
+            </DataTrigger>
+        </Style.Triggers>
     </Style>
 
-    <!-- 幅・高さを引っ張るつまみ。太さは呼び出し側が決め、ここは色の出し分けだけを持つ -->
+    <!-- 枠と枠の境目のつまみ。当たり判定は太さ（DockSplit.GripThickness）いっぱいに取りつつ、見せる線は
+         中央の 1px だけにする。つまみ全体を塗ると、枠の間に太い帯が走って画面が細切れに見える。
+         縦線と横線を両方持っておき、DataContext（DockSplit）の割り方で片方だけ出す。 -->
     <Style x:Key="GripThumb" TargetType="Thumb">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
-                    <Border x:Name="grip" Background="{StaticResource Line}" />
+                    <Grid Background="Transparent">
+                        <Border x:Name="vline" Width="1" HorizontalAlignment="Center" Background="{StaticResource Line}" />
+                        <Border x:Name="hline" Height="1" VerticalAlignment="Center" Background="{StaticResource Line}"
+                                Visibility="Collapsed" />
+                    </Grid>
                     <ControlTemplate.Triggers>
-                        <!-- 太さは常に同じ。触れたときだけアクセント色にして「動かせる」ことを伝える -->
+                        <DataTrigger Binding="{Binding IsColumns}" Value="False">
+                            <Setter TargetName="vline" Property="Visibility" Value="Collapsed" />
+                            <Setter TargetName="hline" Property="Visibility" Value="Visible" />
+                        </DataTrigger>
+                        <!-- 触れたときだけ線を太くしてアクセント色にし、「動かせる」ことを伝える -->
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="grip" Property="Background" Value="{StaticResource Accent}" />
+                            <Setter TargetName="vline" Property="Width" Value="3" />
+                            <Setter TargetName="hline" Property="Height" Value="3" />
+                            <Setter TargetName="vline" Property="Background" Value="{StaticResource Accent}" />
+                            <Setter TargetName="hline" Property="Background" Value="{StaticResource Accent}" />
                         </Trigger>
                         <Trigger Property="IsDragging" Value="True">
-                            <Setter TargetName="grip" Property="Background" Value="{StaticResource Accent}" />
+                            <Setter TargetName="vline" Property="Width" Value="3" />
+                            <Setter TargetName="hline" Property="Height" Value="3" />
+                            <Setter TargetName="vline" Property="Background" Value="{StaticResource Accent}" />
+                            <Setter TargetName="hline" Property="Background" Value="{StaticResource Accent}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -1007,7 +1040,7 @@
         <Setter Property="Background" Value="{StaticResource Panel}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12" />
+        <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="12,10" />
     </Style>
 
@@ -1027,7 +1060,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:DropDown}">
-                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                    <Border x:Name="bd" CornerRadius="5" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -1078,7 +1111,6 @@
                             <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
                         </Trigger>
                         <Trigger Property="IsOpen" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />
                             <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
                             <Setter TargetName="arrow" Property="Fill" Value="{StaticResource Text}" />
                         </Trigger>
@@ -1091,10 +1123,11 @@
         </Setter>
     </Style>
 
-    <!-- 開いた一覧の器。下地のカードからせり出して見えるよう、枠をアクセント色にする -->
+    <!-- 開いた一覧の器。影を使わない方針なので、下地（Panel）より一段明るい面と、Line より明るい枠で
+         せり出して見せる。枠をアクセント色にすると、中の選択行（AccentDim）と色がぶつかる。 -->
     <Style x:Key="DropDownPanel" TargetType="Border">
-        <Setter Property="Background" Value="{StaticResource Raised}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Accent}" />
+        <Setter Property="Background" Value="{StaticResource HeaderFill}" />
+        <Setter Property="BorderBrush" Value="#484848" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="4" />
@@ -1125,7 +1158,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:MenuButton}">
-                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                    <Border x:Name="bd" CornerRadius="5" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <StackPanel Orientation="Horizontal" Margin="{TemplateBinding Padding}">
                             <TextBlock v:LocalizedText.Text="{TemplateBinding Header}" Foreground="{TemplateBinding Foreground}"
@@ -1138,10 +1171,9 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{StaticResource Raised}" />
                         </Trigger>
-                        <!-- 開いている間だけ枠を出し、下に伸びた一覧（同じアクセント枠）と一続きに見せる -->
+                        <!-- 開いている間は hover の面を残し、どのボタンから一覧が出ているかを示す -->
                         <Trigger Property="IsOpen" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource Raised}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Opacity" Value="0.45" />
@@ -1165,7 +1197,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:MenuButton}">
-                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}">
+                    <Border x:Name="bd" CornerRadius="4" Background="{TemplateBinding Background}">
                         <TextBlock x:Name="txt"
                                    v:LocalizedText.Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}}"
                                    Foreground="{TemplateBinding Foreground}"
@@ -1173,6 +1205,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
                             <Setter TargetName="txt" Property="Foreground" Value="{StaticResource Text}" />
                         </Trigger>
                         <Trigger Property="IsOpen" Value="True">
@@ -1197,18 +1230,18 @@
     </Style>
 
     <!-- 開いた一覧の 1 行。枠付きのボタンを器（DropDownPanel）の中に積むと囲みが二重になり、
-         項目名より線のほうが目立つので、行は hover の面だけで示す。面の色は「選択中」を表す
-         AccentDim に合わせ、どの行に当たっているかを一目で分かるようにする。 -->
+         項目名より線のほうが目立つので、行は hover の面だけで示す。面は器（HeaderFill）より
+         明るい Raised にする。RowHover だと器との差がほとんど無く、どの行に当たっているか読めない。 -->
     <Style x:Key="MenuItemButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
-        <Setter Property="Padding" Value="11,7" />
+        <Setter Property="Padding" Value="11,6" />
         <Setter Property="Margin" Value="0,1" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource AccentDim}" />
+                <Setter Property="Background" Value="{StaticResource Raised}" />
             </Trigger>
         </Style.Triggers>
     </Style>

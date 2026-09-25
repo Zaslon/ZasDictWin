@@ -8,6 +8,7 @@
         Title="{Binding WindowTitle, Converter={StaticResource PlainText}}"
         Width="1280" Height="800" MinWidth="900" MinHeight="600"
         Background="{StaticResource Ink}"
+        BorderBrush="{StaticResource Line}" BorderThickness="1"
         FontFamily="{x:Static res:Strings.UIFont}"
         FontSize="{Binding BaseFontSize}"
         TextOptions.TextFormattingMode="Ideal"
@@ -59,9 +60,9 @@
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
                         <!-- アプリの顔。辞書名が長くなるので小さく据える -->
-                        <Border Width="24" Height="24" CornerRadius="7" Background="{StaticResource AccentFill}"
+                        <Border Width="24" Height="24" CornerRadius="5" Background="{StaticResource AccentFill}"
                                 Margin="0,0,9,0" VerticalAlignment="Center">
-                            <TextBlock Text="Z" FontSize="13" FontWeight="Bold" Foreground="#170F28"
+                            <TextBlock Text="Z" FontSize="13" FontWeight="Bold" Foreground="{StaticResource OnFill}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="NoWrap" />
                         </Border>
                         <TextBlock v:LocalizedText.Text="{Binding DictionaryName}" FontWeight="SemiBold"
@@ -124,7 +125,7 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                                Margin="12,0,0,0" VerticalAlignment="Center"
                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
                     <Border DockPanel.Dock="Right" Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
-                            BorderThickness="1" CornerRadius="6" Padding="10,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                            BorderThickness="1" CornerRadius="4" Padding="10,2" Margin="12,0,0,0" VerticalAlignment="Center">
                         <TextBlock v:LocalizedText.Text="{Binding CountLabel}" Foreground="{StaticResource Muted}"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
                     </Border>

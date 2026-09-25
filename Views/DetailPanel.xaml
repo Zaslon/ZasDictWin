@@ -59,7 +59,7 @@
                             <DataTemplate>
                                 <!-- 半径は Chip と同じ 6。1 文字のタグでもピルのように丸まらないようにする -->
                                 <Border Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
-                                        BorderThickness="1" CornerRadius="6" Padding="10,3" Margin="0,0,6,6">
+                                        BorderThickness="1" CornerRadius="4" Padding="10,3" Margin="0,0,6,6">
                                     <v:SelectableText Text="{Binding Mode=OneWay}" Foreground="{StaticResource Muted}"
                                                       Style="{StaticResource DetailLabelText}" />
                                 </Border>
