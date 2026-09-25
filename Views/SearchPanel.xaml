@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="clr-namespace:ZasDictWin.Models"
              xmlns:v="clr-namespace:ZasDictWin.Views"
+             xmlns:r="clr-namespace:ZasDictWin.Root"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:res="clr-namespace:ZasDictWin.Resources">
 
@@ -13,8 +14,9 @@
                  案内は v:Placeholder.Text で、テンプレート側が「空のときだけ」出す（値には触れない）。 -->
             <Grid>
                 <TextBox x:Name="QueryBox"
-                         Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=80}"
+                         Text="{Binding Query, UpdateSourceTrigger=PropertyChanged, Delay=80, NotifyOnSourceUpdated=True}"
                          KeyDown="QueryBox_KeyDown"
+                         Binding.SourceUpdated="QueryBox_SourceUpdated"
                          FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=FieldFamily}"
                          v:Placeholder.Text="{x:Static res:Strings.Search_Placeholder}"
                          Padding="30,12,32,12" />
@@ -25,7 +27,7 @@
                      大きくなるため、箱を固定すると倍率を上げたときに ✕ がはみ出す。 -->
                 <Button Content="✕" Style="{StaticResource IconButton}"
                         HorizontalAlignment="Right" Margin="0,0,5,0"
-                        Command="{Binding ClearQueryCommand}"
+                        r:IntentTrigger.OnClick="ClearQueryRequested"
                         Visibility="{Binding Query, Converter={StaticResource NullVis}}" />
             </Grid>
 
@@ -34,23 +36,23 @@
             <Border Style="{StaticResource FilterCard}" Margin="0,10,0,0">
                 <StackPanel>
                     <WrapPanel>
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeForward}" Command="{Binding SetModeCommand}" CommandParameter="Forward"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeForward}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Forward"
                                       IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Forward}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModePartial}" Command="{Binding SetModeCommand}" CommandParameter="Partial"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModePartial}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Partial"
                                       IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Partial}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeBackward}" Command="{Binding SetModeCommand}" CommandParameter="Backward"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeBackward}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Backward"
                                       IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Backward}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeExact}" Command="{Binding SetModeCommand}" CommandParameter="Exact"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeExact}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Exact"
                                       IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Exact}" />
                     </WrapPanel>
                     <WrapPanel Margin="0,7,0,0">
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeForm}" Command="{Binding SetScopeCommand}" CommandParameter="Form"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeForm}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="Form"
                                       IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Form}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Label_Translation}" Command="{Binding SetScopeCommand}" CommandParameter="Translation"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Label_Translation}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="Translation"
                                       IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Translation}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeBoth}" Command="{Binding SetScopeCommand}" CommandParameter="Both"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeBoth}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="Both"
                                       IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Both}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeFullText}" Command="{Binding SetScopeCommand}" CommandParameter="FullText"
+                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeFullText}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="FullText"
                                       IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=FullText}" />
                     </WrapPanel>
                 </StackPanel>
@@ -64,6 +66,7 @@
                      SelectedItem="{Binding SelectedWord}"
                      MouseDoubleClick="ResultList_MouseDoubleClick"
                      KeyDown="ResultList_KeyDown"
+                     SelectionChanged="ResultList_SelectionChanged"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      VirtualizingPanel.IsVirtualizing="True"
                      VirtualizingPanel.VirtualizationMode="Recycling">

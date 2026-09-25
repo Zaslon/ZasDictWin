@@ -24,7 +24,7 @@
 
         <Thumb Grid.Row="{Binding GripRow}" Grid.Column="{Binding GripColumn}"
                Cursor="{Binding GripCursor}" Style="{StaticResource GripThumb}"
-               DragDelta="Grip_DragDelta" DragCompleted="Grip_DragCompleted" />
+               DragStarted="Grip_DragStarted" DragDelta="Grip_DragDelta" DragCompleted="Grip_DragCompleted" />
 
         <ContentControl Grid.Row="{Binding SecondRow}" Grid.Column="{Binding SecondColumn}"
                         Content="{Binding Second}"

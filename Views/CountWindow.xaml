@@ -7,14 +7,15 @@
         Width="480" Height="220" MinWidth="240" MinHeight="120"
         ShowInTaskbar="True"
         WindowStyle="SingleBorderWindow"
-        Background="{Binding Settings.StreamBackground, Converter={StaticResource StringBrush}}">
+        Topmost="{Binding IsTopmost}"
+        Background="{Binding Background, Converter={StaticResource StringBrush}}">
 
     <!-- 背景色・文字サイズ倍率・最前面は単語ウィンドウ（StreamWindow）の設定をそのまま使う。
          クロマキーを別々に合わせずに済むよう、設定は増やさず共用にしてある。 -->
     <Grid Margin="48,32">
         <TextBlock v:LocalizedText.Text="{Binding WordCountLabel}"
                    Foreground="White"
-                   FontSize="{Binding StreamHeadwordSize}"
+                   FontSize="{Binding HeadwordSize}"
                    HorizontalAlignment="Center" VerticalAlignment="Center"
                    TextWrapping="NoWrap" />
     </Grid>

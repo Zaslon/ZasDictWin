@@ -2,8 +2,8 @@ using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Media;
+using ZasDictWin.Mediator;
 using ZasDictWin.Services;
 
 namespace ZasDictWin.ViewModels;
@@ -24,51 +24,25 @@ public abstract class ViewModelBase : INotifyPropertyChanged
     }
 }
 
-public sealed class RelayCommand : ICommand
-{
-    private readonly Action<object?> _execute;
-    private readonly Func<object?, bool>? _canExecute;
-
-    public RelayCommand(Action<object?> execute, Func<object?, bool>? canExecute = null)
-    {
-        _execute = execute;
-        _canExecute = canExecute;
-    }
-
-    public RelayCommand(Action execute, Func<bool>? canExecute = null)
-        : this(_ => execute(), canExecute is null ? null : _ => canExecute())
-    {
-    }
-
-    public bool CanExecute(object? parameter) => _canExecute?.Invoke(parameter) ?? true;
-
-    public void Execute(object? parameter) => _execute(parameter);
-
-    public event EventHandler? CanExecuteChanged
-    {
-        add => CommandManager.RequerySuggested += value;
-        remove => CommandManager.RequerySuggested -= value;
-    }
-}
-
-/// <summary>画面内オーバーレイの基底。OS ダイアログは OBS のウィンドウキャプチャに映らないため使わない。</summary>
+/// <summary>
+/// 画面 1 枚ぶん（タブ・確認ダイアログ・設定）の描画パラメータの入れ物の基底。
+/// 開く・閉じる・どこへ出すかの判断は AppMediator が <see cref="ScreenRegistry"/> を引いて行う。
+/// OS ダイアログは OBS のウィンドウキャプチャに映らないため、確認もこの器で画面内に描く。
+/// </summary>
 public abstract class OverlayViewModel : ViewModelBase
 {
     private bool _isActive;
 
     public string Title { get; protected set; } = "";
-    public Action? RequestClose { get; set; }
-    public ICommand CloseCommand => new RelayCommand(() => RequestClose?.Invoke());
 
     /// <summary>タブとして並べるか。偽なら中央のモーダルとして 1 枚だけ出す。</summary>
-    public virtual bool IsDockable => true;
+    public bool IsDockable => ScreenRegistry.For(Kind).IsDockable;
 
     /// <summary>
     /// 行き先を覚えていないとき、本体のタブ束ではなく独立ウィンドウとして開くか。
-    /// 常設の枠を割きたくないツール類だけが真にする。どちらで開いても、
-    /// あとからタブを掴んでウィンドウの内と外を行き来させられる。
+    /// どちらで開いても、あとからタブを掴んでウィンドウの内と外を行き来させられる。
     /// </summary>
-    public virtual bool PrefersFloating => false;
+    public bool PrefersFloating => ScreenRegistry.For(Kind).PrefersFloating;
 
     /// <summary>独立ウィンドウとして出すときの既定の大きさ。</summary>
     public virtual Size FloatSize => new(620, 520);
@@ -77,7 +51,7 @@ public abstract class OverlayViewModel : ViewModelBase
     /// 閉じられない据え置きのタブか（検索と単語詳細）。運ぶことはできるので、
     /// ✕ を出さないことだけがここの意味。
     /// </summary>
-    public virtual bool IsPinned => false;
+    public bool IsPinned => ScreenRegistry.For(Kind).IsPinned;
 
     /// <summary>同じ種類は 1 枚までしか開かない。その同一性の判定と、行き先の記憶のキーに使う。</summary>
     public string Kind => GetType().Name;
@@ -94,7 +68,7 @@ public abstract class OverlayViewModel : ViewModelBase
 /// 文字サイズ倍率を DataContext と無関係に参照するための共有状態。
 /// Style の Setter やネストした DataTemplate の中など、DataContext が MainViewModel を
 /// 辿れない場所からも {x:Static} 経由で FontSize をスケールできるようにする。
-/// MainViewModel.ApplySettings() が設定変更のたびに Scale を書き戻す。
+/// 設定の適用と Ctrl＋ホイールのたびに AppMediator が Scale を書き戻す。
 /// </summary>
 public sealed class FontScaleState : ViewModelBase
 {
@@ -108,7 +82,7 @@ public sealed class FontScaleState : ViewModelBase
 /// 見出し語フォント（Heksa）を DataContext と無関係に参照するための共有状態。
 /// オーバーレイの DataContext は MainViewModel ではないため、そこからも
 /// {x:Static} 経由で同じフォントを引けるようにしている。
-/// MainViewModel.ApplySettings() が設定変更のたびに Family を書き戻す。
+/// 設定の適用のたびに AppMediator が Family を書き戻す。
 /// </summary>
 public sealed class HeadwordFontState : ViewModelBase
 {

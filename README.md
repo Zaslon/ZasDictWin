@@ -21,8 +21,8 @@ OBS の［ウィンドウキャプチャ］は対象ウィンドウの HWND だ�
   `AdornerDecorator` に描くため配信に映る。`IsEditable` を立てると本体が入力欄になり、
   一覧に無い値も打てる（単語エディタの関係名）
 - 階層メニュー（ヘッダの［ファイル］など）は `Views/MenuButton.cs` の自前コントロール。DropDown と同じ
-  理由で一覧は `AdornerDecorator` に描く。項目は `MenuAction`（コマンドを直接持つだけの入れ物）を
-  コードビハインドで詰める。選ぶと自動で畳む
+  理由で一覧は `AdornerDecorator` に描く。項目は `MenuActionSpec`（見出しと、押したときに上げる
+  Intent だけを持つ入れ物）で、並びと有効・無効は `Mediator/AppMediator.cs` が組む。選ぶと自動で畳む
 - 標準の枠（タイトルバー）は消してあり（`WindowStyle="None"` ＋ `WindowChrome`）、ヘッダの余白
   （ボタンの無い部分）をつかんでの移動とダブルクリックでの最大化に自前で対応している。最小化・
   最大化・閉じるはヘッダ右端に自前で描いたボタン。ウィンドウの大きさは最後に閉じたときのものを
@@ -184,9 +184,12 @@ OBS の［ウィンドウキャプチャ］は対象ウィンドウの HWND だ�
 ```
 dotnet build ZasDictWin.sln -c Release
 dotnet run --project ZasDictWin.csproj
+dotnet test ZasDictWin.sln
 ```
 
-Visual Studio 2022 なら `ZasDictWin.sln` を開いて実行。
+Visual Studio 2022 なら `ZasDictWin.sln` を開いて実行。単体テスト（`Tests/`、xUnit）は画面の裁定
+（`Mediator/`）と入力の経路（`Root/`）を窓を作らずに検査する。通信・ファイルダイアログは使わず、
+`settings.json` にも書き込まない。
 
 ### 配布用の実行ファイル
 
@@ -197,7 +200,7 @@ Visual Studio 2022 なら `ZasDictWin.sln` を開いて実行。
 dotnet publish ZasDictWin.csproj -c Release
 ```
 
-出力先は `bin\Release\net8.0-windows\win-x64\publish\ZasDictWin.exe`（約 1.8MB）。
+出力先は `bin\Release\net8.0-windows\win-x64\publish\ZasDictWin.exe`（約 2.1MB）。
 配布先に .NET 8 デスクトップランタイムが必要で、無い環境にも配るなら自己完結ビルドにする
 （約 67MB。初回起動時の展開があるぶん起動が遅い）。
 

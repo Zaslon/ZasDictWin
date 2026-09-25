@@ -1,6 +1,5 @@
 using System.Collections.ObjectModel;
 using System.Text.Json;
-using System.Windows.Input;
 using ZasDictWin.Models;
 using ZasDictWin.Resources;
 using ZasDictWin.Services;
@@ -41,12 +40,15 @@ public sealed class RelationRow : ViewModelBase
     public string CounterpartHint { get; set; } = "";
 }
 
+/// <summary>
+/// 単語エディタの入力欄の入れ物。保存（辞書への書き込み・関係の対照登録・更新履歴）は AppMediator が行い、
+/// ここは書きかけの行の増減と、保存前の検証・差分の有無の判定だけを持つ。
+/// </summary>
 public sealed class WordEditViewModel : OverlayViewModel
 {
     private readonly ObservableCollection<Word> _allWords;
     private readonly RelationService _relations;
     private readonly SearchService _search;
-    private readonly Action<WordEditViewModel> _commit;
 
     private string _form = "";
     private string _relationQuery = "";
@@ -59,12 +61,11 @@ public sealed class WordEditViewModel : OverlayViewModel
     private readonly string _initialSnapshot;
 
     public WordEditViewModel(Word? source, ObservableCollection<Word> allWords, RelationService relations,
-                             SearchService search, Action<WordEditViewModel> commit, string initialForm = "")
+                             SearchService search, string initialForm = "")
     {
         _allWords = allWords;
         _relations = relations;
         _search = search;
-        _commit = commit;
 
         Source = source;
         Title = source is null ? Strings.WordEdit_AddTitle : Strings.WordEdit_EditTitle;
@@ -92,16 +93,6 @@ public sealed class WordEditViewModel : OverlayViewModel
         RelationTitles = new ObservableCollection<string>(relations.Titles);
         RefreshAvailableContentTypes();
 
-        AddTranslationCommand = new RelayCommand(() => Translations.Add(new TranslationRow()));
-        RemoveTranslationCommand = new RelayCommand(o => { if (o is TranslationRow r) Translations.Remove(r); });
-        AddContentTypeCommand = new RelayCommand(o => { if (o is string s) AddContentType(s); });
-        RemoveContentCommand = new RelayCommand(o => { if (o is ContentRow r) { Contents.Remove(r); RefreshAvailableContentTypes(); } });
-        AddVariationCommand = new RelayCommand(() => Variations.Add(new VariationRow()));
-        RemoveVariationCommand = new RelayCommand(o => { if (o is VariationRow r) Variations.Remove(r); });
-        RemoveRelationCommand = new RelayCommand(o => { if (o is RelationRow r) Relations.Remove(r); });
-        AddRelationCommand = new RelayCommand(o => { if (o is Word w) AddRelation(w); });
-        SaveCommand = new RelayCommand(() => { if (Validate()) _commit(this); });
-
         _initialSnapshot = Snapshot();
     }
 
@@ -122,7 +113,7 @@ public sealed class WordEditViewModel : OverlayViewModel
 
     /// <summary>訳語は品詞の選択が必須。何らかの内容がある行（訳語または品詞が入力済み）に、
     /// 選択肢にある品詞が選ばれていない場合は保存を止める。完全に空の行は無視して保存する。</summary>
-    private bool Validate()
+    internal bool Validate()
     {
         var missing = Translations.Any(t =>
             (!string.IsNullOrWhiteSpace(t.FormsText) || !string.IsNullOrWhiteSpace(t.Title)) &&
@@ -179,17 +170,25 @@ public sealed class WordEditViewModel : OverlayViewModel
         set { if (Set(ref _relationQuery, value)) RefreshCandidates(); }
     }
 
-    public ICommand AddTranslationCommand { get; }
-    public ICommand RemoveTranslationCommand { get; }
-    public ICommand AddContentTypeCommand { get; }
-    public ICommand RemoveContentCommand { get; }
-    public ICommand AddVariationCommand { get; }
-    public ICommand RemoveVariationCommand { get; }
-    public ICommand RemoveRelationCommand { get; }
-    public ICommand AddRelationCommand { get; }
-    public ICommand SaveCommand { get; }
-
     private string HintFor(string title) => _relations.Counterpart(title) ?? "";
+
+    // ---- 書きかけの行の増減（辞書へは保存まで書かない）-----------------------
+
+    internal void AddTranslationRow() => Translations.Add(new TranslationRow());
+
+    internal void RemoveTranslationRow(TranslationRow row) => Translations.Remove(row);
+
+    internal void RemoveContentRow(ContentRow row)
+    {
+        Contents.Remove(row);
+        RefreshAvailableContentTypes();
+    }
+
+    internal void AddVariationRow() => Variations.Add(new VariationRow());
+
+    internal void RemoveVariationRow(VariationRow row) => Variations.Remove(row);
+
+    internal void RemoveRelationRow(RelationRow row) => Relations.Remove(row);
 
     /// <summary>choices.json の ContentTypes に書いた順。未知のタイトルは末尾に回す。</summary>
     private static int ContentRank(string title)
@@ -199,7 +198,7 @@ public sealed class WordEditViewModel : OverlayViewModel
         return i < 0 ? types.Count : i;
     }
 
-    private void AddContentType(string title)
+    internal void AddContentType(string title)
     {
         if (Contents.Any(c => c.Title == title)) return;
         Contents.Add(new ContentRow { Title = title });
@@ -225,7 +224,7 @@ public sealed class WordEditViewModel : OverlayViewModel
             RelationCandidates.Add(w);
     }
 
-    private void AddRelation(Word target)
+    internal void AddRelation(Word target)
     {
         if (Relations.Any(r => r.Id == target.Id && r.Title == RelationTitle)) return;
         Relations.Add(new RelationRow

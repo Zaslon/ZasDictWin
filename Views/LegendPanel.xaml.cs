@@ -1,36 +1,44 @@
 using System.ComponentModel;
 using System.Windows.Controls;
-using ZasDictWin.Services;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
 
 public partial class LegendPanel : UserControl
 {
+    private LegendViewModel? _vm;
+
     public LegendPanel()
     {
         InitializeComponent();
-        DataContextChanged += (_, _) => RebuildLegend();
-        // 文字サイズ倍率はこの画面の外（設定・Ctrl＋ホイール）から変わりうるので、出ている間は追従させる。
-        // タブを別の枠や独立ウィンドウへ運ぶと器ごと作り直されるため、張り直しは Loaded で行う。
-        Loaded += (_, _) =>
+        DataContextChanged += (_, _) => Attach();
+        // タブを別の枠や独立ウィンドウへ運ぶと器ごと作り直されるので、張り直しは Loaded で行う。
+        // 外れた器は文書を手放す（FlowDocument は同時に 1 つの表示器にしか載せられない）。
+        Loaded += (_, _) => Attach();
+        Unloaded += (_, _) =>
         {
-            FontScaleState.Instance.PropertyChanged -= OnFontScaleChanged;
-            FontScaleState.Instance.PropertyChanged += OnFontScaleChanged;
-            RebuildLegend();
+            Detach();
+            LegendView.Document = null;
         };
-        Unloaded += (_, _) => FontScaleState.Instance.PropertyChanged -= OnFontScaleChanged;
     }
 
-    private void OnFontScaleChanged(object? sender, PropertyChangedEventArgs e)
+    private void Attach()
     {
-        if (e.PropertyName == nameof(FontScaleState.Scale)) RebuildLegend();
+        Detach();
+        _vm = DataContext as LegendViewModel;
+        if (_vm is null) return;
+        _vm.PropertyChanged += OnVmPropertyChanged;
+        LegendView.Document = _vm.Document;
     }
 
-    /// <summary>凡例の Markdown を現在の文字サイズ倍率で FlowDocument に描画し直す。</summary>
-    private void RebuildLegend()
+    private void Detach()
     {
-        if (DataContext is not LegendViewModel vm) return;
-        LegendView.Document = Markdown.ToFlowDocument(vm.LegendMarkdown, FontScaleState.Instance.Scale);
+        if (_vm is not null) _vm.PropertyChanged -= OnVmPropertyChanged;
+        _vm = null;
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(LegendViewModel.Document) && _vm is not null) LegendView.Document = _vm.Document;
     }
 }

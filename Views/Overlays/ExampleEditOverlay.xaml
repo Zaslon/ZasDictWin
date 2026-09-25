@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="clr-namespace:ZasDictWin.Models"
              xmlns:v="clr-namespace:ZasDictWin.Views"
+             xmlns:r="clr-namespace:ZasDictWin.Root"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:res="clr-namespace:ZasDictWin.Resources">
 
@@ -23,10 +24,10 @@
             <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
                 <DockPanel>
                     <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" Style="{StaticResource GhostButton}"
-                            Command="{Binding CancelCommand}" Margin="0" />
+                            r:IntentTrigger.OnClick="ExampleEditCancelled" Margin="0" />
                     <StackPanel Orientation="Horizontal">
-                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" />
-                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}" Command="{Binding DeleteCommand}" />
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="ExampleCommitted" />
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}" r:IntentTrigger.OnClick="DeleteExampleRequested" IsEnabled="{Binding CanDelete}" />
                     </StackPanel>
                 </DockPanel>
             </Border>
@@ -77,8 +78,8 @@
                                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
                                                 <Button Content="✕" Style="{StaticResource GhostButton}" Margin="6,0,0,0" Padding="4,0"
                                                         MinHeight="0"
-                                                        Command="{Binding DataContext.RemoveWordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding}" />
+                                                        r:IntentTrigger.OnClick="ExampleWordRemoveRequested"
+                                                        r:IntentTrigger.Payload="{Binding}" />
                                             </StackPanel>
                                         </Border>
                                     </DataTemplate>
@@ -94,8 +95,8 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:Word}">
                                         <Button HorizontalContentAlignment="Left" Margin="0,0,0,4" Padding="10,6"
-                                                Command="{Binding DataContext.AddWordCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}">
+                                                r:IntentTrigger.OnClick="ExampleWordAddRequested"
+                                                r:IntentTrigger.Payload="{Binding}">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="{Binding DisplayForm}" Margin="0,0,12,0"
                                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
@@ -132,7 +133,7 @@
                                                VerticalAlignment="Center" Margin="0,0,8,0" TextWrapping="NoWrap" />
                                     <TextBox Grid.Column="1" Text="{Binding OfferNumberText, UpdateSourceTrigger=PropertyChanged}" />
                                     <Button Grid.Column="2" v:LocalizedText.Content="{x:Static res:Strings.ExampleEdit_FetchButton}" Margin="6,0,0,0"
-                                            Command="{Binding FetchCommand}" />
+                                            r:IntentTrigger.OnClick="ExampleOfferFetchRequested" IsEnabled="{Binding CanFetch}" />
                                 </Grid>
                                 <TextBlock v:LocalizedText.Text="{x:Static res:Strings.ExampleEdit_FetchHint}" Style="{StaticResource Label}" Margin="0,6,0,0" />
 
@@ -150,7 +151,7 @@
                                     <TextBox Grid.Column="0" Text="{Binding ApiKeyInput, UpdateSourceTrigger=PropertyChanged}"
                                              v:Placeholder.Text="{x:Static res:Strings.Label_ApiKeyPlaceholder}" FontFamily="Consolas" />
                                     <Button Grid.Column="1" v:LocalizedText.Content="{x:Static res:Strings.ExampleEdit_SaveKeyButton}" Margin="6,0,0,0"
-                                            Command="{Binding SaveApiKeyCommand}" />
+                                            r:IntentTrigger.OnClick="ZpdicApiKeySaveRequested" IsEnabled="{Binding CanSaveApiKey}" />
                                 </Grid>
                             </StackPanel>
                         </StackPanel>

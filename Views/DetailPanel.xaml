@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="clr-namespace:ZasDictWin.Models"
              xmlns:v="clr-namespace:ZasDictWin.Views"
+             xmlns:r="clr-namespace:ZasDictWin.Root"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:res="clr-namespace:ZasDictWin.Resources">
 
@@ -28,9 +29,9 @@
             <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0"
                     Padding="0,10,0,0" Margin="0,12,0,0">
                 <StackPanel Orientation="Horizontal">
-                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Edit}" Style="{StaticResource PrimaryButton}" Command="{Binding EditWordCommand}" />
-                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Duplicate}" Command="{Binding DuplicateWordCommand}" />
-                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}" Command="{Binding DeleteWordCommand}" />
+                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Edit}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="EditWordRequested" IsEnabled="{Binding CanEditWord}" />
+                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Duplicate}" r:IntentTrigger.OnClick="DuplicateWordRequested" IsEnabled="{Binding CanDuplicateWord}" />
+                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}" r:IntentTrigger.OnClick="DeleteWordRequested" IsEnabled="{Binding CanDeleteWord}" />
                 </StackPanel>
             </Border>
 
@@ -145,8 +146,8 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="{x:Type m:Relation}">
                                     <Button Margin="0,0,6,6" Padding="10,5"
-                                            Command="{Binding DataContext.FollowRelationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}">
+                                            r:IntentTrigger.OnClick="FollowRelationRequested"
+                                            r:IntentTrigger.Payload="{Binding}">
                                         <StackPanel Orientation="Horizontal">
                                             <TextBlock Text="{Binding Title}" Foreground="{StaticResource Muted}" Margin="0,0,8,0"
                                                        Style="{StaticResource DetailLabel}" VerticalAlignment="Center" />
@@ -171,8 +172,8 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:Example}">
                                         <Button HorizontalContentAlignment="Left" Margin="0,0,0,6" Padding="10,6"
-                                                Command="{Binding DataContext.EditExampleCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}">
+                                                r:IntentTrigger.OnClick="EditExampleRequested" IsEnabled="{Binding DataContext.CanEditExample, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                r:IntentTrigger.Payload="{Binding}">
                                             <StackPanel>
                                                 <TextBlock Text="{Binding Sentence}" LineHeight="22"
                                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />

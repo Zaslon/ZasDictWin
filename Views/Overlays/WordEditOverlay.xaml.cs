@@ -1,6 +1,6 @@
 using System.Windows.Controls;
 using System.Windows.Input;
-using ZasDictWin.ViewModels;
+using ZasDictWin.Root;
 
 namespace ZasDictWin.Views.Overlays;
 
@@ -19,8 +19,7 @@ public partial class WordEditOverlay : UserControl
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter || Keyboard.Modifiers != ModifierKeys.Control) return;
-        if (DataContext is not WordEditViewModel vm) return;
-        if (vm.SaveCommand.CanExecute(null)) vm.SaveCommand.Execute(null);
+        this.RaiseIntent(IntentKind.WordCommitted);
         e.Handled = true;
     }
 }
