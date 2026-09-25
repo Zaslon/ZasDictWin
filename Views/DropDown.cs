@@ -5,6 +5,7 @@ using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using ZasDictWin.Root;
 
 namespace ZasDictWin.Views;
 
@@ -16,16 +17,15 @@ namespace ZasDictWin.Views;
 /// そのため一覧は自前でウィンドウ最上段の AdornerDecorator に載せる。ScrollViewer の内側にも
 /// AdornerLayer があるが、そちらはビューポートで切り取られるため使わない。
 ///
+/// 開けるのは同時にひとつ（階層メニューとも排他）で、その管理と Esc での畳み方は根（AppMediator）が決める。
+///
 /// 表示文字はつねに SelectedItem.ToString()。一覧に無い値でもそのまま出すので、
 /// 自由入力の TextBox と組み合わせる欄（関連語の関係名）にも置ける。
 /// </summary>
-public class DropDown : Control
+public class DropDown : Control, IPopupLayer
 {
     /// <summary>本体と一覧のすき間。</summary>
     private const double Gap = 2;
-
-    /// <summary>開けるのは同時にひとつ。Esc 処理（MainWindow）からも参照する。</summary>
-    private static DropDown? _current;
 
     private Border? _panel;
     private ListBox? _list;
@@ -34,23 +34,6 @@ public class DropDown : Control
     private Window? _window;
     private ScrollViewer? _scroller;
     private bool _syncing;
-
-    /// <summary>開いているプルダウン／階層メニューの数。WebView2 は airspace の関係で常に手前に出てしまい、
-    /// 一覧をこの上に重ねて描いても隠れるため、ひとつでも開いている間は BrowserPanel 側が自分（WebView2）を
-    /// 隠す。MenuButton もここを共用する（internal にしてある）。</summary>
-    private static int _openOverlayCount;
-
-    internal static event Action<bool>? OverlayVisibilityChanged;
-
-    internal static void EnterOverlay()
-    {
-        if (_openOverlayCount++ == 0) OverlayVisibilityChanged?.Invoke(true);
-    }
-
-    internal static void ExitOverlay()
-    {
-        if (_openOverlayCount > 0 && --_openOverlayCount == 0) OverlayVisibilityChanged?.Invoke(false);
-    }
 
     static DropDown() =>
         DefaultStyleKeyProperty.OverrideMetadata(typeof(DropDown), new FrameworkPropertyMetadata(typeof(DropDown)));
@@ -163,22 +146,11 @@ public class DropDown : Control
     /// <summary>案内文字と選択値のどちらを出すかの判定に使う。空文字は未選択として扱う。</summary>
     public bool HasSelection => (bool)GetValue(HasSelectionProperty);
 
-    /// <summary>開いているプルダウンがあれば閉じ、閉じたかどうかを返す。
-    /// Esc がオーバーレイ全体の閉じる操作に食われないよう、ウィンドウ側の Esc 処理から先に呼ぶ。</summary>
-    public static bool CloseCurrent()
-    {
-        if (_current is null) return false;
-        _current.Close();
-        return true;
-    }
-
     public void Open()
     {
         if (IsOpen) return;
         _layer = TopLayer(this);
         if (_layer is null) return;
-
-        _current?.Close();
 
         _list = new ListBox
         {
@@ -213,8 +185,8 @@ public class DropDown : Control
         if (_scroller is not null) _scroller.ScrollChanged += OnScrolled;
 
         SetValue(IsOpenKey, true);
-        _current = this;
-        EnterOverlay();
+        // 開いたことを根に知らせる。同時に開いている別の一覧を畳むのも、WebView2 を隠すのも根の裁定。
+        this.RaiseIntent(IntentKind.PopupLayerOpened, this);
 
         // 行のコンテナは Add した直後にはまだ生成されていないため、生成後に選択行へ移す。
         Dispatcher.BeginInvoke(DispatcherPriority.Loaded, () =>
@@ -246,6 +218,7 @@ public class DropDown : Control
         }
         if (_scroller is not null) _scroller.ScrollChanged -= OnScrolled;
 
+        var window = _window;
         _list = null;
         _panel = null;
         _adorner = null;
@@ -254,8 +227,8 @@ public class DropDown : Control
         _scroller = null;
 
         SetValue(IsOpenKey, false);
-        if (_current == this) _current = null;
-        ExitOverlay();
+        // 閉じるのは Unloaded（窓から外れた後）のこともあるので、開いた窓から知らせる。
+        ((UIElement?)window ?? this).RaiseIntent(IntentKind.PopupLayerClosed, this);
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)

@@ -1,10 +1,13 @@
+using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
 using ZasDictWin.Resources;
+using ZasDictWin.Root;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
@@ -28,18 +31,16 @@ public partial class BrowserPanel : UserControl
         Loaded += (_, _) =>
         {
             if (_vm?.IsOpen == true) EnsureReady(null);
-            DropDown.OverlayVisibilityChanged += OnOverlayVisibilityChanged;
         };
-        Unloaded += (_, _) => DropDown.OverlayVisibilityChanged -= OnOverlayVisibilityChanged;
     }
 
     /// <summary>プルダウンや階層メニューを開いている間は WebView2 を隠す。airspace のせいで
-    /// Visibility を手前に重ねる通常の Z 順制御が効かず、隠す以外に取れる手が無いため。
+    /// 一覧を手前に重ねる通常の Z 順制御が効かず、隠す以外に取れる手が無いため。
     /// Web.Visibility は HasError にバインドしてあるので、SetValue で直接上書きするとバインドが
     /// 外れてしまう。SetCurrentValue で一時的に上書きし、閉じたらバインドから再評価させて戻す。</summary>
-    private void OnOverlayVisibilityChanged(bool overlayOpen)
+    public void SetWebViewHidden(bool hidden)
     {
-        if (overlayOpen)
+        if (hidden)
         {
             Web.SetCurrentValue(VisibilityProperty, Visibility.Hidden);
         }
@@ -47,6 +48,13 @@ public partial class BrowserPanel : UserControl
         {
             BindingOperations.GetBindingExpressionBase(Web, VisibilityProperty)?.UpdateTarget();
         }
+    }
+
+    private void AddressBox_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter) return;
+        AddressBox.RaiseIntent(IntentKind.BrowserNavigateRequested);
+        e.Handled = true;
     }
 
     private void Attach()
@@ -58,6 +66,7 @@ public partial class BrowserPanel : UserControl
             _vm.BackRequested -= OnBack;
             _vm.ForwardRequested -= OnForward;
             _vm.ReloadRequested -= OnReload;
+            _vm.PropertyChanged -= OnVmPropertyChanged;
         }
 
         _vm = DataContext as BrowserViewModel;
@@ -68,6 +77,12 @@ public partial class BrowserPanel : UserControl
         _vm.BackRequested += OnBack;
         _vm.ForwardRequested += OnForward;
         _vm.ReloadRequested += OnReload;
+        _vm.PropertyChanged += OnVmPropertyChanged;
+    }
+
+    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(BrowserViewModel.IsOverlayOpen) && _vm is not null) SetWebViewHidden(_vm.IsOverlayOpen);
     }
 
     private void OnInitialize()

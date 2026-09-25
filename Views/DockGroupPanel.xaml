@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:v="clr-namespace:ZasDictWin.Views"
+             xmlns:r="clr-namespace:ZasDictWin.Root"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:res="clr-namespace:ZasDictWin.Resources">
 
@@ -39,7 +40,7 @@
                                              大きくなるため、箱を固定すると倍率を上げたときに記号がはみ出す。
                                              MinWidth/MinHeight（TabCloseButton 側）を床にして箱ごと追従させる。 -->
                                         <Button Style="{StaticResource DockTabCloseButton}"
-                                                Margin="6,0,0,0" Command="{Binding CloseCommand}"
+                                                Margin="6,0,0,0" r:IntentTrigger.OnClick="TabCloseRequested" r:IntentTrigger.Payload="{Binding}"
                                                 Visibility="{Binding IsPinned, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
                                     </StackPanel>
                                 </Border>

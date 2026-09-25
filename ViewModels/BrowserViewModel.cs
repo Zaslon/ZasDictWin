@@ -1,23 +1,22 @@
-using System.Windows.Input;
 using ZasDictWin.Services;
 
 namespace ZasDictWin.ViewModels;
 
 /// <summary>
-/// ブラウザのタブ（WebView2）の状態。実際の描画と履歴は View 側の WebView2 が持つため、
-/// ここではアドレス・履歴状態・開閉だけを受け持つ。ナビゲーション指示はイベントで View に渡す
-/// （OverlayViewModel.RequestClose と同じ流儀）。大きさは枠の割り付けが決めるので持たない。
+/// ブラウザのタブ（WebView2）の描画パラメータ。実際の描画と履歴は View 側の WebView2 が持つため、
+/// ここではアドレス・履歴状態・開閉だけを受け持つ。ナビゲーション指示は AppMediator が
+/// Request* を呼び、イベントで View に渡す（WebView2 は 1 つのパネルに閉じているので直に届ける）。
+/// 大きさは枠の割り付けが決めるので持たない。
 /// </summary>
 public sealed class BrowserViewModel : ViewModelBase
 {
-    private const string GoogleSearch = "https://www.google.com/search?q=";
-
     /// <summary>設定が空のときの開始ページ。</summary>
     public const string FallbackStartUrl = "https://www.google.com/";
 
     private readonly AppSettings _settings;
 
     private bool _isOpen;
+    private bool _isOverlayOpen;
     private string _address = "";
     private string _title = "";
     private string _status = "";
@@ -31,17 +30,7 @@ public sealed class BrowserViewModel : ViewModelBase
         _settings = settings;
         _isOpen = settings.BrowserVisible;
         _address = StartUrl;
-
-        NavigateCommand = new RelayCommand(Navigate);
-        BackCommand = new RelayCommand(() => BackRequested?.Invoke(), () => CanGoBack);
-        ForwardCommand = new RelayCommand(() => ForwardRequested?.Invoke(), () => CanGoForward);
-        ReloadCommand = new RelayCommand(() => ReloadRequested?.Invoke());
     }
-
-    public ICommand NavigateCommand { get; }
-    public ICommand BackCommand { get; }
-    public ICommand ForwardCommand { get; }
-    public ICommand ReloadCommand { get; }
 
     /// <summary>View 側の WebView2 への指示。初期化前の要求は View 側で保持して実行する。</summary>
     public event Action? InitializeRequested;
@@ -50,33 +39,31 @@ public sealed class BrowserViewModel : ViewModelBase
     public event Action? ForwardRequested;
     public event Action? ReloadRequested;
 
+    internal void RequestInitialize() => InitializeRequested?.Invoke();
+    internal void RequestNavigate(string url) => NavigateRequested?.Invoke(url);
+    internal void RequestBack() => BackRequested?.Invoke();
+    internal void RequestForward() => ForwardRequested?.Invoke();
+    internal void RequestReload() => ReloadRequested?.Invoke();
+
     /// <summary>設定された開始 URL。空なら既定の検索ページ。</summary>
     public string StartUrl => string.IsNullOrWhiteSpace(_settings.BrowserStartUrl)
         ? FallbackStartUrl
         : _settings.BrowserStartUrl.Trim();
 
-    /// <summary>タブが開いているか。開閉そのものは MainViewModel が行い、ここは記憶だけ持つ。</summary>
+    /// <summary>タブが開いているか。開閉と、次の起動で開き直すかどうかの記憶は AppMediator が書く。</summary>
     public bool IsOpen
     {
         get => _isOpen;
-        private set
-        {
-            if (!Set(ref _isOpen, value)) return;
-            _settings.BrowserVisible = value;
-            _settings.Save();
-        }
+        internal set => Set(ref _isOpen, value);
     }
 
-    /// <summary>タブを開いたときに呼ぶ。初回はここで WebView2 の初期化と最初のページ表示が走る
-    /// （起動を重くしないため遅延させている）。</summary>
-    public void Activate()
+    /// <summary>プルダウンや階層メニューの一覧が開いているか。真の間 View は WebView2 を隠す
+    /// （airspace で WebView2 が WPF 描画より手前に出るため、一覧を重ねても隠れない）。</summary>
+    public bool IsOverlayOpen
     {
-        IsOpen = true;
-        InitializeRequested?.Invoke();
+        get => _isOverlayOpen;
+        internal set => Set(ref _isOverlayOpen, value);
     }
-
-    /// <summary>タブを閉じたときに呼ぶ。次の起動で開き直すかどうかの記憶だけを落とす。</summary>
-    public void Deactivate() => IsOpen = false;
 
     /// <summary>アドレス欄の編集値。View のナビゲーションでも更新される。</summary>
     public string Address { get => _address; set => Set(ref _address, value); }
@@ -94,32 +81,8 @@ public sealed class BrowserViewModel : ViewModelBase
     public bool CanGoBack { get => _canGoBack; private set => Set(ref _canGoBack, value); }
     public bool CanGoForward { get => _canGoForward; private set => Set(ref _canGoForward, value); }
 
-    private void Navigate()
-    {
-        var url = NormalizeInput(Address);
-        Address = url;
-        NavigateRequested?.Invoke(url);
-    }
-
-    /// <summary>アドレス欄の文字を URL に寄せる。scheme 無しは https、語句だけなら検索にする。</summary>
-    public static string NormalizeInput(string? raw)
-    {
-        var s = (raw ?? "").Trim();
-        if (s.Length == 0) return FallbackStartUrl;
-        if (s.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
-            s.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
-            s.StartsWith("file://", StringComparison.OrdinalIgnoreCase))
-            return s;
-
-        // 「動詞 変換」のような語句と「dict.example.com」を区別する。
-        if (s.Any(char.IsWhiteSpace) || (!s.Contains('.') && !s.Contains('/')))
-            return GoogleSearch + Uri.EscapeDataString(s);
-
-        return "https://" + s;
-    }
-
     /// <summary>設定ダイアログの適用時。表示中のページは切り替えず、開始 URL だけ反映する。</summary>
-    public void SyncWithSettings()
+    internal void SyncWithSettings()
     {
         if (!IsOpen) Address = StartUrl;
     }

@@ -2,6 +2,7 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:v="clr-namespace:ZasDictWin.Views"
+             xmlns:r="clr-namespace:ZasDictWin.Root"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:m="clr-namespace:ZasDictWin.Models"
              xmlns:s="clr-namespace:ZasDictWin.Services"
@@ -30,8 +31,8 @@
                                Visibility="{Binding ValidationMessage, Converter={StaticResource NullVis}}"
                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
-                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" Command="{Binding CloseCommand}" />
-                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryButton}" Command="{Binding SaveCommand}" Margin="0" />
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="WordEditCancelled" />
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="WordCommitted" Margin="0" />
                     </StackPanel>
                 </Grid>
             </Border>
@@ -53,7 +54,7 @@
 
                     <DockPanel Margin="0,20,0,6">
                         <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.WordEdit_AddTranslationButton}" Style="{StaticResource GhostButton}"
-                                Command="{Binding AddTranslationCommand}" Margin="0" />
+                                r:IntentTrigger.OnClick="TranslationRowAddRequested" Margin="0" />
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Label_Translation}" Style="{StaticResource SectionHeading}" Margin="0" VerticalAlignment="Center" />
                     </DockPanel>
                     <ItemsControl ItemsSource="{Binding Translations}" IsTabStop="False">
@@ -77,8 +78,8 @@
                                             <TextBox Grid.Column="1" Text="{Binding FormsText, UpdateSourceTrigger=PropertyChanged}"
                                                      Margin="0,0,6,0" />
                                             <Button Grid.Column="2" Content="✕" Style="{StaticResource GhostButton}" Margin="0"
-                                                    Command="{Binding DataContext.RemoveTranslationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}" />
+                                                    r:IntentTrigger.OnClick="TranslationRowRemoveRequested"
+                                                    r:IntentTrigger.Payload="{Binding}" />
                                         </Grid>
                                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Label_PartOfSpeech}" Style="{StaticResource Label}" Margin="0,8,0,4" />
                                         <v:DropDown HorizontalAlignment="Left" Width="220" Placeholder="{x:Static res:Strings.WordEdit_PosPlaceholder}"
@@ -97,8 +98,8 @@
                                 <StackPanel Margin="0,0,0,10">
                                     <DockPanel>
                                         <Button DockPanel.Dock="Right" Content="✕" Style="{StaticResource GhostButton}" Margin="0"
-                                                Command="{Binding DataContext.RemoveContentCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}" />
+                                                r:IntentTrigger.OnClick="ContentRowRemoveRequested"
+                                                r:IntentTrigger.Payload="{Binding}" />
                                         <!-- 内容欄の種類は選択肢（choices.json の ContentTypes）から選ぶため、既存行のタイトルは編集不可にする -->
                                         <TextBlock Text="{Binding Title}" Style="{StaticResource Label}" Margin="0" VerticalAlignment="Center"
                                                    FontFamily="{x:Static res:Strings.ContentFont}" />
@@ -130,8 +131,8 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Button Style="{StaticResource GhostButton}" Margin="0,0,6,6"
-                                        Command="{Binding DataContext.AddContentTypeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}">
+                                        r:IntentTrigger.OnClick="ContentRowAddRequested"
+                                        r:IntentTrigger.Payload="{Binding}">
                                     <TextBlock Text="{Binding StringFormat=＋ {0}}" FontFamily="{x:Static res:Strings.ContentFont}" />
                                 </Button>
                             </DataTemplate>
@@ -151,8 +152,8 @@
                                     <TextBlock Grid.Column="1" Text="{Binding Form}" VerticalAlignment="Center"
                                                FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
                                     <Button Grid.Column="2" Content="✕" Style="{StaticResource GhostButton}" Margin="4,0,0,0"
-                                            Command="{Binding DataContext.RemoveRelationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}" />
+                                            r:IntentTrigger.OnClick="RelationRowRemoveRequested"
+                                            r:IntentTrigger.Payload="{Binding}" />
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -180,8 +181,8 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:Word}">
                                         <Button HorizontalContentAlignment="Left" Margin="0,0,0,4" Padding="10,6"
-                                                Command="{Binding DataContext.AddRelationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                CommandParameter="{Binding}">
+                                                r:IntentTrigger.OnClick="RelationRowAddRequested"
+                                                r:IntentTrigger.Payload="{Binding}">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="{Binding DisplayForm}" Margin="0,0,12,0"
                                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
@@ -199,7 +200,7 @@
 
                     <DockPanel Margin="0,20,0,6">
                         <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.WordEdit_AddVariationButton}" Style="{StaticResource GhostButton}"
-                                Command="{Binding AddVariationCommand}" Margin="0" />
+                                r:IntentTrigger.OnClick="VariationRowAddRequested" Margin="0" />
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Label_Variations}" Style="{StaticResource SectionHeading}" Margin="0" VerticalAlignment="Center" />
                     </DockPanel>
                     <ItemsControl ItemsSource="{Binding Variations}" IsTabStop="False">
@@ -215,8 +216,8 @@
                                     <TextBox Grid.Column="1" Text="{Binding Form, UpdateSourceTrigger=PropertyChanged}"
                                              FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=FieldFamily}" />
                                     <Button Grid.Column="2" Content="✕" Style="{StaticResource GhostButton}" Margin="4,0,0,0"
-                                            Command="{Binding DataContext.RemoveVariationCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                            CommandParameter="{Binding}" />
+                                            r:IntentTrigger.OnClick="VariationRowRemoveRequested"
+                                            r:IntentTrigger.Payload="{Binding}" />
                                 </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>

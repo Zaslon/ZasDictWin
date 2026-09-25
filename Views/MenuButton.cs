@@ -5,53 +5,20 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using ZasDictWin.Mediator;
+using ZasDictWin.Root;
 
 namespace ZasDictWin.Views;
 
 /// <summary>
-/// 階層メニューの 1 項目。呼び出し側（MainWindow）がコマンドを直接詰めて使う想定で、
-/// XAML の Binding には頼らない（DataContext 継承が届かない場所に置かれても確実に動くように）。
+/// 階層メニューのボタン。項目は <see cref="MenuActionSpec"/> の列で、押された項目の Intent を上げるだけ。
+/// 標準の Menu／ComboBox を使わないのは DropDown と同じ理由（一覧が Popup＝別 HWND になると
+/// OBS のウィンドウキャプチャに映らない）で、開いた一覧はウィンドウ最上段の AdornerLayer に描く。
+/// 一覧は DropDown と同じく、開くたびに使い捨てで組み直す。開けるのは同時にひとつで、その管理は根が行う。
 /// </summary>
-public sealed class MenuAction : DependencyObject
-{
-    public static readonly DependencyProperty HeaderProperty =
-        DependencyProperty.Register(nameof(Header), typeof(string), typeof(MenuAction), new PropertyMetadata(""));
-
-    public static readonly DependencyProperty ToolTipProperty =
-        DependencyProperty.Register(nameof(ToolTip), typeof(string), typeof(MenuAction), new PropertyMetadata(""));
-
-    public static readonly DependencyProperty CommandProperty =
-        DependencyProperty.Register(nameof(Command), typeof(ICommand), typeof(MenuAction));
-
-    public static readonly DependencyProperty CommandParameterProperty =
-        DependencyProperty.Register(nameof(CommandParameter), typeof(object), typeof(MenuAction));
-
-    public static readonly DependencyProperty IsVisibleProperty =
-        DependencyProperty.Register(nameof(IsVisible), typeof(bool), typeof(MenuAction), new PropertyMetadata(true));
-
-    /// <summary>一覧の中でもとくに主用途の項目（保存など）を強調する。</summary>
-    public static readonly DependencyProperty IsPrimaryProperty =
-        DependencyProperty.Register(nameof(IsPrimary), typeof(bool), typeof(MenuAction), new PropertyMetadata(false));
-
-    public string Header { get => (string)GetValue(HeaderProperty); set => SetValue(HeaderProperty, value); }
-    public string ToolTip { get => (string)GetValue(ToolTipProperty); set => SetValue(ToolTipProperty, value); }
-    public ICommand? Command { get => (ICommand?)GetValue(CommandProperty); set => SetValue(CommandProperty, value); }
-    public object? CommandParameter { get => GetValue(CommandParameterProperty); set => SetValue(CommandParameterProperty, value); }
-    public bool IsVisible { get => (bool)GetValue(IsVisibleProperty); set => SetValue(IsVisibleProperty, value); }
-    public bool IsPrimary { get => (bool)GetValue(IsPrimaryProperty); set => SetValue(IsPrimaryProperty, value); }
-}
-
-/// <summary>
-/// コマンドを並べた階層メニューのボタン。標準の Menu／ComboBox を使わないのは DropDown と同じ理由
-/// （一覧が Popup＝別 HWND になると OBS のウィンドウキャプチャに映らない）で、開いた一覧は
-/// ウィンドウ最上段の AdornerLayer に描く。一覧は DropDown と同じく、開くたびに使い捨てで組み直す。
-/// </summary>
-public class MenuButton : Control
+public class MenuButton : Control, IPopupLayer
 {
     private const double Gap = 2;
-
-    /// <summary>開けるのは同時にひとつ。Esc 処理（MainWindow）からも参照する。</summary>
-    private static MenuButton? _current;
 
     private Border? _panel;
     private ItemsControl? _list;
@@ -78,6 +45,7 @@ public class MenuButton : Control
 
     public string Header { get => (string)GetValue(HeaderProperty); set => SetValue(HeaderProperty, value); }
 
+    /// <summary>並べる項目（<see cref="MenuActionSpec"/> の列）。</summary>
     public IEnumerable? Items { get => (IEnumerable?)GetValue(ItemsProperty); set => SetValue(ItemsProperty, value); }
 
     public bool IsOpen => (bool)GetValue(IsOpenProperty);
@@ -87,15 +55,6 @@ public class MenuButton : Control
     /// （生成された時点のボタンには DataContextChanged が上がらない）うえ、
     /// 使い回しで別の行のものが残るため、開くたびに組み直す。</summary>
     public event EventHandler? Opening;
-
-    /// <summary>開いているメニューがあれば閉じ、閉じたかどうかを返す。Esc がオーバーレイ全体の
-    /// 閉じる操作に食われないよう、ウィンドウ側の Esc 処理から先に呼ぶ。</summary>
-    public static bool CloseCurrent()
-    {
-        if (_current is null) return false;
-        _current.Close();
-        return true;
-    }
 
     public void Open()
     {
@@ -107,20 +66,14 @@ public class MenuButton : Control
         _layer = DropDown.TopLayer(this);
         if (_layer is null) return;
 
-        // 値選択のプルダウンと階層メニューは見た目も役割も別だが、同時に開いていると紛らわしいので
-        // どちらか一方だけにする。
-        DropDown.CloseCurrent();
-        _current?.Close();
-
         _list = new ItemsControl
         {
             Style = TryFindResource("MenuActionList") as Style,
             ItemTemplate = TryFindResource("MenuActionTemplate") as DataTemplate,
             ItemsSource = Items
         };
-        // Click は既定で Handled にならず上まで届くので、押した項目を実行させたあとここで畳む。
-        // 無効な項目（CanExecute=false）はそもそもヒットテストされず Click が上がらないので、
-        // ここで一律に閉じてよい。
+        // Click は既定で Handled にならず上まで届くので、押した項目をここで拾って畳む。
+        // 無効な項目（IsEnabled=false）はそもそもヒットテストされず Click が上がらない。
         _list.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(OnItemClick));
 
         _panel = new Border
@@ -144,8 +97,8 @@ public class MenuButton : Control
         }
 
         SetValue(IsOpenKey, true);
-        _current = this;
-        DropDown.EnterOverlay();
+        // 開いたことを根に知らせる。値選択のプルダウンと同時に開かせない裁定も根が行う。
+        this.RaiseIntent(IntentKind.PopupLayerOpened, this);
     }
 
     public void Close()
@@ -160,6 +113,7 @@ public class MenuButton : Control
             _window.Deactivated -= OnWindowDeactivated;
         }
 
+        var window = _window;
         _list = null;
         _panel = null;
         _adorner = null;
@@ -167,8 +121,8 @@ public class MenuButton : Control
         _window = null;
 
         SetValue(IsOpenKey, false);
-        if (_current == this) _current = null;
-        DropDown.ExitOverlay();
+        // 閉じるのは Unloaded（窓から外れた後）のこともあるので、開いた窓から知らせる。
+        ((UIElement?)window ?? this).RaiseIntent(IntentKind.PopupLayerClosed, this);
     }
 
     protected override void OnMouseLeftButtonDown(MouseButtonEventArgs e)
@@ -188,7 +142,14 @@ public class MenuButton : Control
         e.Handled = true;
     }
 
-    private void OnItemClick(object sender, RoutedEventArgs e) => Close();
+    /// <summary>押された項目の Intent は一覧（AdornerLayer）からではなくこのボタンから上げる。
+    /// 一覧はウィンドウ直下に描かれているので、そこから上げると行の属する枠を通らない。</summary>
+    private void OnItemClick(object sender, RoutedEventArgs e)
+    {
+        var spec = (e.OriginalSource as FrameworkElement)?.DataContext as MenuActionSpec;
+        Close();
+        if (spec is not null) this.RaiseIntent(spec.Intent, spec.Payload);
+    }
 
     private static bool IsEmpty(IEnumerable? items)
     {

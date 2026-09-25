@@ -1,6 +1,8 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
 using System.Windows.Input;
 using ZasDictWin.Resources;
+using ZasDictWin.Root;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
@@ -8,45 +10,63 @@ namespace ZasDictWin.Views;
 /// <summary>
 /// 本体の窓から持ち出したタブを入れる独立ウィンドウ。中身は本体と同じ割り付けなので、
 /// この窓のタブも掴んで本体へ運び戻せる（<see cref="OverlayDrag"/>）。
-/// 窓の開け閉めそのものは <see cref="MainWindow"/> が割り付けの通知を見て行い、
-/// ここは位置・大きさの書き戻しと、本体と同じキー操作を受け持つ。
+/// 窓の開け閉めは根の裁定（HostCommand）で行い、ここは位置・大きさの適用と、本体と同じ入力を Intent にして上げるだけ。
 /// </summary>
-public partial class FloatingWindow : Window
+public partial class FloatingWindow : Window, IUiHost
 {
     /// <summary>窓の端がこれだけ画面に残るように置き直す。画面構成が変わっても掴めなくならないように。</summary>
     private const double MinVisible = 80;
 
-    private readonly MainViewModel _main;
     private readonly DockFloat _host;
 
-    /// <summary>割り付け側から閉じたか。手で閉じたときだけ中のタブを始末する必要がある。</summary>
-    private bool _fromLayout;
+    /// <summary>根の裁定で閉じるところか。利用者の閉じる操作はいったん止めて裁定に回す（中のタブを始末するため）。</summary>
+    private bool _closingFromRoot;
 
-    public FloatingWindow(MainViewModel main, DockFloat host)
+    public FloatingWindow(DockFloat host)
     {
         InitializeComponent();
-        _main = main;
         _host = host;
         DataContext = host;
         ApplyBounds();
 
-        LocationChanged += (_, _) => Remember();
-        SizeChanged += (_, _) => Remember();
+        LocationChanged += (_, _) => RaiseBounds();
+        SizeChanged += (_, _) => RaiseBounds();
         PreviewKeyDown += OnPreviewKeyDown;
         PreviewMouseWheel += OnPreviewMouseWheel;
         StateChanged += (_, _) => UpdateMaximizeRestoreIcon();
         UpdateMaximizeRestoreIcon();
+
+        // 一覧（DropDown / MenuButton）は窓の最上段の AdornerDecorator に描かれるので、受け口は窓そのものにする。
+        AppRoot.Current.Attach(this, this);
+        Closed += (_, _) => AppRoot.Current.Detach(this);
     }
 
-    /// <summary>割り付け側の都合で閉じる（中身が本体へ移って空になった窓）。</summary>
-    public void CloseFromLayout()
+    // ---- IUiHost ----------------------------------------------------------------
+
+    public Guid HostId => _host.Id;
+
+    public HostRole Role => HostRole.Floating;
+
+    public DockNode? DockRoot => _host.Root;
+
+    public Rect BoundsDip => new(Left, Top, Width, Height);
+
+    public bool IsActiveHost => IsActive;
+
+    public void CloseFromRoot()
     {
-        _fromLayout = true;
+        _closingFromRoot = true;
         Close();
     }
 
-    /// <summary>手で閉じたか。閉じた後に中のタブを始末すべきかの判断に使う。</summary>
-    public bool ClosedByUser => !_fromLayout;
+    public void FocusFromRoot() => Activate();
+
+    public bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal)
+        => WindowHitTest.TryHitLeaf(this, screen, out leafId, out leafSize, out leafLocal);
+
+    public bool ContainsScreenPoint(Point screen) => WindowHitTest.Contains(this, screen);
+
+    // ---- 描画パラメータの適用 -------------------------------------------------------
 
     private void ApplyBounds()
     {
@@ -70,25 +90,20 @@ public partial class FloatingWindow : Window
             SystemParameters.VirtualScreenTop + SystemParameters.VirtualScreenHeight - MinVisible);
     }
 
-    // 最大化・最小化中の値は画面いっぱい（あるいは無意味な位置）なので、通常時だけ覚える。
-    private void Remember()
+    // ---- 入力 → Intent -----------------------------------------------------------
+
+    // 最大化・最小化中の値は画面いっぱい（あるいは無意味な位置）なので、通常時だけ知らせる。
+    private void RaiseBounds()
     {
         if (WindowState != WindowState.Normal) return;
-        _host.Bounds = new Rect(Left, Top, Width, Height);
+        this.RaiseIntent(IntentKind.WindowBoundsChanged, new Rect(Left, Top, Width, Height));
     }
 
-    // 本体の Esc と同じ順で畳む。確認ダイアログは本体の窓にしか無いので、ここでは扱わない。
+    // Esc の行き先は根が決める（この窓ではその窓に出ているタブを閉じる）。
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Escape) return;
-        if (DropDown.CloseCurrent()) { e.Handled = true; return; }
-        if (MenuButton.CloseCurrent()) { e.Handled = true; return; }
-        if (AreaDrag.Cancel()) { e.Handled = true; return; }
-        if (OverlayDrag.Cancel()) { e.Handled = true; return; }
-        if (RowDrag.Cancel()) { e.Handled = true; return; }
-        // この窓に出ているタブだけを閉じる（据え置きのタブは閉じられないので飛ばす）。
-        if (_host.Leaves.FirstOrDefault(l => l.Selected is { IsPinned: false })?.Selected is not { } vm) return;
-        vm.CloseCommand.Execute(null);
+        this.RaiseIntent(IntentKind.CancelRequested);
         e.Handled = true;
     }
 
@@ -96,7 +111,7 @@ public partial class FloatingWindow : Window
     private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (Keyboard.Modifiers != ModifierKeys.Control || e.Delta == 0) return;
-        _main.ZoomFont(Math.Sign(e.Delta));
+        this.RaiseIntent(IntentKind.ZoomFontRequested, Math.Sign(e.Delta));
         e.Handled = true;
     }
 
@@ -116,7 +131,7 @@ public partial class FloatingWindow : Window
 
     private void MaximizeRestore_Click(object sender, RoutedEventArgs e) => ToggleMaximizeRestore();
 
-    private void Close_Click(object sender, RoutedEventArgs e) => Close();
+    private void Close_Click(object sender, RoutedEventArgs e) => this.RaiseIntent(IntentKind.WindowCloseRequested);
 
     private void ToggleMaximizeRestore()
     {
@@ -127,7 +142,18 @@ public partial class FloatingWindow : Window
     {
         var maximized = WindowState == WindowState.Maximized;
         // MDL2 Assets: ChromeMaximize (E922) / ChromeRestore (E923)
-        MaximizeRestoreButton.Content = maximized ? "\uE923" : "\uE922";
+        MaximizeRestoreButton.Content = maximized ? "" : "";
         MaximizeRestoreButton.ToolTip = maximized ? Strings.Common_Restore : Strings.Common_Maximize;
+    }
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        if (!_closingFromRoot)
+        {
+            e.Cancel = true;
+            this.RaiseIntent(IntentKind.WindowCloseRequested);
+            return;
+        }
+        base.OnClosing(e);
     }
 }

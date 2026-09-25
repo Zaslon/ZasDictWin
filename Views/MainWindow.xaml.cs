@@ -4,84 +4,92 @@ using System.Windows;
 using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media.Animation;
+using ZasDictWin.Mediator;
 using ZasDictWin.Resources;
-using ZasDictWin.Services;
+using ZasDictWin.Root;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
 
-public partial class MainWindow : Window
+/// <summary>
+/// 本体の窓。Root の子（IUiHost）として登録され、入力はすべて Intent にして根へ上げる。
+/// ここに残るのは窓の枠の操作（移動・最大化・端をつまんだリサイズの比率固定）と、
+/// WPF の API でしか行えない描画（ステータスを光らせる）だけ。
+/// </summary>
+public partial class MainWindow : Window, IUiHost
 {
-    private readonly MainViewModel _vm = new();
-    private StreamWindow? _stream;
-    private CountWindow? _count;
-    private SettingsWindow? _settings;
-    private bool _forceClose;
+    private readonly MainViewModel _vm;
 
-    // 窓の外へ持ち出したタブ。中身のある浮き枠ひとつにつき 1 枚の窓を開ける。
-    // 割り付け（DockLayout）が正で、ここはその通知を受けて窓を合わせるだけ。
-    private readonly Dictionary<DockFloat, FloatingWindow> _floats = new();
-    private bool _syncingFloats;
-    private bool _shuttingDown;
+    /// <summary>根の裁定で閉じるところか。利用者の閉じる操作はいったん止めて裁定に回す（未保存の確認があるため）。</summary>
+    private bool _closingFromRoot;
 
     // 縦横比固定モードの間だけ値を持つ（幅 / 高さ）。null なら WndProc は何もしない。
     // 比率は設定を適用した瞬間の幅・高さから決まり、以後は端をつまんだリサイズがこれを崩さない。
     private double? _aspectRatio;
 
-    public MainWindow()
+    public MainWindow(MainViewModel vm)
     {
         InitializeComponent();
-        DataContext = _vm;
-        // 選択や語数の変更は MainViewModel の PropertyChanged で配信用ウィンドウにも届く。
-        // 設定だけは AppSettings が変更通知を持たないので、明示的に張り直させる。
-        _vm.SettingsApplied += () => { _stream?.ApplySettings(); _count?.ApplySettings(); ApplyWindowSizeSettings(); };
-        _vm.SettingsRequested += ShowSettingsWindow;
-        _vm.PropertyChanged += Vm_PropertyChanged;
-        App.UiException += ShowException;
+        _vm = vm;
+        DataContext = vm;
         PreviewKeyDown += OnPreviewKeyDown;
+        KeyDown += OnShortcutKeyDown;
         PreviewMouseWheel += OnPreviewMouseWheel;
-
-        // バーが手狭なので、開く・新規辞書・保存・別名で保存は階層メニューにまとめてある。
-        // Command は ViewModel の RelayCommand をそのまま渡すだけなので、Binding は使わずここで詰める。
-        FileMenuButton.Items = new[]
+        StateChanged += (_, _) =>
         {
-            new MenuAction { Header = Strings.Menu_Open, ToolTip = "Ctrl+O", Command = _vm.OpenCommand },
-            new MenuAction { Header = Strings.Menu_NewDictionary, Command = _vm.NewDictionaryCommand },
-            new MenuAction { Header = Strings.Common_Save, ToolTip = "Ctrl+S", Command = _vm.SaveCommand, IsPrimary = true },
-            new MenuAction { Header = Strings.Menu_SaveAs, ToolTip = "Ctrl+Shift+S", Command = _vm.SaveAsCommand },
+            UpdateMaximizeRestoreIcon();
+            this.RaiseIntent(IntentKind.WindowStateChanged, WindowState);
         };
-
-        // 統計・凡例・更新履歴・方言変換・IPA→綴りは、常設のタブ枠を割かないよう独立ウィンドウで開く。
-        // ただし中身は他と同じタブなので、掴んで本体の枠へ運べばタブになる。
-        // すでに開いていれば作り直さず、そのタブを表に出すだけ（ボタンはグレーアウトさせない）。
-        ToolsMenuButton.Items = new[]
-        {
-            new MenuAction { Header = Strings.Dialect_Title, Command = _vm.ShowDialectToolCommand },
-            new MenuAction { Header = Strings.Ipa_Title, Command = _vm.ShowIpaToolCommand },
-            new MenuAction { Header = Strings.Stats_Title, Command = _vm.ShowStatsCommand },
-            new MenuAction { Header = Strings.Legend_Title, Command = _vm.ShowLegendCommand },
-            new MenuAction { Header = Strings.Changelog_Title, Command = _vm.ShowChangelogCommand },
-        };
-
-        // 配信用の独立ウィンドウ。項目名が開閉で変わるので、開く直前に組み直す。
-        WindowMenuButton.Opening += (_, _) => BuildWindowMenu();
-        BuildWindowMenu();
-
-        // 独立ウィンドウは割り付けが持つ浮き枠と 1 対 1。中身が入れば開き、空になれば閉じる。
-        _vm.Layout.FloatsChanged += SyncFloatWindows;
-        _vm.OverlayFocused += FocusOverlay;
-        // 保存した割り付けに独立ウィンドウが含まれていれば、本体が出た後に開く
-        // （Owner を持たせるため、本体に HWND ができてからでないと開けない）。
-        Loaded += (_, _) => SyncFloatWindows();
-
-        // 標準の枠が無いので OS は大きさを覚えてくれない。前回閉じたときの大きさをここで復元する。
-        Width = _vm.Settings.WindowWidth;
-        Height = _vm.Settings.WindowHeight;
-        if (_vm.Settings.WindowMaximized) WindowState = WindowState.Maximized;
-        if (_vm.Settings.WindowAspectLocked) _aspectRatio = _vm.Settings.WindowWidth / _vm.Settings.WindowHeight;
-        StateChanged += (_, _) => UpdateMaximizeRestoreIcon();
+        // 独立ウィンドウは本体を Owner に持つので、本体に HWND ができてから開かせる。
+        Loaded += (_, _) => this.RaiseIntent(IntentKind.WindowActivated);
         UpdateMaximizeRestoreIcon();
+
+        // 一覧（DropDown / MenuButton）は窓の最上段の AdornerDecorator に描かれ、中身の木（Root）の外にある。
+        // そこから上がる Intent も拾えるよう、受け口は窓そのものにする。
+        AppRoot.Current.Attach(this, this);
+        Closed += (_, _) => AppRoot.Current.Detach(this);
     }
+
+    // ---- IUiHost ----------------------------------------------------------------
+
+    public Guid HostId { get; } = Guid.NewGuid();
+
+    public HostRole Role => HostRole.Shell;
+
+    public DockNode? DockRoot => _vm.Layout.Root;
+
+    public Rect BoundsDip => new(Left, Top, Width, Height);
+
+    public bool IsActiveHost => IsActive;
+
+    public void CloseFromRoot()
+    {
+        _closingFromRoot = true;
+        Close();
+    }
+
+    public void FocusFromRoot() => Activate();
+
+    public bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal)
+        => WindowHitTest.TryHitLeaf(this, screen, out leafId, out leafSize, out leafLocal);
+
+    public bool ContainsScreenPoint(Point screen) => WindowHitTest.Contains(this, screen);
+
+    // ---- 根から受ける描画の指示 ------------------------------------------------------
+
+    /// <summary>窓の大きさと比率固定。幅・高さが NaN なら大きさは変えない（最大化中に上書きすると
+    /// 元に戻したときの大きさが狂うため、裁定側が NaN で渡してくる）。</summary>
+    public void ApplyShellSize(double width, double height, double? aspectRatio, bool maximize)
+    {
+        if (!double.IsNaN(width)) Width = width;
+        if (!double.IsNaN(height)) Height = height;
+        _aspectRatio = aspectRatio;
+        if (maximize) WindowState = WindowState.Maximized;
+    }
+
+    // Status は差分の無い書き換えでは光らせない（裁定側が変わったときだけ指示する）。
+    // 連続で変わっても Storyboard.Begin は前回分を上書きするだけで済む。
+    public void FlashStatus() => ((Storyboard)Resources["StatusFlashStoryboard"]).Begin(StatusFlashBorder);
 
     // WindowChrome 導入前から ResizeBorderThickness だけ残して端をつまむリサイズを効かせている
     // （MainWindow.xaml 参照）ため、比率固定も WM_SIZING を横取りする形でしか実現できない
@@ -142,65 +150,40 @@ public partial class MainWindow : Window
         return IntPtr.Zero;
     }
 
-    /// <summary>
-    /// 設定を適用した直後に呼ぶ。最大化中は Width/Height が画面いっぱいの値になっており
-    /// ここで上書きすると復元後の大きさが狂うため、通常時だけ実際の大きさへ反映する。
-    /// 固定する比率は「その時点の設定値」から決め直す（既存の窓の実寸ではなく、
-    /// 設定欄に入っている幅・高さを比率の基準にする）。
-    /// </summary>
-    private void ApplyWindowSizeSettings()
-    {
-        var s = _vm.Settings;
-        if (WindowState == WindowState.Normal)
-        {
-            Width = s.WindowWidth;
-            Height = s.WindowHeight;
-        }
-        _aspectRatio = s.WindowAspectLocked ? s.WindowWidth / s.WindowHeight : null;
-    }
+    // ---- 入力 → Intent -----------------------------------------------------------
 
-    // UI スレッドで漏れた例外はアプリを落とさず、OBS に映るオーバーレイで知らせます。
-    // MessageBox は別ウィンドウになるため使わない方針です。
-    private void ShowException(Exception ex)
-    {
-        try
-        {
-            var vm = new ChoiceViewModel(
-                Strings.Error_Title,
-                string.Format(Strings.Error_Message, ex.GetType().Name, ex.Message, ErrorLog.FilePath));
-            vm.AddCancel(Strings.Common_Close);
-            _vm.ShowOverlay(vm);
-        }
-        catch (Exception overlayEx)
-        {
-            // オーバーレイを描くこと自体が失敗する状態ではこれ以上出さず、記録だけ残します。
-            ErrorLog.Write("ErrorOverlay", overlayEx);
-        }
-    }
-
-    // Status は差分の無い書き換え（同じ文言の再設定）でも起きうるが、ここでは変化に気づかせることが
-    // 目的なので毎回律儀に光らせる。連続で変わっても Storyboard.Begin は前回分を上書きするだけで済む。
-    private void Vm_PropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName != nameof(MainViewModel.Status)) return;
-        ((Storyboard)Resources["StatusFlashStoryboard"]).Begin(StatusFlashBorder);
-    }
-
+    // Esc の行き先（一覧 → ドラッグ → 確認ダイアログ → 最後に触ったタブ）は根が決める。
+    // ここは Preview（＝ウィンドウが最初に見る段）なので、Esc が子の画面に食われる前に拾える。
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Escape) return;
-        // プルダウンを開いている間は、Esc をオーバーレイごと閉じる操作に使わせない。
-        // ここは Preview（＝ウィンドウが最初に見る段）なので、先に一覧だけを畳む。
-        if (DropDown.CloseCurrent()) { e.Handled = true; return; }
-        if (MenuButton.CloseCurrent()) { e.Handled = true; return; }
-        // 枠を割り直している最中と、タブの運び先を選んでいる最中は、まずその操作だけをやめる。
-        if (AreaDrag.Cancel()) { e.Handled = true; return; }
-        if (OverlayDrag.Cancel()) { e.Handled = true; return; }
-        if (RowDrag.Cancel()) { e.Handled = true; return; }
-        // 確認は他の画面の上に重なるので、上の層から順に閉じる。
-        if (_vm.ModalOverlay is not null) { _vm.CloseModal(); e.Handled = true; return; }
-        // 複数開いていても閉じる相手は 1 枚。最後に触ったタブから畳む。
-        if (_vm.ActiveOverlay is { } active) { _vm.CloseOverlay(active); e.Handled = true; }
+        this.RaiseIntent(IntentKind.CancelRequested);
+        e.Handled = true;
+    }
+
+    // ショートカットは子の画面が使わなかったキーだけを拾う（Preview ではなく KeyDown）。
+    // 単語エディタの Ctrl+Enter（保存）や、検索欄・一覧の素の Enter が先に処理される。
+    private void OnShortcutKeyDown(object sender, KeyEventArgs e)
+    {
+        var key = e.Key == Key.System ? e.SystemKey : e.Key;
+        IntentKind? kind = Keyboard.Modifiers switch
+        {
+            ModifierKeys.Control => key switch
+            {
+                Key.O => IntentKind.OpenDictionaryRequested,
+                Key.S => IntentKind.SaveRequested,
+                // どちらも検索欄の文字列を見出し語の初期値にして単語エディタを開く
+                Key.Enter or Key.N => IntentKind.NewWordRequested,
+                Key.E => IntentKind.EditWordRequested,
+                Key.D => IntentKind.DuplicateWordRequested,
+                _ => null,
+            },
+            ModifierKeys.Control | ModifierKeys.Shift when key == Key.S => IntentKind.SaveAsRequested,
+            _ => null,
+        };
+        if (kind is not { } intent) return;
+        this.RaiseIntent(intent);
+        e.Handled = true;
     }
 
     // Ctrl＋ホイールで文字サイズを増減する。Preview（＝ウィンドウが最初に見る段）で拾って畳むので、
@@ -210,7 +193,7 @@ public partial class MainWindow : Window
     {
         if (Keyboard.Modifiers != ModifierKeys.Control || e.Delta == 0) return;
         // 目盛りの大きさ（Delta）は機種差があるので、向きだけを見て 1 段ずつ動かす。
-        _vm.ZoomFont(Math.Sign(e.Delta));
+        this.RaiseIntent(IntentKind.ZoomFontRequested, Math.Sign(e.Delta));
         e.Handled = true;
     }
 
@@ -232,7 +215,7 @@ public partial class MainWindow : Window
 
     private void MaximizeRestore_Click(object sender, RoutedEventArgs e) => ToggleMaximizeRestore();
 
-    private void Close_Click(object sender, RoutedEventArgs e) => Close();
+    private void Close_Click(object sender, RoutedEventArgs e) => RequestClose();
 
     private void ToggleMaximizeRestore()
     {
@@ -243,190 +226,29 @@ public partial class MainWindow : Window
     {
         var maximized = WindowState == WindowState.Maximized;
         // MDL2 Assets: ChromeMaximize (E922) / ChromeRestore (E923)
-        MaximizeRestoreButton.Content = maximized ? "\uE923" : "\uE922";
+        MaximizeRestoreButton.Content = maximized ? "" : "";
         MaximizeRestoreButton.ToolTip = maximized ? Strings.Common_Restore : Strings.Common_Maximize;
-    }
-
-    // ---- 独立ウィンドウ（窓の外へ持ち出したタブ）----------------------------------------
-
-    /// <summary>
-    /// 割り付けの浮き枠に窓を合わせる。中身が入った浮き枠には窓を開け、空になった浮き枠と
-    /// 消えた浮き枠の窓は閉じる。窓を閉じると中のタブが動いてここへ戻ってくるので、入れ子は 1 度目に任せる。
-    /// </summary>
-    private void SyncFloatWindows()
-    {
-        if (_syncingFloats || _shuttingDown || !IsLoaded) return;
-        _syncingFloats = true;
-        try
-        {
-            foreach (var host in _vm.Layout.Floats.ToList())
-            {
-                var open = _floats.TryGetValue(host, out var window);
-                if (host.HasItems && !open) Open(host);
-                else if (!host.HasItems && open) Close(host, window!);
-            }
-            // 割り付けから外れた浮き枠（窓ごと畳んだ枠）の窓も閉じる。
-            foreach (var (host, window) in _floats.Where(p => !_vm.Layout.Floats.Contains(p.Key)).ToList())
-                Close(host, window);
-        }
-        finally
-        {
-            _syncingFloats = false;
-        }
-
-        void Open(DockFloat host)
-        {
-            // Owner を持たせて本体より手前に置く。タブの運び先の当たり判定もこの前後関係を前提にしている。
-            var window = new FloatingWindow(_vm, host) { Owner = this };
-            _floats[host] = window;
-            window.Closing += (_, _) => FloatWindowClosing(host);
-            window.Show();
-        }
-
-        void Close(DockFloat host, FloatingWindow window)
-        {
-            // 先に台帳から外す。窓を閉じた通知でここへ戻ってきても、もう閉じにこないようにする。
-            _floats.Remove(host);
-            window.CloseFromLayout();
-        }
-    }
-
-    /// <summary>
-    /// 独立ウィンドウを手で閉じたとき。中のタブは閉じ、閉じられない据え置きのタブ（検索・単語詳細）は
-    /// 本体へ引き取る。割り付け側から閉じた窓は始末が済んでいるので何もしない。
-    /// </summary>
-    private void FloatWindowClosing(DockFloat host)
-    {
-        if (_shuttingDown || !_floats.Remove(host)) return;
-        // タブを 1 枚閉じるごとに割り付けの通知が飛ぶが、まだ中身の残っている枠を見て
-        // 窓を開け直されては困る。始末が終わってから 1 度だけ合わせる。
-        _syncingFloats = true;
-        try
-        {
-            foreach (var vm in host.Items.ToList())
-            {
-                if (!vm.IsPinned) _vm.CloseOverlay(vm);
-            }
-            // 残った据え置きのタブは Discard が本体へ移す。位置の記憶ごと浮き枠を落とす。
-            _vm.Layout.Discard(host);
-        }
-        finally
-        {
-            _syncingFloats = false;
-        }
-        SyncFloatWindows();
-    }
-
-    /// <summary>そのタブがいる窓を前に出す。ツールメニューで開き直したときの行き先。</summary>
-    private void FocusOverlay(OverlayViewModel vm)
-    {
-        if (_vm.Layout.FloatOf(vm) is { } host && _floats.TryGetValue(host, out var window)) window.Activate();
-        else Activate();
-    }
-
-    // ---- 設定ポップアップ（独立ウィンドウ）------------------------------------------------
-
-    /// <summary>
-    /// 設定は他のオーバーレイと違い中央モーダルの見た目のまま独立ウィンドウで開く。ShowSettingsCommand
-    /// の CanExecute は NoModal だけなので、二重に開かないための判定はここで持つ。
-    /// </summary>
-    private void ShowSettingsWindow(SettingsViewModel vm)
-    {
-        if (_settings is not null) { _settings.Activate(); return; }
-        _settings = new SettingsWindow(_vm, vm) { Owner = this };
-        _settings.Closed += (_, _) => _settings = null;
-        // Owner（本体）だけを操作不能にする。単語ウィンドウ・単語数ウィンドウは別 HWND なので影響されない。
-        _settings.ShowDialog();
-    }
-
-    // ---- 配信用の独立ウィンドウ（単語・単語数）------------------------------------------
-
-    /// <summary>開いているものは「閉じる」に変えて出す。開くたびに組み直すのは、
-    /// MenuAction を作った時点の状態で固まってしまわないようにするため。</summary>
-    private void BuildWindowMenu()
-    {
-        WindowMenuButton.Items = new[]
-        {
-            new MenuAction
-            {
-                Header = _stream is null ? Strings.Window_StreamMenuOpen : Strings.Window_StreamMenuClose,
-                ToolTip = Strings.Window_StreamMenuTooltip,
-                Command = new RelayCommand(ToggleStreamWindow),
-            },
-            new MenuAction
-            {
-                Header = _count is null ? Strings.Window_CountMenuOpen : Strings.Window_CountMenuClose,
-                ToolTip = Strings.Window_CountMenuTooltip,
-                Command = new RelayCommand(ToggleCountWindow),
-            },
-        };
-    }
-
-    private void ToggleStreamWindow()
-    {
-        if (_stream is not null)
-        {
-            _stream.Close();
-            return;
-        }
-
-        // 独立した HWND にするため Owner は設定しない。OBS 側で個別のウィンドウ
-        // キャプチャソースとして選べる必要がある。
-        _stream = new StreamWindow(_vm);
-        _stream.Closed += (_, _) => _stream = null;
-        _stream.Show();
-    }
-
-    private void ToggleCountWindow()
-    {
-        if (_count is not null)
-        {
-            _count.Close();
-            return;
-        }
-
-        _count = new CountWindow(_vm);
-        _count.Closed += (_, _) => _count = null;
-        _count.Show();
     }
 
     protected override void OnClosing(CancelEventArgs e)
     {
-        if (!_forceClose && !_vm.ConfirmCloseIfDirty(() => { _forceClose = true; Close(); }))
+        if (!_closingFromRoot)
         {
+            // 閉じてよいか（未保存の確認）と、閉じる前の保存は根が決める。閉じるときは CloseFromRoot で戻ってくる。
             e.Cancel = true;
+            RequestClose();
             return;
         }
-        // ここから先で閉じる独立ウィンドウは「畳んだ」のではなく終了なので、
-        // 中のタブを本体へ移し替えない（せっかくの割り付けが保存直前に崩れてしまう）。
-        _shuttingDown = true;
-        SaveWindowBounds();
-        _stream?.Close();
-        _count?.Close();
-        _settings?.Close();
         base.OnClosing(e);
     }
 
-    // 最大化中は Width/Height が画面いっぱいの値になるため、次に元へ戻したときの大きさが
-    // 分かるよう RestoreBounds（最小化・最大化する前の通常時の矩形）を使う。最小化したまま
-    // 閉じた場合も同様（RestoreBounds はその前の通常時の矩形を保ったまま）。
-    private void SaveWindowBounds()
+    /// <summary>閉じたいという合図を上げる。窓の大きさは最大化・最小化中の値ではなく
+    /// 通常時の矩形（RestoreBounds）を渡す（最小化したまま閉じた場合も、その前の通常時の矩形が残っている）。</summary>
+    private void RequestClose()
     {
-        var settings = _vm.Settings;
-        if (WindowState == WindowState.Normal)
-        {
-            settings.WindowWidth = Width;
-            settings.WindowHeight = Height;
-            settings.WindowMaximized = false;
-        }
-        else
-        {
-            settings.WindowWidth = RestoreBounds.Width;
-            settings.WindowHeight = RestoreBounds.Height;
-            settings.WindowMaximized = WindowState == WindowState.Maximized;
-        }
-        settings.Save();
-        // 独立ウィンドウの位置と大きさは動かすたび浮き枠に控えてあるだけなので、ここで書き出す。
-        _vm.Layout.Save();
+        var bounds = WindowState == WindowState.Normal
+            ? new WindowBounds(Width, Height, false)
+            : new WindowBounds(RestoreBounds.Width, RestoreBounds.Height, WindowState == WindowState.Maximized);
+        this.RaiseIntent(IntentKind.WindowCloseRequested, bounds);
     }
 }

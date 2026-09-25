@@ -3,13 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:v="clr-namespace:ZasDictWin.Views"
+             xmlns:r="clr-namespace:ZasDictWin.Root"
              xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <DockPanel Margin="24,20">
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
-                <Button v:LocalizedText.Content="{x:Static res:Strings.Changelog_RelinkButton}" Command="{Binding RelinkChangelogCommand}" />
-                <Button v:LocalizedText.Content="{x:Static res:Strings.Changelog_ExportButton}" Command="{Binding ExportChangelogCommand}" Margin="0" />
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Changelog_RelinkButton}" r:IntentTrigger.OnClick="ChangelogRelinkRequested" />
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Changelog_ExportButton}" r:IntentTrigger.OnClick="ChangelogExportRequested" Margin="0" />
             </StackPanel>
             <!-- パスは 1 行。Label スタイルが Wrap を宣言しているので明示的に打ち消す -->
             <TextBlock Text="{Binding ChangelogPath}" Style="{StaticResource Label}" Margin="0"

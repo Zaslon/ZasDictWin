@@ -3,8 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:v="clr-namespace:ZasDictWin.Views"
-             xmlns:ov="clr-namespace:ZasDictWin.Views.Overlays"
-             StartupUri="Views/MainWindow.xaml">
+             xmlns:ov="clr-namespace:ZasDictWin.Views.Overlays">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

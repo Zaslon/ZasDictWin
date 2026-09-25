@@ -1,29 +1,63 @@
-﻿using System.Windows;
+﻿using System.ComponentModel;
+using System.Windows;
+using ZasDictWin.Presenters;
+using ZasDictWin.Root;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
 
-public partial class CountWindow : Window
+/// <summary>
+/// 単語数ウィンドウ。単語ウィンドウと同じく Owner を持たない独立した HWND。
+/// 総語数は検索の絞り込みに連動しない（配信で見せるのは辞書の規模）。
+/// </summary>
+public partial class CountWindow : Window, IUiHost
 {
-    private readonly MainViewModel _vm;
+    private bool _closingFromRoot;
 
-    public CountWindow(MainViewModel vm)
+    public CountWindow(StreamViewState state)
     {
         InitializeComponent();
-        _vm = vm;
-        DataContext = vm;
-        ApplySettings();
+        DataContext = state;
+        AppRoot.Current.Attach(this, this);
+        Closed += (_, _) => AppRoot.Current.Detach(this);
     }
 
-    /// <summary>
-    /// AppSettings は変更通知を出さないため、設定適用時は DataContext を張り直して
-    /// 背景色のバインディングを読み直す（StreamWindow と同じ理由）。
-    /// </summary>
-    public void ApplySettings()
+    public Guid HostId { get; } = Guid.NewGuid();
+
+    public HostRole Role => HostRole.Count;
+
+    public DockNode? DockRoot => null;
+
+    public Rect BoundsDip => new(Left, Top, Width, Height);
+
+    public bool IsActiveHost => IsActive;
+
+    public void CloseFromRoot()
     {
-        Topmost = _vm.Settings.StreamWindowTopmost;
-        var dc = DataContext;
-        DataContext = null;
-        DataContext = dc;
+        _closingFromRoot = true;
+        Close();
+    }
+
+    public void FocusFromRoot() => Activate();
+
+    public bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal)
+    {
+        leafId = -1;
+        leafSize = default;
+        leafLocal = default;
+        return false;
+    }
+
+    public bool ContainsScreenPoint(Point screen) => WindowHitTest.Contains(this, screen);
+
+    protected override void OnClosing(CancelEventArgs e)
+    {
+        if (!_closingFromRoot)
+        {
+            e.Cancel = true;
+            this.RaiseIntent(IntentKind.WindowCloseRequested);
+            return;
+        }
+        base.OnClosing(e);
     }
 }

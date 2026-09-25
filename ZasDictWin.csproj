@@ -48,6 +48,9 @@
          明示的に制御したいときは -p:BumpVersion=true / -p:BumpVersion=false を渡す。 -->
     <BumpVersion Condition="'$(BumpVersion)' == '' And ('$(CLAUDECODE)' != '' Or '$(AI_AGENT)' != '' Or '$(CI)' != '')">false</BumpVersion>
     <BumpVersion Condition="'$(BumpVersion)' == ''">true</BumpVersion>
+
+    <!-- テストプロジェクトはこのフォルダの下にあるので、既定の glob で本体に取り込まれないよう外す。 -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);Tests\**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>

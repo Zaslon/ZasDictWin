@@ -4,6 +4,7 @@
              xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:t="clr-namespace:ZasDictWin.Views"
+             xmlns:r="clr-namespace:ZasDictWin.Root"
              xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <!-- 枠線と面は枠（DockGroupPanel）が描くので、ここは中身だけを持つ -->
@@ -17,11 +18,11 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Button Content="←" Style="{StaticResource IconButton}" Command="{Binding BackCommand}"
+                    <Button Content="←" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserBackRequested"
                             ToolTip="{x:Static res:Strings.Browser_Back}" IsEnabled="{Binding CanGoBack}" />
-                    <Button Content="→" Style="{StaticResource IconButton}" Command="{Binding ForwardCommand}"
+                    <Button Content="→" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserForwardRequested"
                             ToolTip="{x:Static res:Strings.Browser_Forward}" IsEnabled="{Binding CanGoForward}" />
-                    <Button Content="⟳" Style="{StaticResource IconButton}" Command="{Binding ReloadCommand}"
+                    <Button Content="⟳" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserReloadRequested"
                             ToolTip="{x:Static res:Strings.Browser_Reload}" Margin="0" />
                 </StackPanel>
                 <!-- アドレス欄。枠そのものは TextBox ではなく Border で描き、フォーカス中だけ
@@ -48,11 +49,8 @@
                              Padding="22,0" VerticalContentAlignment="Center"
                              FontFamily="{x:Static res:Strings.EnFont}"
                              t:Placeholder.Text="{x:Static res:Strings.Browser_AddressPlaceholder}"
-                             Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}">
-                        <TextBox.InputBindings>
-                            <KeyBinding Key="Enter" Command="{Binding NavigateCommand}" />
-                        </TextBox.InputBindings>
-                    </TextBox>
+                             Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}"
+                             KeyDown="AddressBox_KeyDown" />
                 </Border>
             </Grid>
 

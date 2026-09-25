@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="clr-namespace:ZasDictWin.Models"
              xmlns:v="clr-namespace:ZasDictWin.Views"
+             xmlns:r="clr-namespace:ZasDictWin.Root"
              xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
              xmlns:res="clr-namespace:ZasDictWin.Resources">
 
@@ -13,7 +14,7 @@
 >
                 <DockPanel>
                     <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Close}" Style="{StaticResource GhostButton}"
-                            Command="{Binding CloseCommand}" Margin="0" />
+                            r:IntentTrigger.OnClick="TabCloseRequested" r:IntentTrigger.Payload="{Binding}" Margin="0" />
                     <TextBlock v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
                 </DockPanel>
@@ -23,7 +24,7 @@
             <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
                 <DockPanel>
                     <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Examples_AddButton}" Style="{StaticResource PrimaryButton}"
-                            Command="{Binding AddCommand}" Margin="0" />
+                            r:IntentTrigger.OnClick="NewExampleRequested" Margin="0" />
                     <TextBlock v:LocalizedText.Text="{Binding CountLabel}" Style="{StaticResource Label}" Margin="0"
                                VerticalAlignment="Center" />
                 </DockPanel>
@@ -47,8 +48,8 @@
                                 <!-- 訳とタグは辞書データなので、窓の UI フォントは継がせない（文は Heksa）。 -->
                                 <Button HorizontalContentAlignment="Left" Margin="0,0,0,6" Padding="12,8"
                                         FontFamily="{x:Static res:Strings.ContentFont}"
-                                        Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                        CommandParameter="{Binding}">
+                                        r:IntentTrigger.OnClick="EditExampleRequested"
+                                        r:IntentTrigger.Payload="{Binding}">
                                     <StackPanel>
                                         <!-- 1 行目が文、2 行目が訳。ZasDict の 2 行 1 組の並びに合わせる -->
                                         <TextBlock Text="{Binding SentencePreview}" TextWrapping="NoWrap"

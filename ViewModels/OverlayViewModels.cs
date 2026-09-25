@@ -1,57 +1,33 @@
 using System.Collections.ObjectModel;
-using System.IO;
 using System.Text.Json.Nodes;
-using System.Windows.Input;
 using System.Windows.Media;
+using ZasDictWin.Mediator;
 using ZasDictWin.Models;
 using ZasDictWin.Resources;
 using ZasDictWin.Services;
 
 namespace ZasDictWin.ViewModels;
 
-public sealed class ChoiceItem
-{
-    public string Label { get; init; } = "";
-    public bool IsDanger { get; init; }
-    public ICommand Command { get; init; } = new RelayCommand(() => { });
-}
+/// <summary>確認ダイアログの選択肢 1 つ。押されたら <see cref="Index"/> を ConfirmChoiceSelected で返す。</summary>
+public sealed record ChoiceItem(string Label, bool IsDanger, int Index);
 
 /// <summary>確認ダイアログ用の汎用オーバーレイ。中央固定のカードで、答えるまで先へ進めない問いに使う。</summary>
 public sealed class ChoiceViewModel : OverlayViewModel
 {
+    public ChoiceViewModel(ConfirmSpec spec)
+    {
+        Title = spec.Title;
+        Message = spec.Message;
+        Choices = new ObservableCollection<ChoiceItem>(spec.Choices.Select((c, i) => new ChoiceItem(c.Label, c.IsDanger, i)));
+    }
+
     public string Message { get; }
-    public ObservableCollection<ChoiceItem> Choices { get; } = new();
 
-    // 確認は答えるまで先へ進めない問いなので、ドッキングさせず中央で受け止める。
-    // ドッキング中の編集画面の上にも出せるよう、専用の層に描く。
-    public override bool IsDockable => false;
-
-    public ChoiceViewModel(string title, string message)
-    {
-        Title = title;
-        Message = message;
-    }
-
-    public ChoiceViewModel Add(string label, Action action, bool isDanger = false)
-    {
-        Choices.Add(new ChoiceItem
-        {
-            Label = label,
-            IsDanger = isDanger,
-            Command = new RelayCommand(() => { RequestClose?.Invoke(); action(); })
-        });
-        return this;
-    }
-
-    public ChoiceViewModel AddCancel(string? label = null)
-    {
-        Choices.Add(new ChoiceItem { Label = label ?? Strings.Common_Cancel, Command = new RelayCommand(() => RequestClose?.Invoke()) });
-        return this;
-    }
+    public ObservableCollection<ChoiceItem> Choices { get; }
 }
 
 /// <summary>
-/// 中央に据え置く単語詳細のタブ。選択中の単語も操作も MainViewModel がそのまま持つので、
+/// 中央に据え置く単語詳細のタブ。選択中の単語や参照例文は MainViewModel がそのまま持つので、
 /// ここはタブ束に並ぶための器で、中身は <see cref="Main"/> を DataContext にして描く。
 /// </summary>
 public sealed class WordDetailViewModel : OverlayViewModel
@@ -63,8 +39,6 @@ public sealed class WordDetailViewModel : OverlayViewModel
     }
 
     public MainViewModel Main { get; }
-
-    public override bool IsPinned => true;
 }
 
 /// <summary>
@@ -80,8 +54,6 @@ public sealed class SearchViewModel : OverlayViewModel
     }
 
     public MainViewModel Main { get; }
-
-    public override bool IsPinned => true;
 }
 
 /// <summary>
@@ -109,19 +81,15 @@ public sealed class BrowserTabViewModel : OverlayViewModel
     public bool IsContentShown => Main.IsBrowserShown;
 }
 
-// タブ束にもオーバーレイ層にも入らない、独立ウィンドウ（SettingsWindow）専用の ViewModel。
-// OverlayViewModel からは Title / RequestClose / CloseCommand だけを流用する。
+/// <summary>
+/// 設定ウィンドウ（SettingsWindow）の入力欄の入れ物。タブ束にもオーバーレイ層にも入らない。
+/// 開いた時点の設定値を写し取っておき、［適用］で AppMediator がまとめて書き戻す。
+/// </summary>
 public sealed class SettingsViewModel : OverlayViewModel
 {
-    private readonly AppSettings _settings;
-    private readonly OtmDocument? _doc;
-    private readonly Action _apply;
-
-    public SettingsViewModel(AppSettings settings, OtmDocument? doc, Action apply)
+    public SettingsViewModel(AppSettings settings, OtmDocument? doc,
+                             IEnumerable<KeyValuePair<string, string>> relations, bool hasGitHubToken)
     {
-        _settings = settings;
-        _doc = doc;
-        _apply = apply;
         Title = Strings.Settings_Title;
 
         Language = settings.Language;
@@ -133,7 +101,7 @@ public sealed class SettingsViewModel : OverlayViewModel
         WindowAspectLocked = settings.WindowAspectLocked;
         HeksaEnabled = settings.HeksaEnabled;
         HeksaFontPath = settings.HeksaFontPath ?? "";
-        ReciprocalText = FormatReciprocal(Choices.Current.Relations);
+        ReciprocalText = FormatReciprocal(relations);
 
         _mode = settings.Mode;
         GitHubOwner = settings.GitHubOwner ?? "";
@@ -141,6 +109,7 @@ public sealed class SettingsViewModel : OverlayViewModel
         GitHubBranch = string.IsNullOrWhiteSpace(settings.GitHubBranch) ? "main" : settings.GitHubBranch;
         GitHubJsonPath = settings.GitHubJsonPath ?? "";
         GitHubChangelogPath = settings.GitHubChangelogPath ?? "";
+        _hasGitHubToken = hasGitHubToken;
 
         StreamBackground = settings.StreamBackground;
         StreamFontScale = settings.StreamFontScale;
@@ -151,6 +120,7 @@ public sealed class SettingsViewModel : OverlayViewModel
         BrowserVisible = settings.BrowserVisible;
         BrowserStartUrl = settings.BrowserStartUrl;
 
+        HasDictionary = doc is not null;
         if (doc is not null)
         {
             Punctuations = string.Concat(
@@ -158,17 +128,13 @@ public sealed class SettingsViewModel : OverlayViewModel
                     .Select(n => n?.GetValue<string>() ?? "") ?? Array.Empty<string>());
             IgnoredPattern = doc.ZpdicOnline["ignoredPattern"]?.GetValue<string>() ?? "";
         }
-
-        ApplyCommand = new RelayCommand(ApplyAll);
-        PickFontCommand = new RelayCommand(PickFont);
-        ResetReciprocalCommand = new RelayCommand(() => ReciprocalText = FormatReciprocal(RelationService.DefaultMap));
-        SetModeCommand = new RelayCommand(o => { if (o is string s) Mode = Enum.Parse<EditMode>(s); });
-        SaveGitHubTokenCommand = new RelayCommand(SaveGitHubToken, () => GitHubTokenInput.Trim().Length > 0);
-        DeleteGitHubTokenCommand = new RelayCommand(DeleteGitHubToken, () => HasGitHubToken);
     }
 
     private static string FormatReciprocal(IEnumerable<KeyValuePair<string, string>> map)
         => string.Join(Environment.NewLine, map.Select(kv => $"{kv.Key}={kv.Value}"));
+
+    /// <summary>［既定に戻す］。対照表の入力欄だけを既定値で書き直す（適用するまで保存はしない）。</summary>
+    internal void ResetReciprocal() => ReciprocalText = FormatReciprocal(RelationService.DefaultMap);
 
     private string _language = Languages.Default;
 
@@ -184,11 +150,6 @@ public sealed class SettingsViewModel : OverlayViewModel
     public string SortOrder { get; set; }
     public double FontScale { get; set; }
     public bool AutoSave { get; set; }
-
-    // MainWindow.MinWidth / MinHeight（XAML）と同じ下限。ここより小さい値は
-    // ウィンドウ側で結局弾かれるだけなので、適用前にクランプして食い違いを見せない。
-    private const double MinWindowWidth = 900;
-    private const double MinWindowHeight = 600;
 
     public double WindowWidth { get; set; }
     public double WindowHeight { get; set; }
@@ -232,7 +193,7 @@ public sealed class SettingsViewModel : OverlayViewModel
 
     public string Punctuations { get; set; } = "";
     public string IgnoredPattern { get; set; } = "";
-    public bool HasDictionary => _doc is not null;
+    public bool HasDictionary { get; }
 
     private string _streamBackground = "";
 
@@ -260,7 +221,7 @@ public sealed class SettingsViewModel : OverlayViewModel
     public EditMode Mode
     {
         get => _mode;
-        set
+        internal set
         {
             if (!Set(ref _mode, value)) return;
             Raise(nameof(IsGitHubMode));
@@ -277,149 +238,50 @@ public sealed class SettingsViewModel : OverlayViewModel
 
     private string _gitHubTokenInput = "";
     /// <summary>トークンの入力欄。保存すると空に戻す（画面にキーを残さない）。</summary>
-    public string GitHubTokenInput { get => _gitHubTokenInput; set => Set(ref _gitHubTokenInput, value); }
+    public string GitHubTokenInput
+    {
+        get => _gitHubTokenInput;
+        set { if (Set(ref _gitHubTokenInput, value)) Raise(nameof(CanSaveGitHubToken)); }
+    }
 
-    public bool HasGitHubToken => GitHubApi.LoadToken() is not null;
+    public bool CanSaveGitHubToken => GitHubTokenInput.Trim().Length > 0;
+
+    private bool _hasGitHubToken;
+    public bool HasGitHubToken
+    {
+        get => _hasGitHubToken;
+        internal set { if (Set(ref _hasGitHubToken, value)) Raise(nameof(GitHubTokenHint)); }
+    }
 
     public string GitHubTokenHint => HasGitHubToken
         ? string.Format(Strings.GitHub_TokenHintSaved, GitHubApi.TokenPath)
         : string.Format(Strings.GitHub_TokenHintMissing, GitHubApi.TokenPath);
 
     private string _gitHubTokenStatus = "";
-    public string GitHubTokenStatus { get => _gitHubTokenStatus; private set => Set(ref _gitHubTokenStatus, value); }
-
-    public ICommand ApplyCommand { get; }
-    public ICommand PickFontCommand { get; }
-    public ICommand ResetReciprocalCommand { get; }
-    public ICommand SetModeCommand { get; }
-    public ICommand SaveGitHubTokenCommand { get; }
-    public ICommand DeleteGitHubTokenCommand { get; }
-
-    private void SaveGitHubToken()
-    {
-        try
-        {
-            GitHubApi.SaveToken(GitHubTokenInput);
-            GitHubTokenInput = "";
-            GitHubTokenStatus = Strings.Settings_TokenSaved;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            GitHubTokenStatus = string.Format(Strings.Settings_TokenSaveFailed, ex.Message);
-        }
-        Raise(nameof(HasGitHubToken));
-        Raise(nameof(GitHubTokenHint));
-    }
-
-    private void DeleteGitHubToken()
-    {
-        GitHubApi.DeleteToken();
-        GitHubTokenStatus = Strings.Settings_TokenDeleted;
-        Raise(nameof(HasGitHubToken));
-        Raise(nameof(GitHubTokenHint));
-    }
-
-    private void PickFont()
-    {
-        var dlg = new Microsoft.Win32.OpenFileDialog
-        {
-            // OS が描くダイアログなので [en] は効かない。タグだけ落とす。
-            Title = EnTag.Strip(Strings.Settings_PickFontDialogTitle),
-            Filter = EnTag.Strip(Strings.Settings_FontFilter)
-        };
-        if (dlg.ShowDialog() == true) HeksaFontPath = dlg.FileName;
-    }
-
-    private void ApplyAll()
-    {
-        _settings.Language = Language;
-        _settings.SortOrder = string.IsNullOrWhiteSpace(SortOrder) ? TextProcessor.DefaultSortOrder : SortOrder;
-        _settings.FontScale = Math.Clamp(FontScale, 0.6, 3.0);
-        _settings.AutoSave = AutoSave;
-        _settings.WindowWidth = Math.Max(WindowWidth, MinWindowWidth);
-        _settings.WindowHeight = Math.Max(WindowHeight, MinWindowHeight);
-        _settings.WindowAspectLocked = WindowAspectLocked;
-        _settings.HeksaEnabled = HeksaEnabled;
-        _settings.HeksaFontPath = string.IsNullOrWhiteSpace(HeksaFontPath) ? null : HeksaFontPath;
-
-        _settings.Mode = Mode;
-        _settings.GitHubOwner = string.IsNullOrWhiteSpace(GitHubOwner) ? null : GitHubOwner.Trim();
-        _settings.GitHubRepo = string.IsNullOrWhiteSpace(GitHubRepo) ? null : GitHubRepo.Trim();
-        _settings.GitHubBranch = string.IsNullOrWhiteSpace(GitHubBranch) ? "main" : GitHubBranch.Trim();
-        _settings.GitHubJsonPath = string.IsNullOrWhiteSpace(GitHubJsonPath) ? null : GitHubJsonPath.Trim();
-        _settings.GitHubChangelogPath = string.IsNullOrWhiteSpace(GitHubChangelogPath) ? null : GitHubChangelogPath.Trim();
-
-        var map = new Dictionary<string, string>();
-        foreach (var line in ReciprocalText.Split('\n'))
-        {
-            var t = line.Trim();
-            if (t.Length == 0) continue;
-            var i = t.IndexOf('=');
-            if (i <= 0) continue;
-            map[t[..i].Trim()] = t[(i + 1)..].Trim();
-        }
-        // 対照表だけは choices.json 側の持ち物なので、設定の保存とは別に書き戻す。
-        if (map.Count > 0)
-        {
-            Choices.Current.Relations = map;
-            Choices.Current.Save();
-        }
-
-        _settings.StreamBackground = StreamBackground;
-        _settings.StreamFontScale = Math.Clamp(StreamFontScale, 1.0, 6.0);
-        _settings.StreamWindowTopmost = StreamTopmost;
-        _settings.StreamShowTranslations = StreamShowTranslations;
-        _settings.StreamShowContents = StreamShowContents;
-
-        _settings.BrowserVisible = BrowserVisible;
-        _settings.BrowserStartUrl = string.IsNullOrWhiteSpace(BrowserStartUrl) ? "" : BrowserStartUrl.Trim();
-
-        if (_doc is not null)
-        {
-            _doc.ZpdicOnline["punctuations"] = new JsonArray(
-                Punctuations.Select(c => (JsonNode)JsonValue.Create(c.ToString())!).ToArray());
-            _doc.ZpdicOnline["ignoredPattern"] = IgnoredPattern;
-        }
-
-        _settings.Save();
-        _apply();
-        RequestClose?.Invoke();
-    }
+    public string GitHubTokenStatus { get => _gitHubTokenStatus; internal set => Set(ref _gitHubTokenStatus, value); }
 }
 
 /// <summary>
 /// GitHubへコミットする前の確認。コミットメッセージは保留中の更新履歴から自動生成した既定値を
-/// 出すが、送信直前まで自由に書き換えられる。中央のモーダルとして出すため <see cref="IsDockable"/> は偽。
+/// 出すが、送信直前まで自由に書き換えられる。中央のモーダルとして出す。
 /// </summary>
 public sealed class CommitViewModel : OverlayViewModel
 {
-    private readonly Action<string> _commit;
     private string _message;
 
-    public override bool IsDockable => false;
-
-    public CommitViewModel(string summary, string defaultMessage, Action<string> commit)
+    public CommitViewModel(string summary, string defaultMessage)
     {
         Title = Strings.GitHub_CommitDialogTitle;
         Summary = summary;
+        DefaultMessage = defaultMessage;
         _message = defaultMessage;
-        _commit = commit;
-
-        CommitCommand = new RelayCommand(() =>
-        {
-            var msg = Message.Trim();
-            RequestClose?.Invoke();
-            _commit(msg.Length == 0 ? defaultMessage : msg);
-        });
-        CancelCommand = new RelayCommand(() => RequestClose?.Invoke());
     }
 
     /// <summary>今回コミットに含める更新の一覧（保留中の変更が無ければその旨の案内）。</summary>
     public string Summary { get; }
 
+    /// <summary>メッセージ欄を空にして送ったときに代わりに使う文面。</summary>
+    public string DefaultMessage { get; }
+
     public string Message { get => _message; set => Set(ref _message, value); }
-
-    public ICommand CommitCommand { get; }
-    public ICommand CancelCommand { get; }
 }
-

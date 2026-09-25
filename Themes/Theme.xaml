@@ -2,6 +2,7 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:v="clr-namespace:ZasDictWin.Views"
                     xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+                    xmlns:med="clr-namespace:ZasDictWin.Mediator"
                     xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <v:BoolToVisibilityConverter x:Key="BoolVis" />
@@ -1143,7 +1144,7 @@
     </Style>
 
     <!-- 階層メニューのボタン（v:MenuButton）。見た目は隣に並ぶ ToolbarButton に合わせ、
-         末尾に開閉の三角だけ足す。中身（v:MenuAction の列）は DropDownPanel と同じ器で
+         末尾に開閉の三角だけ足す。中身（MenuActionSpec の列）は DropDownPanel と同じ器で
          AdornerLayer に描く。 -->
     <Style TargetType="{x:Type v:MenuButton}">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -1248,9 +1249,8 @@
 
     <!-- 項目 1 つぶん。保存など IsPrimary の項目だけ、文字色と太さで強調する
          （並びの中で見失わないように。面で塗ると 1 行だけ囲みが復活して浮く）。 -->
-    <DataTemplate x:Key="MenuActionTemplate" DataType="{x:Type v:MenuAction}">
-        <Button v:LocalizedText.Content="{Binding Header}" ToolTip="{Binding ToolTip}" Command="{Binding Command}"
-                CommandParameter="{Binding CommandParameter}"
+    <DataTemplate x:Key="MenuActionTemplate" DataType="{x:Type med:MenuActionSpec}">
+        <Button v:LocalizedText.Content="{Binding Header}" ToolTip="{Binding ToolTip}" IsEnabled="{Binding IsEnabled}"
                 Visibility="{Binding IsVisible, Converter={StaticResource BoolVis}}">
             <Button.Style>
                 <Style TargetType="Button" BasedOn="{StaticResource MenuItemButton}">

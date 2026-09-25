@@ -1,6 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows;
-using System.Windows.Input;
+using System.Windows.Documents;
 using ZasDictWin.Models;
 using ZasDictWin.Resources;
 using ZasDictWin.Services;
@@ -25,8 +25,6 @@ public sealed class DialectToolViewModel : OverlayViewModel
         _input = initialInput ?? "";
         Convert();
     }
-
-    public override bool PrefersFloating => true;
 
     public override Size FloatSize => new(560, 560);
 
@@ -71,8 +69,6 @@ public sealed class IpaToolViewModel : OverlayViewModel
 
     public IpaToolViewModel() => Title = Strings.Ipa_Title;
 
-    public override bool PrefersFloating => true;
-
     public override Size FloatSize => new(480, 360);
 
     public string IpaInput
@@ -113,8 +109,6 @@ public sealed class StatsViewModel : OverlayViewModel
             .ToList();
     }
 
-    public override bool PrefersFloating => true;
-
     public override Size FloatSize => new(560, 560);
 
     public int WordCount { get; }
@@ -129,18 +123,24 @@ public sealed class StatsViewModel : OverlayViewModel
 
 public sealed class LegendViewModel : OverlayViewModel
 {
+    private FlowDocument? _document;
+
     public LegendViewModel(string legendMarkdown)
     {
         Title = Strings.Legend_Title;
         LegendMarkdown = legendMarkdown;
     }
 
-    public override bool PrefersFloating => true;
-
     public override Size FloatSize => new(640, 680);
 
     /// <summary>凡例の Markdown ソース（legend が文字列でない場合は整形済み JSON のフォールバック）。</summary>
     public string LegendMarkdown { get; }
+
+    /// <summary>今の文字サイズ倍率で描いた凡例。倍率が変わるたびに StreamPresenter が描き直す。</summary>
+    public FlowDocument? Document { get => _document; internal set => Set(ref _document, value); }
+
+    /// <summary><see cref="Document"/> を描いたときの文字サイズ倍率。</summary>
+    internal double DocumentScale { get; set; } = double.NaN;
 }
 
 public sealed class ChangelogViewModel : OverlayViewModel
@@ -148,15 +148,12 @@ public sealed class ChangelogViewModel : OverlayViewModel
     private string[] _changelogHeader = (string[])ChangelogService.DefaultHeader.Clone();
     private string _changelogPath;
 
-    public ChangelogViewModel(IReadOnlyList<string[]> changelogRows, string changelogPath,
-                               ICommand exportChangelogCommand, ICommand relinkChangelogCommand)
+    public ChangelogViewModel(IReadOnlyList<string[]> changelogRows, string changelogPath)
     {
         Title = Strings.Changelog_Title;
         ChangelogRows = new ObservableCollection<string[]>();
         _changelogPath = changelogPath;
         Refresh(changelogRows);
-        ExportChangelogCommand = exportChangelogCommand;
-        RelinkChangelogCommand = relinkChangelogCommand;
     }
 
     /// <summary>画面を開いたまま単語を編集・追加・削除・複製したときに、中身をその場で引き直す。</summary>
@@ -177,17 +174,14 @@ public sealed class ChangelogViewModel : OverlayViewModel
         Refresh(changelogRows);
     }
 
-    public override bool PrefersFloating => true;
-
     public override Size FloatSize => new(820, 600);
 
     /// <summary>更新履歴の見出し行。画面側はスクロール領域の外に固定して表示する（常に 4 列）。</summary>
     public string[] ChangelogHeader { get => _changelogHeader; private set => Set(ref _changelogHeader, value); }
     /// <summary>更新履歴の本文行（見出し行は含まない）。追記順 = 古い順で並ぶ。</summary>
     public ObservableCollection<string[]> ChangelogRows { get; }
+    /// <summary>画面が今つないでいる CSV。書き出しはこのパスを元にする。</summary>
     public string ChangelogPath { get => _changelogPath; private set => Set(ref _changelogPath, value); }
-    public ICommand ExportChangelogCommand { get; }
-    public ICommand RelinkChangelogCommand { get; }
 
     /// <summary>
     /// 読み出した CSV を「見出し行」と「本文行」に分離する。見出し行が無い CSV では既定の列名をそのまま使う。
