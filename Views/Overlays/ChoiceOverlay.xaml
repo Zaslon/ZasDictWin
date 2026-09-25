@@ -23,9 +23,9 @@
                                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsDanger}" Value="True">
-                                            <Setter Property="Background" Value="{StaticResource Danger}" />
-                                            <Setter Property="BorderBrush" Value="{StaticResource Danger}" />
-                                            <Setter Property="Foreground" Value="#1B0D0D" />
+                                            <Setter Property="Background" Value="{StaticResource DangerFill}" />
+                                            <Setter Property="BorderBrush" Value="Transparent" />
+                                            <Setter Property="Foreground" Value="{StaticResource OnFill}" />
                                             <Setter Property="FontWeight" Value="SemiBold" />
                                         </DataTrigger>
                                     </Style.Triggers>

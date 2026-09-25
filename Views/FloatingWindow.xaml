@@ -8,6 +8,7 @@
         Title="{Binding Title, Converter={StaticResource PlainText}, StringFormat={}ZasDict {0}}"
         MinWidth="260" MinHeight="200"
         Background="{StaticResource Ink}"
+        BorderBrush="{StaticResource Line}" BorderThickness="1"
         FontFamily="{x:Static res:Strings.UIFont}"
         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
         TextOptions.TextFormattingMode="Ideal"
@@ -24,7 +25,8 @@
     <!-- 本体の窓から持ち出したタブ。DataContext は DockFloat。
          中身は本体とまったく同じ割り付け（枠と境目の入れ子）なので、この窓の中でも
          枠を割れるし、タブを掴んで本体へ運び戻すこともできる。
-         枠の面と縁は DockGroupPanel が持つため、ここは題・最小化・最大化・終了と大きさだけを受け持つ。 -->
+         枠の面は DockGroupPanel、枠同士の境目は DockSplitPanel が描くため、ここは窓の外周の線と
+         題・最小化・最大化・終了と大きさだけを受け持つ。 -->
     <DockPanel>
         <!-- 標準の枠が無いので、このヘッダの余白自体が窓のドラッグ・つまみを兼ねる（本体と同じ理由）。 -->
         <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
