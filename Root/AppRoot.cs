@@ -98,8 +98,8 @@ public sealed class AppRoot
         foreach (var host in ordered)
         {
             if (!host.ContainsScreenPoint(screen)) continue;
-            return host.TryHitLeaf(screen, out var leafId, out var size, out var local)
-                ? new HitLeaf(host, leafId, size, local)
+            return host.TryHitLeaf(screen, out var leafId, out var size, out var local, out var strip, out var slot)
+                ? new HitLeaf(host, leafId, size, local, strip, slot)
                 : new HitLeaf(host, -1, default, default);
         }
         return null;

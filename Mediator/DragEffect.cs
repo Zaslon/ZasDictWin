@@ -38,6 +38,8 @@ public abstract record DragEffect
     public sealed record CommitSplit(int LeafId, SplitPreview Preview) : DragEffect;
     public sealed record CommitJoin(int SurvivorLeafId) : DragEffect;
     public sealed record CommitMove(string TabKind, int TargetLeafId) : DragEffect;
+    /// <summary>タブを今いる枠の中で To 番目へ動かす（並べ替えと、取りやめたときの戻し）。</summary>
+    public sealed record CommitTabOrder(string TabKind, int To) : DragEffect;
     public sealed record CommitSplitThenMove(string TabKind, int LeafId, SplitPreview Preview) : DragEffect;
     public sealed record CommitFloat(string TabKind, Point AtDip) : DragEffect;
     public sealed record CommitResize(int SplitId, double Change, double Total) : DragEffect;

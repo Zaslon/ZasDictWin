@@ -29,11 +29,13 @@ internal sealed class StubHost : IUiHost
     public void CloseFromRoot() => Closed++;
     public void FocusFromRoot() => Focused++;
 
-    public bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal)
+    public bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal, out double tabStripHeight, out int tabSlot)
     {
         leafId = -1;
         leafSize = default;
         leafLocal = default;
+        tabStripHeight = 0;
+        tabSlot = -1;
         if (!ContainsScreenPoint(screen) || LeafId < 0) return false;
         leafId = LeafId;
         leafSize = LeafSize;

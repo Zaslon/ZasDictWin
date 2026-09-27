@@ -15,7 +15,9 @@ public readonly record struct DragContext(
     // Split（境目のつまみ）
     int? SplitId,
     // Row（一覧の行）
-    int RowOriginIndex, int RowCurrentIndex)
+    int RowOriginIndex, int RowCurrentIndex,
+    // Tab の並べ替え。掴んだ時点の位置と、並べ替えた結果いま居る位置（運び元の枠の中での番号）
+    int TabOriginIndex = -1, int TabCurrentIndex = -1)
 {
     public static DragContext Idle { get; } = new(
         DragPhase.Idle, null, null, default, null, null, null, null, 0, null, null, null, -1, -1);
@@ -38,7 +40,9 @@ public readonly record struct DragEnvironment(
     double MinLeafSize, double EdgeZone,
     double DragThresholdX, double DragThresholdY,
     /// <summary>タブを掴んだ時点で運び元の枠に並んでいたタブの数。</summary>
-    int SourceItemCount = 0);
+    int SourceItemCount = 0,
+    /// <summary>掴んだタブが運び元の枠で何番目にいたか。</summary>
+    int SourceTabIndex = -1);
 
 public readonly record struct DragStep(DragContext Next, DragEffect Effect);
 
@@ -57,7 +61,7 @@ public static class DragTransitions
             DragPhase.AreaGripArmed or DragPhase.AreaSplitPreview or DragPhase.AreaSplitBlocked
                 or DragPhase.AreaJoinPreview => Area(current, intent, env),
             DragPhase.TabGripArmed or DragPhase.TabOverLeaf or DragPhase.TabOverSourceEdge
-                or DragPhase.TabOverNoLeaf or DragPhase.TabOutside => Tab(current, intent, env),
+                or DragPhase.TabOverNoLeaf or DragPhase.TabOutside or DragPhase.TabReordering => Tab(current, intent, env),
             DragPhase.RowGripArmed or DragPhase.RowReordering => Row(current, intent, env),
             DragPhase.SplitGripDragging => Split(current, intent),
             _ => Stay(current),
@@ -65,8 +69,9 @@ public static class DragTransitions
     }
 
     /// <summary>枠のどの辺に寄せているか。真ん中なら null（タブとして合流）。
-    /// 4 辺を距離で比べて最も近い辺を選び、Ratio は常に 0.5。</summary>
-    public static SplitPreview? EdgeSplit(Size leafSize, Point local, double edgeZone, double minLeafSize)
+    /// 4 辺を距離で比べて最も近い辺を選び、Ratio は常に 0.5。
+    /// 上端だけは <paramref name="top"/>（タブ列の高さ）から測る。タブ列の上は並べ替えに使うため。</summary>
+    public static SplitPreview? EdgeSplit(Size leafSize, Point local, double edgeZone, double minLeafSize, double top = 0)
     {
         var best = edgeZone;
         SplitPreview? preview = null;
@@ -80,7 +85,7 @@ public static class DragTransitions
 
         Consider(local.X, DockAxis.Columns, false, leafSize.Width);                   // 左端 → 左に新しい枠
         Consider(leafSize.Width - local.X, DockAxis.Columns, true, leafSize.Width);   // 右端 → 右に新しい枠
-        Consider(local.Y, DockAxis.Rows, false, leafSize.Height);                     // 上端 → 上に新しい枠
+        Consider(local.Y - top, DockAxis.Rows, false, leafSize.Height);               // 上端 → 上に新しい枠
         Consider(leafSize.Height - local.Y, DockAxis.Rows, true, leafSize.Height);    // 下端 → 下に新しい枠
 
         return preview;
@@ -124,6 +129,7 @@ public static class DragTransitions
                 {
                     Phase = DragPhase.TabGripArmed, TabKind = kind, SourceLeafId = ctx.LeafId,
                     SourceItemCount = env.SourceItemCount, Origin = at,
+                    TabOriginIndex = env.SourceTabIndex, TabCurrentIndex = env.SourceTabIndex,
                 });
             case IntentKind.RowGripPressed when ctx.RowIndex is >= 0 and var row:
                 return Go(DragContext.Idle with
@@ -220,10 +226,25 @@ public static class DragTransitions
                         ClearHover(c), HideGhostIfOutside(c));
                 }
 
+                // 元の枠のタブ列の上では、運ぶ代わりにその場で並べ替える。離すまで待たずに動かすので、
+                // 並びそのものが下見になる（一覧の行の並べ替えと同じ）。
+                if (hit.LeafId == c.SourceLeafId && hit.TabSlot >= 0 && c.TabCurrentIndex >= 0)
+                {
+                    var to = ReorderTarget(c.TabCurrentIndex, hit.TabSlot);
+                    var moved = to != c.TabCurrentIndex;
+                    if (c.Phase == DragPhase.TabReordering && !moved) return Stay(c);
+                    return Go(c with
+                        {
+                            Phase = DragPhase.TabReordering, TargetLeafId = hit.LeafId, Preview = null, OutsideDip = null,
+                            TabCurrentIndex = to,
+                        },
+                        ClearHover(c), HideGhostIfOutside(c), moved ? new DragEffect.CommitTabOrder(kind, to) : null);
+                }
+
                 // 分割の下見は運び出した元の枠の端に限る（よその枠の端はタブとして合流させる）。
                 // 元の枠にタブが 1 枚だけのときは出さない。割ってすぐ運び出すと空になった元の枠が畳まれ、
                 // 見た目は元通りのまま枠番号だけ振り直るため。
-                var edge = EdgeSplit(hit.LeafSize, hit.LeafLocal, env.EdgeZone, env.MinLeafSize);
+                var edge = EdgeSplit(hit.LeafSize, hit.LeafLocal, env.EdgeZone, env.MinLeafSize, hit.TabStripHeight);
                 var split = hit.LeafId == c.SourceLeafId && c.SourceItemCount > 1 ? edge : null;
                 if (split is { } p)
                 {
@@ -243,7 +264,7 @@ public static class DragTransitions
                 {
                     case DragPhase.TabOverLeaf when c.TargetLeafId is { } target:
                         return target == c.SourceLeafId
-                            ? Go(DragContext.Idle, new DragEffect.ClearDropTarget(target))
+                            ? Go(DragContext.Idle, new DragEffect.ClearDropTarget(target), PersistIfReordered(c))
                             : Go(DragContext.Idle, new DragEffect.ClearDropTarget(target),
                                 new DragEffect.CommitMove(kind, target), new DragEffect.Persist());
                     case DragPhase.TabOverSourceEdge when c.TargetLeafId is { } target && c.Preview is { } p:
@@ -257,12 +278,14 @@ public static class DragTransitions
                         return Go(DragContext.Idle, new DragEffect.HideGhost(),
                             new DragEffect.CommitFloat(kind, c.OutsideDip ?? default), new DragEffect.Persist());
                     default:
-                        // 窓の中で枠を外して離した（ヘッダ・フッタの上）ときは動かさない。
-                        return Go(DragContext.Idle);
+                        // 並べ替えは動かすたびに済ませてあるので、残すのは書き戻しだけ。
+                        // 窓の中で枠を外して離した（ヘッダ・フッタの上）ときは運ばない。
+                        return Go(DragContext.Idle, PersistIfReordered(c));
                 }
 
             case IntentKind.CancelRequested or IntentKind.PointerCaptureLost:
-                return Go(DragContext.Idle, ClearHover(c), HideGhostIfOutside(c));
+                return Go(DragContext.Idle, ClearHover(c), HideGhostIfOutside(c),
+                    c.TabCurrentIndex != c.TabOriginIndex ? new DragEffect.CommitTabOrder(kind, c.TabOriginIndex) : null);
 
             default:
                 return Stay(c);
@@ -279,6 +302,16 @@ public static class DragTransitions
 
     private static DragEffect HideGhostIfOutside(DragContext c)
         => c.Phase == DragPhase.TabOutside ? new DragEffect.HideGhost() : DragEffect.None.Instance;
+
+    private static DragEffect PersistIfReordered(DragContext c)
+        => c.TabCurrentIndex != c.TabOriginIndex ? new DragEffect.Persist() : DragEffect.None.Instance;
+
+    /// <summary>
+    /// 差し込み位置（<paramref name="slot"/> 番目のタブの手前。末尾なら並びの数）を、掴んだタブの移動先の番号に直す。
+    /// 差し込み位置は掴んだタブ自身も数えた並びで測るので、自分より後ろへ差すときは自分が抜けた分だけ 1 つ詰める。
+    /// こうすると自分の上にいる間は左右どちらの半分でも今の位置のままになり、動かした直後に元へ跳ね返らない。
+    /// </summary>
+    public static int ReorderTarget(int current, int slot) => slot > current ? slot - 1 : slot;
 
     // ---- Row（一覧の行）--------------------------------------------------------
 

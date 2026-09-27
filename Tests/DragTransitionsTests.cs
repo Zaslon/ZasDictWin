@@ -314,6 +314,100 @@ public class DragTransitionsTests
         AssertFx(outside, new E.HideGhost());
     }
 
+    // ---- Tab の並べ替え --------------------------------------------------------
+
+    private static DragContext TabArmedAt(int index, int sourceItems = 3)
+        => TabArmed(sourceItems) with { TabOriginIndex = index, TabCurrentIndex = index };
+
+    private static HitLeaf OnStrip(int leaf, int slot) => new(Host, leaf, Big, new Point(100, 10), 36, slot);
+
+    [Fact]
+    public void D24_TabGripPressed_RemembersSourceIndex()
+    {
+        var step = DragTransitions.Step(DragContext.Idle, I(IntentKind.TabGripPressed, fill: c =>
+        {
+            c.TabKind = "X"; c.LeafId = 1;
+        }), Env(sourceItems: 3) with { SourceTabIndex = 2 });
+        Assert.Equal(2, step.Next.TabOriginIndex);
+        Assert.Equal(2, step.Next.TabCurrentIndex);
+    }
+
+    [Fact]
+    public void D25_TabOverOwnStrip_ReordersLive()
+    {
+        var step = DragTransitions.Step(TabArmedAt(0), I(IntentKind.PointerMoved), Env(hit: OnStrip(1, 2), local: Moved));
+        Assert.Equal(DragPhase.TabReordering, step.Next.Phase);
+        Assert.Equal(1, step.Next.TabCurrentIndex);
+        AssertFx(step, new E.CommitTabOrder("X", 1));
+
+        // 動かした直後に自分の上（左右どちらの半分でも）に来ても、元へ跳ね返らない。
+        AssertFx(DragTransitions.Step(step.Next, I(IntentKind.PointerMoved), Env(hit: OnStrip(1, 1), local: Moved)));
+        AssertFx(DragTransitions.Step(step.Next, I(IntentKind.PointerMoved), Env(hit: OnStrip(1, 2), local: Moved)));
+
+        var back = DragTransitions.Step(step.Next, I(IntentKind.PointerMoved), Env(hit: OnStrip(1, 0), local: Moved));
+        Assert.Equal(0, back.Next.TabCurrentIndex);
+        AssertFx(back, new E.CommitTabOrder("X", 0));
+    }
+
+    [Fact]
+    public void D25_TabOverOwnStripFromSplitPreview_ClearsPreview()
+    {
+        var current = TabArmedAt(0) with { Phase = DragPhase.TabOverSourceEdge, TargetLeafId = 1, Preview = LeftHalf };
+        var step = DragTransitions.Step(current, I(IntentKind.PointerMoved), Env(hit: OnStrip(1, 3), local: Moved));
+        AssertFx(step, new E.ClearSplitPreview(1), new E.CommitTabOrder("X", 2));
+    }
+
+    [Fact]
+    public void D25_TabOverOtherLeafStrip_StillMoves()
+    {
+        var step = DragTransitions.Step(TabArmedAt(0), I(IntentKind.PointerMoved), Env(hit: OnStrip(2, 0), local: Moved));
+        Assert.Equal(DragPhase.TabOverLeaf, step.Next.Phase);
+        AssertFx(step, new E.ShowDropTarget(2));
+    }
+
+    [Fact]
+    public void D26_TabReleaseAfterReorder_Persists()
+    {
+        var reordered = TabArmedAt(0) with { Phase = DragPhase.TabReordering, TargetLeafId = 1, TabCurrentIndex = 2 };
+        AssertFx(DragTransitions.Step(reordered, I(IntentKind.PointerReleased), Env()), new E.Persist());
+
+        // 並べ替えてから同じ枠の中身の上へ外して離しても、並びは書き戻す。
+        var overLeaf = reordered with { Phase = DragPhase.TabOverLeaf };
+        AssertFx(DragTransitions.Step(overLeaf, I(IntentKind.PointerReleased), Env()), new E.ClearDropTarget(1), new E.Persist());
+
+        // 元の位置へ戻してから離したなら書き戻すものは無い。
+        var unchanged = reordered with { TabCurrentIndex = 0 };
+        AssertFx(DragTransitions.Step(unchanged, I(IntentKind.PointerReleased), Env()));
+    }
+
+    [Theory]
+    [InlineData(IntentKind.CancelRequested)]
+    [InlineData(IntentKind.PointerCaptureLost)]
+    public void D27_TabCancelAfterReorder_RestoresOrder(IntentKind kind)
+    {
+        var reordered = TabArmedAt(0) with { Phase = DragPhase.TabReordering, TargetLeafId = 1, TabCurrentIndex = 2 };
+        var step = DragTransitions.Step(reordered, I(kind), Env());
+        Assert.Equal(DragPhase.Idle, step.Next.Phase);
+        AssertFx(step, new E.CommitTabOrder("X", 0));
+    }
+
+    [Theory]
+    [InlineData(0, 0, 0)]
+    [InlineData(0, 1, 0)]
+    [InlineData(0, 3, 2)]
+    [InlineData(2, 0, 0)]
+    [InlineData(2, 3, 2)]
+    public void ReorderTarget_AccountsForDraggedTab(int current, int slot, int expected)
+        => Assert.Equal(expected, DragTransitions.ReorderTarget(current, slot));
+
+    [Fact]
+    public void EdgeSplit_TopEdgeMeasuredBelowTabStrip()
+    {
+        var top = new SplitPreview(DockAxis.Rows, 0.5, false);
+        Assert.Equal(top, DragTransitions.EdgeSplit(Big, new Point(300, 80), 48, DockSplit.MinLeafSize, 36));
+        Assert.Null(DragTransitions.EdgeSplit(Big, new Point(300, 84), 48, DockSplit.MinLeafSize, 36));
+    }
+
     // ---- Row ----------------------------------------------------------------
 
     private static DragContext RowArmed() => DragContext.Idle with

@@ -394,6 +394,67 @@ public class AppMediatorTests
     }
 
     [Fact]
+    public void TabDraggedAlongOwnStrip_ReordersAndPersistsOnce()
+    {
+        var h = new MediatorHarness();
+        h.OpenDictionary(MediatorHarness.NewWord(1, "a"));
+        h.Send(IntentKind.ShowExamplesRequested);
+        var examples = h.Open<ExamplesViewModel>()!;
+        var source = h.State.Layout.LeafOf(examples)!;
+        Assert.Equal(1, source.Items.IndexOf(examples));
+        var host = h.Shell;
+        h.M.HitTester = _ => new HitLeaf(host, source.Id, new Size(600, 400), new Point(10, 10), 36, 0);
+
+        h.Send(IntentKind.TabGripPressed, fill: c => { c.TabKind = examples.Kind; c.LeafId = source.Id; c.LeafLocalPoint = new Point(0, 0); });
+        h.Send(IntentKind.PointerMoved, fill: c => { c.LeafId = source.Id; c.LeafLocalPoint = new Point(-30, 0); }, screen: new Point(10, 10));
+        Assert.Equal(DragPhase.TabReordering, h.M.Drag);
+        Assert.Equal(0, source.Items.IndexOf(examples));
+
+        var before = h.Persists;
+        h.Send(IntentKind.PointerReleased, screen: new Point(10, 10));
+        Assert.Equal(before + 1, h.Persists);
+        Assert.Same(source, h.State.Layout.LeafOf(examples));
+        Assert.Equal(examples.Kind, SavedLeaves(h.Services.Settings.Layout!).Single(l => l.Id == source.Id).Tabs[0]);
+    }
+
+    private static IEnumerable<DockNodeSettings> SavedLeaves(DockNodeSettings node)
+        => node.First is { } first && node.Second is { } second
+            ? SavedLeaves(first).Concat(SavedLeaves(second))
+            : new[] { node };
+
+    [Fact]
+    public void TabReorderCancelled_RestoresOrder()
+    {
+        var h = new MediatorHarness();
+        h.OpenDictionary(MediatorHarness.NewWord(1, "a"));
+        h.Send(IntentKind.ShowExamplesRequested);
+        var examples = h.Open<ExamplesViewModel>()!;
+        var source = h.State.Layout.LeafOf(examples)!;
+        var host = h.Shell;
+        h.M.HitTester = _ => new HitLeaf(host, source.Id, new Size(600, 400), new Point(10, 10), 36, 0);
+
+        h.Send(IntentKind.TabGripPressed, fill: c => { c.TabKind = examples.Kind; c.LeafId = source.Id; c.LeafLocalPoint = new Point(0, 0); });
+        h.Send(IntentKind.PointerMoved, fill: c => { c.LeafId = source.Id; c.LeafLocalPoint = new Point(-30, 0); }, screen: new Point(10, 10));
+        Assert.Equal(0, source.Items.IndexOf(examples));
+
+        h.Send(IntentKind.CancelRequested);
+        Assert.Equal(DragPhase.Idle, h.M.Drag);
+        Assert.Equal(1, source.Items.IndexOf(examples));
+    }
+
+    [Fact]
+    public void SavedTabOrder_IsKeptWhenTabsReopen()
+    {
+        var h = new MediatorHarness(s => s.Settings.Layout = new DockNodeSettings
+        {
+            Id = 1, Tabs = { nameof(WordDetailViewModel), nameof(SearchViewModel) },
+        });
+        var leaf = Assert.Single(h.State.Layout.AllLeaves);
+        // 起動時は検索を先に開くが、覚えている並び（単語詳細が先）で差し込む。
+        Assert.Equal(new[] { nameof(WordDetailViewModel), nameof(SearchViewModel) }, leaf.Items.Select(i => i.Kind));
+    }
+
+    [Fact]
     public void TabDroppedOutside_OpensFloatingWindowAfterShellIsReady()
     {
         var h = new MediatorHarness();

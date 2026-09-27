@@ -100,7 +100,7 @@ public sealed class DockLeaf : DockNode
     {
         Raise(nameof(HasItems));
         Raise(nameof(IsEmpty));
-        // 表に出していたタブが消えたら、残っているうち一番新しいものに移る。
+        // 表に出していたタブが消えたら、残っているうち末尾のものに移る。
         if (Selected is null || !Items.Contains(Selected)) Selected = Items.LastOrDefault();
     }
 }
@@ -267,6 +267,10 @@ public sealed class DockLayout : ViewModelBase
     /// <summary>種類名 → 前に置いた枠の番号。閉じたタブの行き先もここで覚えておく。</summary>
     private readonly Dictionary<string, int> _homes = new();
 
+    /// <summary>枠の番号 → 最後に書き戻した時点のタブの並び（種類名）。
+    /// 起動時に開くタブは開く順が決め打ちなので、並べ替えた順はここを見て差し込むことで保つ。</summary>
+    private readonly Dictionary<int, List<string>> _tabOrders = new();
+
     private readonly List<DockFloat> _floats = new();
 
     private DockNode _root;
@@ -367,9 +371,33 @@ public sealed class DockLayout : ViewModelBase
 
     internal void Place(OverlayViewModel vm, DockLeaf leaf)
     {
-        leaf.Items.Add(vm);
+        leaf.Items.Insert(InsertIndex(leaf, vm.Kind), vm);
         leaf.Selected = vm;
         Remember(vm, leaf);
+    }
+
+    /// <summary>タブを今いる枠の中で <paramref name="to"/> 番目へ動かす。</summary>
+    internal void Reorder(OverlayViewModel vm, int to)
+    {
+        if (LeafOf(vm) is not { } leaf) return;
+        var from = leaf.Items.IndexOf(vm);
+        to = Math.Clamp(to, 0, leaf.Items.Count - 1);
+        if (from != to) leaf.Items.Move(from, to);
+    }
+
+    /// <summary>覚えている並びで自分より後ろに来る種類のうち、最初に並んでいるものの手前。
+    /// 並びを覚えていない種類は末尾へ足し、覚えていない種類の手前には割り込ませる（覚えていない＝後から開いたもの）。</summary>
+    private int InsertIndex(DockLeaf leaf, string kind)
+    {
+        if (!_tabOrders.TryGetValue(leaf.Id, out var order)) return leaf.Items.Count;
+        var rank = order.IndexOf(kind);
+        if (rank < 0) return leaf.Items.Count;
+        for (var i = 0; i < leaf.Items.Count; i++)
+        {
+            var other = order.IndexOf(leaf.Items[i].Kind);
+            if (other < 0 || other > rank) return i;
+        }
+        return leaf.Items.Count;
     }
 
     internal void Remove(OverlayViewModel vm)
@@ -579,6 +607,7 @@ public sealed class DockLayout : ViewModelBase
         // 番号を持たない（＝古い設定や壊れた設定の）枠は新しく振り直す。番号が重なると行き先が混ざる。
         var leaf = NewLeaf(node.Id > 0 ? node.Id : null);
         foreach (var kind in node.Tabs) _homes[kind] = leaf.Id;
+        _tabOrders[leaf.Id] = node.Tabs.ToList();
         return leaf;
     }
 
@@ -601,6 +630,7 @@ public sealed class DockLayout : ViewModelBase
         kinds.AddRange(_homes
             .Where(h => h.Value == leaf.Id && !kinds.Contains(h.Key))
             .Select(h => h.Key));
+        _tabOrders[leaf.Id] = kinds;
         return new DockNodeSettings { Id = leaf.Id, Tabs = kinds };
     }
 }

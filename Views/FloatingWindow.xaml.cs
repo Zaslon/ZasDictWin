@@ -66,8 +66,8 @@ public partial class FloatingWindow : Window, IUiHost
 
     public void FocusFromRoot() => Activate();
 
-    public bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal)
-        => WindowHitTest.TryHitLeaf(this, screen, out leafId, out leafSize, out leafLocal);
+    public bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal, out double tabStripHeight, out int tabSlot)
+        => WindowHitTest.TryHitLeaf(this, screen, out leafId, out leafSize, out leafLocal, out tabStripHeight, out tabSlot);
 
     public bool ContainsScreenPoint(Point screen) => WindowHitTest.Contains(this, screen);
 

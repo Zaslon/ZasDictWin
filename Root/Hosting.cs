@@ -19,8 +19,10 @@ public interface IUiHost
     void CloseFromRoot();
     void FocusFromRoot();
     /// <summary>画面上の位置（デバイスピクセル）がこの窓の枠に乗っているか。
-    /// 窓には乗っているが枠の外（ヘッダ・フッタ）なら false を返し、leafId は -1。</summary>
-    bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal);
+    /// 窓には乗っているが枠の外（ヘッダ・フッタ）なら false を返し、leafId は -1。
+    /// tabStripHeight は枠の上端に並ぶタブ列の高さ（無ければ 0）、tabSlot はタブ列の上にいるときの
+    /// 差し込み位置（何番目のタブの手前か。末尾なら並びの数。タブ列の外なら -1）。</summary>
+    bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal, out double tabStripHeight, out int tabSlot);
     /// <summary>画面上の位置がこの窓の中か（枠に乗っていなくても真）。
     /// まだ描かれていない（HWND を持たない）窓は常に false。</summary>
     bool ContainsScreenPoint(Point screen);
@@ -29,7 +31,8 @@ public interface IUiHost
     bool IsActiveHost { get; }
 }
 
-public readonly record struct HitLeaf(IUiHost Host, int LeafId, Size LeafSize, Point LeafLocal)
+public readonly record struct HitLeaf(
+    IUiHost Host, int LeafId, Size LeafSize, Point LeafLocal, double TabStripHeight = 0, int TabSlot = -1)
 {
     public bool HasLeaf => LeafId >= 0;
 }

@@ -531,11 +531,13 @@ public sealed partial class AppMediator
         var grip = gripId is { } g ? _layout.LeafById(g) : null;
         var siblings = grip?.Parent?.Other(grip).Leaves.Select(l => l.Id).ToList() ?? new List<int>();
         var hit = intent.Kind == IntentKind.PointerMoved && intent.ScreenPoint is { } screen ? HitTester?.Invoke(screen) : null;
-        var sourceItems = intent.Kind == IntentKind.TabGripPressed && ctx.LeafId is { } s ? _layout.LeafById(s)?.Items.Count ?? 0 : 0;
+        var source = intent.Kind == IntentKind.TabGripPressed && ctx.LeafId is { } s ? _layout.LeafById(s) : null;
+        var sourceItems = source?.Items.Count ?? 0;
+        var sourceIndex = source?.Items.ToList().FindIndex(i => i.Kind == ctx.TabKind) ?? -1;
 
         var env = new DragEnvironment(hit, ctx.LeafSize ?? default, ctx.LeafLocalPoint ?? default, siblings,
             _layout.AllLeaves.Count(), LayoutRules.MaxLeaves, DockSplit.MinLeafSize, EdgeZone,
-            DragThreshold.Width, DragThreshold.Height, sourceItems);
+            DragThreshold.Width, DragThreshold.Height, sourceItems, sourceIndex);
         var step = DragTransitions.Step(_drag, intent, env);
 
         if (intent.Kind == IntentKind.RowGripPressed && step.Next.Phase == DragPhase.RowGripArmed) _rowDragSource = intent.Payload;
@@ -559,6 +561,9 @@ public sealed partial class AppMediator
             case DragEffect.CommitMove c when OverlayByKind(c.TabKind) is { } vm && _layout.LeafById(c.TargetLeafId) is { } leaf:
                 _layout.Move(vm, leaf);
                 break;
+            case DragEffect.CommitTabOrder c when OverlayByKind(c.TabKind) is { } vm:
+                _layout.Reorder(vm, c.To);
+                break;
             case DragEffect.CommitSplitThenMove c when OverlayByKind(c.TabKind) is { } vm && _layout.LeafById(c.LeafId) is { } leaf:
                 // 上限で割れなければ、割らずにその枠へタブとして合流させる。
                 var target = _layout.Split(leaf, c.Preview.Axis, c.Preview.Ratio, c.Preview.NewIsSecond) ?? leaf;
@@ -579,7 +584,7 @@ public sealed partial class AppMediator
             case DragEffect.HideGhost:
                 Queue(new HostCommand.HideDragGhost());
                 break;
-            case DragEffect.CommitSplit or DragEffect.CommitJoin or DragEffect.CommitMove
+            case DragEffect.CommitSplit or DragEffect.CommitJoin or DragEffect.CommitMove or DragEffect.CommitTabOrder
                 or DragEffect.CommitSplitThenMove or DragEffect.CommitFloat or DragEffect.CommitResize:
                 // 指している枠・タブがもう無い（閉じた・畳んだ）。木は組み替えない。
                 break;

@@ -14,7 +14,7 @@ public enum DragPhase
 {
     Idle,
     AreaGripArmed, AreaSplitPreview, AreaSplitBlocked, AreaJoinPreview,
-    TabGripArmed, TabOverLeaf, TabOverSourceEdge, TabOverNoLeaf, TabOutside,
+    TabGripArmed, TabOverLeaf, TabOverSourceEdge, TabOverNoLeaf, TabOutside, TabReordering,
     RowGripArmed, RowReordering,
     SplitGripDragging,
 }

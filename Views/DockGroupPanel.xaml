@@ -17,10 +17,10 @@
                 <!-- タブ列。1 枚でも出す（掴んで別の枠へ運ぶ取っ手を兼ねるため）。
                      まだタブの無い枠には並べるものが無いので出さない。
                      下余白は 0。表に出ているタブがここを跨いで区切り線まで届き、中身と地続きになる。 -->
-                <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}"
+                <Border x:Name="TabStrip" DockPanel.Dock="Top" Background="{StaticResource HeaderFill}"
                         BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1" Padding="6,6,6,0"
                         Visibility="{Binding HasItems, Converter={StaticResource BoolVis}}">
-                    <ItemsControl ItemsSource="{Binding Items}">
+                    <ItemsControl x:Name="TabList" ItemsSource="{Binding Items}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel />

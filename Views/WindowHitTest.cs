@@ -19,11 +19,14 @@ internal static class WindowHitTest
     }
 
     /// <summary>画面上の位置の下にある枠。窓には乗っているが枠の外（ヘッダ・フッタなど）なら偽で leafId は -1。</summary>
-    public static bool TryHitLeaf(Window window, Point screen, out int leafId, out Size leafSize, out Point leafLocal)
+    public static bool TryHitLeaf(Window window, Point screen, out int leafId, out Size leafSize, out Point leafLocal,
+        out double tabStripHeight, out int tabSlot)
     {
         leafId = -1;
         leafSize = default;
         leafLocal = default;
+        tabStripHeight = 0;
+        tabSlot = -1;
         if (!TryLocal(window, screen, out var local)) return false;
 
         var hit = window.InputHitTest(local) as DependencyObject;
@@ -34,6 +37,8 @@ internal static class WindowHitTest
                 leafId = leaf.Id;
                 leafSize = new Size(panel.ActualWidth, panel.ActualHeight);
                 leafLocal = panel.PointFromScreen(screen);
+                tabStripHeight = panel.TabStripHeight;
+                tabSlot = panel.TabSlotAt(leafLocal);
                 return true;
             }
             // 当たるのは描いている要素なので、視覚ツリーだけ遡れば枠に届く。

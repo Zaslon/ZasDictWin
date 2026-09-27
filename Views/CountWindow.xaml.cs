@@ -45,11 +45,13 @@ public partial class CountWindow : Window, IUiHost
 
     public void FocusFromRoot() => Activate();
 
-    public bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal)
+    public bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal, out double tabStripHeight, out int tabSlot)
     {
         leafId = -1;
         leafSize = default;
         leafLocal = default;
+        tabStripHeight = 0;
+        tabSlot = -1;
         return false;
     }
 
