@@ -121,20 +121,67 @@ public sealed class StatsViewModel : OverlayViewModel
     public IReadOnlyList<BreakdownItem> PosItems { get; } = Array.Empty<BreakdownItem>();
 }
 
+/// <summary>
+/// 凡例。表示と編集を同じタブで切り替える。編集中の書きかけは <see cref="Draft"/> だけが持ち、
+/// 辞書へは保存（LegendCommitted）まで書かない。
+/// </summary>
 public sealed class LegendViewModel : OverlayViewModel
 {
     private FlowDocument? _document;
+    private string _legendMarkdown;
+    private bool _canEdit;
+    private bool _isEditing;
+    private string _draft = "";
+    private string? _validationMessage;
 
-    public LegendViewModel(string legendMarkdown)
+    public LegendViewModel(string legendMarkdown, bool canEdit)
     {
         Title = Strings.Legend_Title;
-        LegendMarkdown = legendMarkdown;
+        _legendMarkdown = legendMarkdown;
+        _canEdit = canEdit;
     }
 
     public override Size FloatSize => new(640, 680);
 
     /// <summary>凡例の Markdown ソース（legend が文字列でない場合は整形済み JSON のフォールバック）。</summary>
-    public string LegendMarkdown { get; }
+    public string LegendMarkdown { get => _legendMarkdown; private set => Set(ref _legendMarkdown, value); }
+
+    /// <summary>辞書を開いていないと書き戻す先が無いので編集させない。</summary>
+    public bool CanEdit { get => _canEdit; private set => Set(ref _canEdit, value); }
+
+    public bool IsEditing { get => _isEditing; private set => Set(ref _isEditing, value); }
+
+    /// <summary>編集欄の中身。</summary>
+    public string Draft { get => _draft; set => Set(ref _draft, value); }
+
+    /// <summary>編集を始めた時点の中身。変えずに保存したときに未保存扱いにしないための比較元。</summary>
+    public string EditSource { get; private set; } = "";
+
+    public string? ValidationMessage { get => _validationMessage; internal set => Set(ref _validationMessage, value); }
+
+    internal void BeginEdit(string source)
+    {
+        EditSource = source;
+        Draft = source;
+        ValidationMessage = null;
+        IsEditing = true;
+    }
+
+    internal void EndEdit()
+    {
+        IsEditing = false;
+        ValidationMessage = null;
+    }
+
+    /// <summary>辞書の legend が変わった（編集の保存・辞書の差し替え）。描画は StreamPresenter が拾い直す。</summary>
+    internal void Reload(string legendMarkdown, bool canEdit)
+    {
+        EndEdit();
+        CanEdit = canEdit;
+        LegendMarkdown = legendMarkdown;
+        Document = null;
+        DocumentScale = double.NaN;
+    }
 
     /// <summary>今の文字サイズ倍率で描いた凡例。倍率が変わるたびに StreamPresenter が描き直す。</summary>
     public FlowDocument? Document { get => _document; internal set => Set(ref _document, value); }

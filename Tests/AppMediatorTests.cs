@@ -281,6 +281,23 @@ public class AppMediatorTests
     }
 
     [Fact]
+    public void Close_SaveAndExit_WhenSaveFails_KeepsRunning()
+    {
+        var h = new MediatorHarness();
+        h.OpenDictionary();
+        OpenNewWordEditor(h, "a");
+        h.Send(IntentKind.WordCommitted);
+        h.Services.SaveFails = true;
+
+        h.Send(IntentKind.WindowCloseRequested, new WindowBounds(1000, 700, false));
+        h.Send(IntentKind.ConfirmChoiceSelected, 0);
+
+        Assert.NotEqual(ShellPhase.Closing, h.M.Shell);
+        Assert.Equal(DocPhase.Dirty, h.M.Doc);
+        Assert.DoesNotContain(new HostCommand.CloseHost(h.Shell.HostId), h.HostCommands);
+    }
+
+    [Fact]
     public void ChangedFiresOncePerIntent()
     {
         var h = new MediatorHarness();
@@ -467,6 +484,94 @@ public class AppMediatorTests
 
         OpenNewWordEditor(h, "b");
         Assert.All(h.M.BuildRowMenu(a), i => Assert.False(i.IsEnabled));
+    }
+
+    // ---- 凡例 --------------------------------------------------------------------------
+
+    [Fact]
+    public void LegendEdit_WritesMarkdownBackAndMarksDirty()
+    {
+        var h = new MediatorHarness();
+        var doc = h.OpenDictionary(MediatorHarness.NewWord(1, "a"));
+        doc.Root["legend"] = "# old";
+        h.Send(IntentKind.OpenScreenRequested, AppCommand.ShowLegend);
+        var legend = h.Open<LegendViewModel>()!;
+
+        h.Send(IntentKind.LegendEditRequested);
+        Assert.True(legend.IsEditing);
+        Assert.Equal("# old", legend.Draft);
+        // 書きかけの凡例を別の辞書へ書き込まないよう、編集中は差し替えを止める。
+        Assert.False(h.M.CanExecute(AppCommand.Open));
+
+        legend.Draft = "# new";
+        h.Send(IntentKind.LegendCommitted);
+
+        Assert.False(legend.IsEditing);
+        Assert.Equal("# new", doc.Root["legend"]!.GetValue<string>());
+        Assert.Equal("# new", legend.LegendMarkdown);
+        Assert.Equal(DocPhase.Dirty, h.M.Doc);
+        Assert.True(h.M.CanExecute(AppCommand.Open));
+    }
+
+    [Fact]
+    public void LegendEdit_UnchangedOrCancelled_KeepsDocClean()
+    {
+        var h = new MediatorHarness();
+        var doc = h.OpenDictionary(MediatorHarness.NewWord(1, "a"));
+        h.Send(IntentKind.OpenScreenRequested, AppCommand.ShowLegend);
+        var legend = h.Open<LegendViewModel>()!;
+
+        h.Send(IntentKind.LegendEditRequested);
+        // legend が無い辞書では、表示用の zpdicOnline を編集欄に持ち込まない。
+        Assert.Equal("", legend.Draft);
+        h.Send(IntentKind.LegendCommitted);
+        Assert.False(legend.IsEditing);
+
+        h.Send(IntentKind.LegendEditRequested);
+        legend.Draft = "draft";
+        h.Send(IntentKind.LegendEditCancelled);
+
+        Assert.False(legend.IsEditing);
+        Assert.Null(doc.Legend);
+        Assert.Equal(DocPhase.Clean, h.M.Doc);
+    }
+
+    [Fact]
+    public void LegendEdit_StructuredLegend_StaysJson()
+    {
+        var h = new MediatorHarness();
+        var doc = h.OpenDictionary(MediatorHarness.NewWord(1, "a"));
+        doc.Root["legend"] = new System.Text.Json.Nodes.JsonObject { ["k"] = 1 };
+        h.Send(IntentKind.OpenScreenRequested, AppCommand.ShowLegend);
+        var legend = h.Open<LegendViewModel>()!;
+        h.Send(IntentKind.LegendEditRequested);
+
+        legend.Draft = "{ broken";
+        h.Send(IntentKind.LegendCommitted);
+        Assert.True(legend.IsEditing);
+        Assert.NotNull(legend.ValidationMessage);
+        Assert.Equal(DocPhase.Clean, h.M.Doc);
+
+        legend.Draft = "{ \"k\": 2 }";
+        h.Send(IntentKind.LegendCommitted);
+        Assert.False(legend.IsEditing);
+        Assert.Equal(2, doc.Legend!["k"]!.GetValue<int>());
+    }
+
+    [Fact]
+    public void LegendEdit_NoDocument_CannotEdit()
+    {
+        var h = new MediatorHarness();
+        h.Send(IntentKind.OpenScreenRequested, AppCommand.ShowLegend);
+        var legend = h.Open<LegendViewModel>()!;
+
+        h.Send(IntentKind.LegendEditRequested);
+
+        Assert.False(legend.CanEdit);
+        Assert.False(legend.IsEditing);
+
+        h.OpenDictionary(MediatorHarness.NewWord(1, "a"));
+        Assert.True(legend.CanEdit);
     }
 
     // ---- 設定の適用 ----------------------------------------------------------------------

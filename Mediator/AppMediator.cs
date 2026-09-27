@@ -130,8 +130,10 @@ public sealed partial class AppMediator
         Shell, Doc, _state.IsGitHubMode, _gitHubBusy, _state.IsGitHubSynced, EditorOpen,
         _layout.Overlays.Select(o => o.Kind).ToHashSet(), (rowItem ?? _state.SelectedWord) is not null);
 
-    /// <summary>編集中は辞書の差し替えを止める。保存の宛先だけが入れ替わるのを防ぐため。</summary>
-    private bool EditorOpen => _layout.Overlays.Any(o => ScreenRegistry.For(o.Kind).BlocksDictionarySwap);
+    /// <summary>編集中は辞書の差し替えを止める。保存の宛先だけが入れ替わるのを防ぐため。
+    /// 凡例は表示と編集を同じタブで切り替えるので、種類ではなく編集中かどうかで見る。</summary>
+    private bool EditorOpen => _layout.Overlays.Any(o =>
+        ScreenRegistry.For(o.Kind).BlocksDictionarySwap || o is LegendViewModel { IsEditing: true });
 
     private AppSettings Settings => _services.Settings;
 
@@ -380,6 +382,16 @@ public sealed partial class AppMediator
                     CloseOverlay(relinked);
                     ShowOverlay(BuildChangelog());
                 }
+                break;
+
+            case IntentKind.LegendEditRequested:
+                if (OpenOf<LegendViewModel>() is { CanEdit: true, IsEditing: false } legend) legend.BeginEdit(LegendEditSource());
+                break;
+            case IntentKind.LegendCommitted:
+                if (OpenOf<LegendViewModel>() is { IsEditing: true } legendEdited) CommitLegend(legendEdited);
+                break;
+            case IntentKind.LegendEditCancelled:
+                OpenOf<LegendViewModel>()?.EndEdit();
                 break;
 
             case IntentKind.GitHubLoadRequested:
@@ -722,7 +734,7 @@ public sealed partial class AppMediator
                 ShowTool(() => new StatsViewModel(_doc));
                 break;
             case AppCommand.ShowLegend:
-                ShowTool(() => new LegendViewModel(BuildLegendMarkdown()));
+                ShowTool(() => new LegendViewModel(BuildLegendMarkdown(), _doc is not null));
                 break;
             case AppCommand.ShowChangelog:
                 ShowTool(BuildChangelog);
@@ -810,7 +822,8 @@ public sealed partial class AppMediator
                 if (Doc == DocPhase.Dirty)
                 {
                     Confirm(Strings.App_UnsavedCloseTitle, string.Format(Strings.App_UnsavedCloseMessage, _state.DictionaryName),
-                        (Strings.App_SaveAndExit, false, () => { Save(false); BeginClosing(); }),
+                        // 保存に失敗した・保存先の選択をやめた場合は、書きかけを失わないよう終了しない。
+                        (Strings.App_SaveAndExit, false, () => { Save(false); if (Doc != DocPhase.Dirty) BeginClosing(); }),
                         (Strings.App_ExitWithoutSaving, true, BeginClosing),
                         (Strings.Common_KeepEditing, false, null));
                 }

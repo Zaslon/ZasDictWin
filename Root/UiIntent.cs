@@ -44,6 +44,9 @@ public enum IntentKind
     // ---- 更新履歴 ----
     ChangelogExportRequested, ChangelogRelinkRequested,
 
+    // ---- 凡例 ----
+    LegendEditRequested, LegendCommitted, LegendEditCancelled,
+
     // ---- GitHub ----
     GitHubLoadRequested, GitHubCommitRequested, GitHubCommitConfirmed,
     GitHubTokenSaveRequested, GitHubTokenDeleteRequested,

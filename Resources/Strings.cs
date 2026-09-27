@@ -190,6 +190,8 @@ public static class Strings
     public static string Ipa_SpellingLabel => Get();
     public static string Ipa_CandidateHint => Get();
     public static string Legend_Title => Get();
+    public static string Legend_UpdatedStatus => Get();
+    public static string Legend_InvalidJson => Get();
 
     public static string Examples_AddButton => Get();
     public static string Examples_FilterHint => Get();

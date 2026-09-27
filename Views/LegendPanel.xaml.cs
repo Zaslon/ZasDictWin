@@ -1,5 +1,7 @@
 using System.ComponentModel;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
@@ -28,7 +30,20 @@ public partial class LegendPanel : UserControl
         _vm = DataContext as LegendViewModel;
         if (_vm is null) return;
         _vm.PropertyChanged += OnVmPropertyChanged;
-        LegendView.Document = _vm.Document;
+        ShowDocument(_vm.Document);
+    }
+
+    /// <summary>
+    /// タブを別の窓へ運ぶと、新しい器の DataContextChanged が古い器の Unloaded より先に来る。
+    /// 古い器が文書を持ったままだと差し込めずに例外になるので、先に取り上げる。
+    /// </summary>
+    private void ShowDocument(FlowDocument? document) => Host(LegendView, document);
+
+    internal static void Host(FlowDocumentScrollViewer viewer, FlowDocument? document)
+    {
+        if (document is not null && LogicalTreeHelper.GetParent(document) is FlowDocumentScrollViewer owner && owner != viewer)
+            owner.Document = null;
+        viewer.Document = document;
     }
 
     private void Detach()
@@ -39,6 +54,6 @@ public partial class LegendPanel : UserControl
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(LegendViewModel.Document) && _vm is not null) LegendView.Document = _vm.Document;
+        if (e.PropertyName == nameof(LegendViewModel.Document) && _vm is not null) ShowDocument(_vm.Document);
     }
 }

@@ -154,6 +154,8 @@
   <data name="Ipa_SpellingLabel" xml:space="preserve"><value>イジェール語音写</value></data>
   <data name="Ipa_CandidateHint" xml:space="preserve"><value>(a|b) は候補が複数あることを表します。</value></data>
   <data name="Legend_Title" xml:space="preserve"><value>凡例</value></data>
+  <data name="Legend_UpdatedStatus" xml:space="preserve"><value>凡例を更新しました。</value></data>
+  <data name="Legend_InvalidJson" xml:space="preserve"><value>[en]JSON[/en] として読めません: [en]{0}[/en]</value></data>
 
   <!-- Examples overlay -->
   <data name="Examples_AddButton" xml:space="preserve"><value>＋ 例文</value></data>

@@ -18,8 +18,7 @@ public static class ErrorLog
             Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
             File.AppendAllText(FilePath,
                 $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {context}{Environment.NewLine}" +
-                $"{ex.GetType().FullName}: {ex.Message}{Environment.NewLine}" +
-                $"{ex.StackTrace}{Environment.NewLine}{Environment.NewLine}");
+                $"{ex}{Environment.NewLine}{Environment.NewLine}");
         }
         catch (Exception logEx)
         {

@@ -1,4 +1,5 @@
 using System.IO;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using ZasDictWin.Models;
 using ZasDictWin.Resources;
@@ -35,6 +36,7 @@ public sealed partial class AppMediator
         RebuildIndex();
         _state.IsDirty = true;
         _state.IsGitHubSynced = false;
+        ReloadLegends();
         SetStatus(Strings.Main_NewDictionaryCreated);
         RaiseDocumentChanged();
     }
@@ -73,6 +75,7 @@ public sealed partial class AppMediator
         var csv = ChangelogCsvPath();
         foreach (var vm in _layout.Overlays.OfType<ChangelogViewModel>().ToList())
             vm.Reload(ReadChangelogRows(csv), csv);
+        ReloadLegends();
 
         SetStatus(string.Format(Strings.Main_LoadedStatus, Path.GetFileName(path)));
         RaiseDocumentChanged();
@@ -484,6 +487,55 @@ public sealed partial class AppMediator
         JsonValue lv when lv.TryGetValue<string>(out var ls) => ls,
         var other => OtmJsonIo.PrettyPrint(other ?? _doc.Root["zpdicOnline"]),
     };
+
+    /// <summary>legend が無い・文字列なら Markdown として書き、それ以外は JSON のまま書き戻す
+    /// （構造化された legend を文字列に潰すと、読む側のツールが解釈できなくなる）。</summary>
+    private bool LegendIsMarkdown => _doc?.Legend switch
+    {
+        null => true,
+        JsonValue lv => lv.TryGetValue<string>(out _),
+        _ => false,
+    };
+
+    /// <summary>編集欄に出す中身。表示と違い、legend が無いときに zpdicOnline へは落とさない。</summary>
+    private string LegendEditSource() => _doc?.Legend switch
+    {
+        null => "",
+        JsonValue lv when lv.TryGetValue<string>(out var ls) => ls,
+        var other => OtmJsonIo.PrettyPrint(other),
+    };
+
+    private void CommitLegend(LegendViewModel vm)
+    {
+        if (_doc is null) return;
+        if (vm.Draft == vm.EditSource) { vm.EndEdit(); return; }
+
+        JsonNode? legend;
+        if (LegendIsMarkdown) legend = JsonValue.Create(vm.Draft);
+        else
+        {
+            try
+            {
+                legend = JsonNode.Parse(vm.Draft);
+            }
+            catch (JsonException ex)
+            {
+                vm.ValidationMessage = string.Format(Strings.Legend_InvalidJson, ex.Message);
+                return;
+            }
+        }
+
+        _doc.Root["legend"] = legend;
+        ReloadLegends();
+        MarkDirty(Strings.Legend_UpdatedStatus);
+    }
+
+    /// <summary>開いている凡例を辞書の今の legend で描き直す。</summary>
+    private void ReloadLegends()
+    {
+        foreach (var vm in _layout.Overlays.OfType<LegendViewModel>())
+            vm.Reload(BuildLegendMarkdown(), _doc is not null);
+    }
 
     private string ChangelogCsvPath() => _doc?.Path is null
         ? (Settings.ChangelogPath ?? "")

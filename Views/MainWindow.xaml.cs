@@ -23,6 +23,9 @@ public partial class MainWindow : Window, IUiHost
     /// <summary>根の裁定で閉じるところか。利用者の閉じる操作はいったん止めて裁定に回す（未保存の確認があるため）。</summary>
     private bool _closingFromRoot;
 
+    /// <summary>自分の OnClosing から閉じたい合図を上げている最中か。</summary>
+    private bool _requestingClose;
+
     // 縦横比固定モードの間だけ値を持つ（幅 / 高さ）。null なら WndProc は何もしない。
     // 比率は設定を適用した瞬間の幅・高さから決まり、以後は端をつまんだリサイズがこれを崩さない。
     private double? _aspectRatio;
@@ -65,7 +68,9 @@ public partial class MainWindow : Window, IUiHost
     public void CloseFromRoot()
     {
         _closingFromRoot = true;
-        Close();
+        // 合図の裁定が同期で閉じると決めた場合は、進行中の Close をそのまま通す
+        // （Closing の最中に Close() を呼ぶと WPF が InvalidOperationException を投げる）。
+        if (!_requestingClose) Close();
     }
 
     public void FocusFromRoot() => Activate();
@@ -236,8 +241,11 @@ public partial class MainWindow : Window, IUiHost
         {
             // 閉じてよいか（未保存の確認）と、閉じる前の保存は根が決める。閉じるときは CloseFromRoot で戻ってくる。
             e.Cancel = true;
-            RequestClose();
-            return;
+            _requestingClose = true;
+            try { RequestClose(); }
+            finally { _requestingClose = false; }
+            if (!_closingFromRoot) return;
+            e.Cancel = false;
         }
         base.OnClosing(e);
     }

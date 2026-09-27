@@ -14,6 +14,9 @@ public partial class StreamWindow : Window, IUiHost
 {
     private bool _closingFromRoot;
 
+    /// <summary>自分の OnClosing から閉じたい合図を上げている最中か。</summary>
+    private bool _requestingClose;
+
     public StreamWindow(StreamViewState state)
     {
         InitializeComponent();
@@ -35,7 +38,9 @@ public partial class StreamWindow : Window, IUiHost
     public void CloseFromRoot()
     {
         _closingFromRoot = true;
-        Close();
+        // 合図の裁定が同期で閉じると決めた場合は、進行中の Close をそのまま通す
+        // （Closing の最中に Close() を呼ぶと WPF が InvalidOperationException を投げる）。
+        if (!_requestingClose) Close();
     }
 
     public void FocusFromRoot() => Activate();
@@ -56,8 +61,11 @@ public partial class StreamWindow : Window, IUiHost
         {
             // ［ウィンドウ］メニューの開く／閉じるの表示を合わせるため、閉じるのも根の裁定に回す。
             e.Cancel = true;
-            this.RaiseIntent(IntentKind.WindowCloseRequested);
-            return;
+            _requestingClose = true;
+            try { this.RaiseIntent(IntentKind.WindowCloseRequested); }
+            finally { _requestingClose = false; }
+            if (!_closingFromRoot) return;
+            e.Cancel = false;
         }
         base.OnClosing(e);
     }

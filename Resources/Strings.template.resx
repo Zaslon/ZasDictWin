@@ -178,6 +178,8 @@
   <data name="Ipa_SpellingLabel" xml:space="preserve"><value>Idyerin Transliteration</value></data>
   <data name="Ipa_CandidateHint" xml:space="preserve"><value>(a|b) means there are multiple candidates.</value></data>
   <data name="Legend_Title" xml:space="preserve"><value>Legend</value></data>
+  <data name="Legend_UpdatedStatus" xml:space="preserve"><value>Updated the legend.</value></data>
+  <data name="Legend_InvalidJson" xml:space="preserve"><value>Not valid JSON: {0}</value></data>
 
   <!-- Examples overlay -->
   <data name="Examples_AddButton" xml:space="preserve"><value>+ Example</value></data>
