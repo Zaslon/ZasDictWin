@@ -38,7 +38,7 @@
          「最後に配布した番号」ではなく「次のビルドが名乗る番号」。
          Major.Minor はここで直接編集する。 -->
     <VersionMajor>1</VersionMajor>
-    <VersionMinor>2</VersionMinor>
+    <VersionMinor>3</VersionMinor>
     <VersionPatchFile>$(MSBuildProjectDirectory)\version.patch.txt</VersionPatchFile>
 
     <!-- 番号を進めるのは人手のビルドだけにする。AI エージェント (Claude Code など) や CI が
