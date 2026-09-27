@@ -28,11 +28,15 @@
             <!-- 操作はフッタに寄せて、本文のスクロールと混ざらないようにする -->
             <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0"
                     Padding="0,10,0,0" Margin="0,12,0,0">
-                <StackPanel Orientation="Horizontal">
-                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Edit}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="EditWordRequested" IsEnabled="{Binding CanEditWord}" />
-                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Duplicate}" r:IntentTrigger.OnClick="DuplicateWordRequested" IsEnabled="{Binding CanDuplicateWord}" />
-                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}" r:IntentTrigger.OnClick="DeleteWordRequested" IsEnabled="{Binding CanDeleteWord}" />
-                </StackPanel>
+                <DockPanel>
+                    <!-- 削除は編集・複製と押し違えないよう、反対の端に離して置く -->
+                    <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}"
+                            r:IntentTrigger.OnClick="DeleteWordRequested" IsEnabled="{Binding CanDeleteWord}" Margin="0" />
+                    <StackPanel Orientation="Horizontal">
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Edit}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="EditWordRequested" IsEnabled="{Binding CanEditWord}" />
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Duplicate}" r:IntentTrigger.OnClick="DuplicateWordRequested" IsEnabled="{Binding CanDuplicateWord}" />
+                    </StackPanel>
+                </DockPanel>
             </Border>
 
             <!-- 詳細面は縦スクロールのみ。横に流すと本文の折り返し位置が測定のたびに移り、

@@ -180,6 +180,30 @@
         <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
 
+    <!-- 押せない間は通常のボタンと同じ無彩色に留める。塗りのまま半透明にすると、押せないのに
+         目立つ色が残って操作を促しているように見えるため。 -->
+    <Style x:Key="PrimaryWhenEnabledButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentFill}" />
+                <Setter Property="Foreground" Value="{StaticResource OnFill}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <Style x:Key="DangerWhenEnabledButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Style.Triggers>
+            <Trigger Property="IsEnabled" Value="True">
+                <Setter Property="Background" Value="{StaticResource DangerFill}" />
+                <Setter Property="Foreground" Value="{StaticResource OnFill}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <!-- 枠を取っ払った軽いボタン。hover で文字自体を明るくして押せることを示す -->
     <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="Transparent" />

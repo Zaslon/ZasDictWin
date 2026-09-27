@@ -13,9 +13,9 @@
             <TextBlock DockPanel.Dock="Top" v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold"
                        FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
 
-            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">
-                <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="ModalDismissRequested" />
-                <Button v:LocalizedText.Content="{x:Static res:Strings.GitHub_CommitButton}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="GitHubCommitConfirmed" Margin="0" />
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,18,0,0">
+                <Button v:LocalizedText.Content="{x:Static res:Strings.GitHub_CommitButton}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="GitHubCommitConfirmed" />
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="ModalDismissRequested" Margin="0" />
             </StackPanel>
 
             <StackPanel Margin="0,14,0,0">

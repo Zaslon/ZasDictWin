@@ -23,10 +23,10 @@
             <!-- 追加ボタンと件数はスクロール領域の外。例文が増えても位置が動かないようにする -->
             <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
                 <DockPanel>
-                    <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Examples_AddButton}" Style="{StaticResource PrimaryButton}"
+                    <Button DockPanel.Dock="Left" v:LocalizedText.Content="{x:Static res:Strings.Examples_AddButton}" Style="{StaticResource PrimaryButton}"
                             r:IntentTrigger.OnClick="NewExampleRequested" Margin="0" />
                     <TextBlock v:LocalizedText.Text="{Binding CountLabel}" Style="{StaticResource Label}" Margin="0"
-                               VerticalAlignment="Center" />
+                               HorizontalAlignment="Right" VerticalAlignment="Center" />
                 </DockPanel>
             </Border>
 

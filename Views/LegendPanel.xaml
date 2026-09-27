@@ -9,10 +9,13 @@
     <Grid>
         <!-- 表示 -->
         <DockPanel Visibility="{Binding IsEditing, Converter={StaticResource BoolVis}, ConverterParameter=invert}">
-            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" HorizontalAlignment="Right" Margin="24,14,24,0">
-                <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Edit}" r:IntentTrigger.OnClick="LegendEditRequested"
-                        IsEnabled="{Binding CanEdit}" Margin="0" />
-            </StackPanel>
+            <!-- 編集に入ると同じ位置に［保存］が出るよう、編集時のフッタと寸法を揃える -->
+            <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
+                <StackPanel Orientation="Horizontal">
+                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Edit}" Style="{StaticResource PrimaryButton}"
+                            r:IntentTrigger.OnClick="LegendEditRequested" IsEnabled="{Binding CanEdit}" Margin="0" />
+                </StackPanel>
+            </Border>
             <FlowDocumentScrollViewer x:Name="LegendView" Background="Transparent"
                                       IsSelectionEnabled="True"
                                       VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
@@ -22,13 +25,10 @@
         <!-- 編集。操作はフッタに固定し、本文が長くてもボタンが画面外に出ないようにする -->
         <DockPanel Visibility="{Binding IsEditing, Converter={StaticResource BoolVis}}">
             <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
-                <DockPanel>
-                    <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" Style="{StaticResource GhostButton}"
-                            r:IntentTrigger.OnClick="LegendEditCancelled" Margin="0" />
-                    <StackPanel Orientation="Horizontal">
-                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="LegendCommitted" />
-                    </StackPanel>
-                </DockPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="LegendCommitted" />
+                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="LegendEditCancelled" Margin="0" />
+                </StackPanel>
             </Border>
 
             <TextBlock DockPanel.Dock="Top" v:LocalizedText.Text="{Binding ValidationMessage}" Foreground="{StaticResource Danger}" Margin="24,14,24,0"

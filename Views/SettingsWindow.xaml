@@ -54,9 +54,9 @@
 
         <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Line}"
                 BorderThickness="0,1,0,0" Padding="24,14">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="WindowCloseRequested" />
-                <Button v:LocalizedText.Content="{x:Static res:Strings.Settings_ApplyButton}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="SettingsApplyRequested" Margin="0" />
+            <StackPanel Orientation="Horizontal">
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Settings_ApplyButton}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="SettingsApplyRequested" />
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="WindowCloseRequested" Margin="0" />
             </StackPanel>
         </Border>
 
@@ -265,10 +265,11 @@
                                      保存すると即座に空へ戻すので、画面にトークンが残り続けることはない。 -->
                                 <TextBox Grid.Column="0" Text="{Binding GitHubTokenInput, UpdateSourceTrigger=PropertyChanged}"
                                          v:Placeholder.Text="{x:Static res:Strings.Settings_TokenPlaceholder}" FontFamily="Consolas" />
-                                <Button Grid.Column="1" v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Margin="6,0,0,0" r:IntentTrigger.OnClick="GitHubTokenSaveRequested" IsEnabled="{Binding CanSaveGitHubToken}" />
+                                <Button Grid.Column="1" v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryWhenEnabledButton}"
+                                        Margin="6,0,0,0" r:IntentTrigger.OnClick="GitHubTokenSaveRequested" IsEnabled="{Binding CanSaveGitHubToken}" />
                             </Grid>
                             <DockPanel Margin="0,6,0,0">
-                                <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource GhostButton}"
+                                <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerWhenEnabledButton}"
                                         r:IntentTrigger.OnClick="GitHubTokenDeleteRequested" IsEnabled="{Binding HasGitHubToken}" Margin="0" />
                                 <TextBlock v:LocalizedText.Text="{Binding GitHubTokenStatus}" Style="{StaticResource Label}" Margin="0" VerticalAlignment="Center" />
                             </DockPanel>

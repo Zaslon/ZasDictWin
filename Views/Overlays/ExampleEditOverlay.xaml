@@ -23,11 +23,12 @@
             <!-- 操作はフッタに固定。入力欄が伸びてもボタンが画面外に出ないようにする -->
             <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
                 <DockPanel>
-                    <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" Style="{StaticResource GhostButton}"
-                            r:IntentTrigger.OnClick="ExampleEditCancelled" Margin="0" />
+                    <!-- 削除は保存と押し違えないよう、［保存］［キャンセル］から離して反対の端に置く -->
+                    <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}"
+                            r:IntentTrigger.OnClick="DeleteExampleRequested" IsEnabled="{Binding CanDelete}" Margin="0" />
                     <StackPanel Orientation="Horizontal">
                         <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="ExampleCommitted" />
-                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}" r:IntentTrigger.OnClick="DeleteExampleRequested" IsEnabled="{Binding CanDelete}" />
+                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="ExampleEditCancelled" />
                     </StackPanel>
                 </DockPanel>
             </Border>
