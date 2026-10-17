@@ -100,7 +100,10 @@ public sealed class SettingsViewModel : OverlayViewModel
         WindowHeight = settings.WindowHeight;
         WindowAspectLocked = settings.WindowAspectLocked;
         HeksaEnabled = settings.HeksaEnabled;
-        HeksaFontPath = settings.HeksaFontPath ?? "";
+        _heksaFontSource = settings.HeksaFontSource;
+        _heksaFontPath = settings.HeksaFontPath ?? "";
+        _heksaFontName = settings.HeksaFontName;
+        ReloadPreview();
         ReciprocalText = FormatReciprocal(relations);
 
         _mode = settings.Mode;
@@ -164,24 +167,53 @@ public sealed class SettingsViewModel : OverlayViewModel
         set { if (Set(ref _heksaEnabled, value)) RaisePreview(); }
     }
 
+    private HeksaFontSource _heksaFontSource;
+    public HeksaFontSource HeksaFontSource
+    {
+        get => _heksaFontSource;
+        internal set
+        {
+            if (!Set(ref _heksaFontSource, value)) return;
+            Raise(nameof(IsHeksaFromFile));
+            ReloadPreview();
+        }
+    }
+
+    public bool IsHeksaFromFile => HeksaFontSource == HeksaFontSource.File;
+
     private string _heksaFontPath = "";
     public string HeksaFontPath
     {
         get => _heksaFontPath;
-        set
-        {
-            if (!Set(ref _heksaFontPath, value)) return;
-            _previewFont = HeadwordFontState.Load(value);
-            RaisePreview();
-        }
+        set { if (Set(ref _heksaFontPath, value)) ReloadPreview(); }
     }
+
+    private string? _heksaFontName;
+
+    /// <summary>プルダウンの選択中の項目。一覧に無い名前（アンインストール済みなど）のときは
+    /// 何も選ばれていない表示になり、読み込めない旨の警告が出る。</summary>
+    public string? HeksaFontName
+    {
+        get => _heksaFontName;
+        set { if (Set(ref _heksaFontName, value)) ReloadPreview(); }
+    }
+
+    private IReadOnlyList<string>? _installedFontNames;
+
+    public IReadOnlyList<string> InstalledFontNames => _installedFontNames ??= HeadwordFontState.InstalledNames();
 
     private FontFamily? _previewFont;
 
-    /// <summary>［適用］前でも選んだ ttf をその場で確かめられるように、入力中のパスから読み直す。</summary>
+    /// <summary>［適用］前でも選んだフォントをその場で確かめられるように、入力中の値から読み直す。</summary>
     public FontFamily PreviewFontFamily => _previewFont ?? HeadwordFontState.Fallback;
     public bool HasPreviewFont => HeksaEnabled && _previewFont is not null;
     public bool IsFontMissing => HeksaEnabled && _previewFont is null;
+
+    private void ReloadPreview()
+    {
+        _previewFont = HeadwordFontState.Load(HeksaFontSource, HeksaFontPath, HeksaFontName);
+        RaisePreview();
+    }
 
     private void RaisePreview()
     {

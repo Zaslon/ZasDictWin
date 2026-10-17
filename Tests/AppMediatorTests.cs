@@ -678,6 +678,25 @@ public class AppMediatorTests
     }
 
     [Fact]
+    public void SettingsApply_HeksaInstalledSourceKeepsFilePath()
+    {
+        var h = new MediatorHarness();
+        h.Services.Settings.HeksaFontPath = @"C:\fonts\Fazik-regular.ttf";
+        h.Send(IntentKind.SettingsRequested);
+        var form = Assert.IsType<HostCommand.OpenSettings>(h.HostCommands.Last()).State;
+
+        h.Send(IntentKind.SettingsHeksaSourceSelected, "Installed");
+        Assert.False(form.IsHeksaFromFile);
+        form.HeksaFontName = "Fazik";
+        h.Send(IntentKind.SettingsApplyRequested, from: h.AddHost(HostRole.Settings));
+
+        var s = h.Services.Settings;
+        Assert.Equal(HeksaFontSource.Installed, s.HeksaFontSource);
+        Assert.Equal("Fazik", s.HeksaFontName);
+        Assert.Equal(@"C:\fonts\Fazik-regular.ttf", s.HeksaFontPath);
+    }
+
+    [Fact]
     public void Settings_OpensOnlyOnce()
     {
         var h = new MediatorHarness();

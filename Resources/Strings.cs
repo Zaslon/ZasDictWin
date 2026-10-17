@@ -276,6 +276,8 @@ public static class Strings
     public static string Settings_HeksaAnnotation => Get();
     public static string Settings_HeksaEnableCheckbox => Get();
     public static string Settings_HeksaDescription => Get();
+    public static string Settings_HeksaSourceFile => Get();
+    public static string Settings_HeksaSourceInstalled => Get();
     public static string Settings_PickFileButton => Get();
     public static string Settings_HeksaMissingWarning => Get();
     public static string Settings_HeksaSampleLabel => Get();

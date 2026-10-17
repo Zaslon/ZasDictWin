@@ -244,9 +244,11 @@
   <data name="Settings_HeksaHeading" xml:space="preserve"><value>Funeruzemanseresk Id'erin</value></data>
   <data name="Settings_HeksaAnnotation" xml:space="preserve"><value>（Heksa）</value></data>
   <data name="Settings_HeksaEnableCheckbox" xml:space="preserve"><value>Heksau cegire</value></data>
-  <data name="Settings_HeksaDescription" xml:space="preserve"><value>見出し語・検索欄・単語エディタの綴り欄をイジェール文字フォントで表示します（[en].ttf / .otf[/en] が必要です）。</value></data>
+  <data name="Settings_HeksaDescription" xml:space="preserve"><value>見出し語・検索欄・単語エディタの綴り欄をイジェール文字フォントで表示します。フォントファイル（[en].ttf / .otf[/en]）か、PC にインストール済みのフォントを選べます。</value></data>
+  <data name="Settings_HeksaSourceFile" xml:space="preserve"><value>フォントファイル</value></data>
+  <data name="Settings_HeksaSourceInstalled" xml:space="preserve"><value>インストール済みのフォント</value></data>
   <data name="Settings_PickFileButton" xml:space="preserve"><value>ファイルを選択</value></data>
-  <data name="Settings_HeksaMissingWarning" xml:space="preserve"><value>フォントファイルが読み込めないため、標準フォントで表示されます。</value></data>
+  <data name="Settings_HeksaMissingWarning" xml:space="preserve"><value>フォントが読み込めないため、標準フォントで表示されます。</value></data>
   <data name="Settings_HeksaSampleLabel" xml:space="preserve"><value>サンプル：eaoiu heksa</value></data>
   <data name="Settings_ResetDefaultButton" xml:space="preserve"><value>既定に戻す</value></data>
   <data name="Settings_ReciprocalHeading" xml:space="preserve"><value>関係の対照表</value></data>

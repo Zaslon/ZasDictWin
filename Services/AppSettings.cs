@@ -9,6 +9,10 @@ namespace ZasDictWin.Services;
 /// （唯一の書き込みタイミングをコミットに一本化するため）。</summary>
 public enum EditMode { Local, GitHub }
 
+/// <summary>Heksa フォントの取り先。<see cref="File"/> は ttf / otf のパス、<see cref="Installed"/> は
+/// PC にインストール済みのフォント名を使う。</summary>
+public enum HeksaFontSource { File, Installed }
+
 public sealed class AppSettings
 {
     // OS の言語ではなく "ja" を既定にする。settings.json にこの項目がまだ無い（i18n 対応前からの）
@@ -42,7 +46,10 @@ public sealed class AppSettings
     public string? GitHubChangelogPath { get; set; }
 
     public bool HeksaEnabled { get; set; }
+    // 取り先を切り替えても、もう一方の値は消さずに持っておく（戻したときに選び直さずに済むように）。
+    public HeksaFontSource HeksaFontSource { get; set; } = HeksaFontSource.File;
     public string? HeksaFontPath { get; set; }
+    public string? HeksaFontName { get; set; }
 
     public string SortOrder { get; set; } = TextProcessor.DefaultSortOrder;
 

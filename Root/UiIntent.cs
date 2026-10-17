@@ -55,7 +55,7 @@ public enum IntentKind
     ConfirmChoiceSelected, ModalDismissRequested,
 
     // ---- 設定 ----
-    SettingsRequested, SettingsApplyRequested, PickHeksaFontRequested,
+    SettingsRequested, SettingsApplyRequested, PickHeksaFontRequested, SettingsHeksaSourceSelected,
     SettingsModeSelected, SettingsReciprocalResetRequested,
 
     // ---- 編集フォームの行（書きかけの入れ物を触るだけ。辞書へは保存まで書かない）----

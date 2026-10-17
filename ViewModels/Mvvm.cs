@@ -165,4 +165,31 @@ public sealed class HeadwordFontState : ViewModelBase
             return null;
         }
     }
+
+    public static FontFamily? Load(HeksaFontSource source, string? path, string? name)
+        => source == HeksaFontSource.Installed ? LoadInstalled(name) : Load(path);
+
+    /// <summary>
+    /// インストール済みのフォントを名前で引く。new FontFamily(名前) は存在しない名前でも
+    /// 黙って既定のフォントで描くだけで失敗が分からないため、一覧に実在するものだけを返す。
+    /// </summary>
+    public static FontFamily? LoadInstalled(string? name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return null;
+        var key = name.Trim();
+        return Fonts.SystemFontFamilies.FirstOrDefault(f =>
+            string.Equals(f.Source, key, StringComparison.OrdinalIgnoreCase)
+            || f.FamilyNames.Values.Any(n => string.Equals(n, key, StringComparison.OrdinalIgnoreCase)));
+    }
+
+    /// <summary>
+    /// 設定画面に並べるインストール済みフォント名。Fonts.SystemFontFamilies はユーザー単位で
+    /// インストールしたフォントも含む。一覧は WPF が初回に作って使い回すため、起動後に
+    /// インストールしたフォントは再起動するまで出てこない。
+    /// </summary>
+    public static IReadOnlyList<string> InstalledNames()
+        => Fonts.SystemFontFamilies.Select(f => f.Source)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Order(StringComparer.OrdinalIgnoreCase)
+            .ToList();
 }

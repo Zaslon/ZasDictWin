@@ -244,9 +244,11 @@
   <data name="Settings_HeksaHeading" xml:space="preserve"><value>Idyerin Script Font</value></data>
   <data name="Settings_HeksaAnnotation" xml:space="preserve"><value> (Heksa)</value></data>
   <data name="Settings_HeksaEnableCheckbox" xml:space="preserve"><value>Enable Heksa</value></data>
-  <data name="Settings_HeksaDescription" xml:space="preserve"><value>Shows headwords, the search box, and spelling fields in the word editor using the Idyerin script font (.ttf / .otf required).</value></data>
+  <data name="Settings_HeksaDescription" xml:space="preserve"><value>Shows headwords, the search box, and spelling fields in the word editor using the Idyerin script font. Choose a font file (.ttf / .otf) or a font installed on this PC.</value></data>
+  <data name="Settings_HeksaSourceFile" xml:space="preserve"><value>Font File</value></data>
+  <data name="Settings_HeksaSourceInstalled" xml:space="preserve"><value>Installed Font</value></data>
   <data name="Settings_PickFileButton" xml:space="preserve"><value>Choose File</value></data>
-  <data name="Settings_HeksaMissingWarning" xml:space="preserve"><value>The font file couldn't be loaded, so the default font is used instead.</value></data>
+  <data name="Settings_HeksaMissingWarning" xml:space="preserve"><value>The font couldn't be loaded, so the default font is used instead.</value></data>
   <data name="Settings_HeksaSampleLabel" xml:space="preserve"><value>Sample: eaoiu heksa</value></data>
   <data name="Settings_ResetDefaultButton" xml:space="preserve"><value>Reset to Defaults</value></data>
   <data name="Settings_ReciprocalHeading" xml:space="preserve"><value>Reciprocal Relation Table</value></data>

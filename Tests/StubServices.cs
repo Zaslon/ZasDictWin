@@ -53,7 +53,7 @@ internal sealed class StubServices : IAppServices
     public OtmDocument CreateEmpty() => OtmJsonIo.CreateEmpty();
     public void SaveSettings() => SettingsSaves++;
     public void SaveRelations(Dictionary<string, string> relations) => SavedRelations = relations;
-    public FontFamily? LoadHeksaFont(string? path) => null;
+    public FontFamily? LoadHeksaFont(HeksaFontSource source, string? path, string? name) => null;
     public string? PickOpenPath(string title, string filter) => NextOpenPath;
     public string? PickSavePath(string title, string filter, string suggestedFileName) => NextSavePath;
 

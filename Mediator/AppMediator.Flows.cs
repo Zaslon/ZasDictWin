@@ -169,7 +169,9 @@ public sealed partial class AppMediator
         _search = new SearchService(_text, ignoredPattern);
         _relations = new RelationService(Choices.Current.Relations);
 
-        var heksa = Settings.HeksaEnabled ? _services.LoadHeksaFont(Settings.HeksaFontPath) : null;
+        var heksa = Settings.HeksaEnabled
+            ? _services.LoadHeksaFont(Settings.HeksaFontSource, Settings.HeksaFontPath, Settings.HeksaFontName)
+            : null;
         HeadwordFontState.Instance.Family = heksa ?? HeadwordFontState.Fallback;
         FontScaleState.Instance.Scale = Settings.FontScale;
         _state.Browser.SyncWithSettings();   // 幅と開始 URL。表示中のページは切り替えない

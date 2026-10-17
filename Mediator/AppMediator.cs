@@ -428,6 +428,10 @@ public sealed partial class AppMediator
                     && _services.PickOpenPath(Strings.Settings_PickFontDialogTitle, Strings.Settings_FontFilter) is { } font)
                     fontForm.HeksaFontPath = font;
                 break;
+            case IntentKind.SettingsHeksaSourceSelected:
+                if (_settingsState is { } sourceForm && payload is string hs && Enum.TryParse<HeksaFontSource>(hs, out var heksaSource))
+                    sourceForm.HeksaFontSource = heksaSource;
+                break;
             case IntentKind.SettingsModeSelected:
                 if (_settingsState is { } modeForm && payload is string em && Enum.TryParse<EditMode>(em, out var editMode))
                     modeForm.Mode = editMode;
@@ -938,7 +942,9 @@ public sealed partial class AppMediator
         s.WindowHeight = Math.Max(form.WindowHeight, MinWindowHeight);
         s.WindowAspectLocked = form.WindowAspectLocked;
         s.HeksaEnabled = form.HeksaEnabled;
+        s.HeksaFontSource = form.HeksaFontSource;
         s.HeksaFontPath = string.IsNullOrWhiteSpace(form.HeksaFontPath) ? null : form.HeksaFontPath;
+        s.HeksaFontName = string.IsNullOrWhiteSpace(form.HeksaFontName) ? null : form.HeksaFontName;
 
         s.Mode = form.Mode;
         s.GitHubOwner = string.IsNullOrWhiteSpace(form.GitHubOwner) ? null : form.GitHubOwner.Trim();

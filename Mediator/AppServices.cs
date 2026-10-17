@@ -40,7 +40,7 @@ public interface IAppServices
     void SaveRelations(Dictionary<string, string> relations);
 
     /// <summary>Heksa フォントの読み込み。読めなければ null。</summary>
-    FontFamily? LoadHeksaFont(string? path);
+    FontFamily? LoadHeksaFont(HeksaFontSource source, string? path, string? name);
 
     /// <summary>OS のファイルダイアログ。別 HWND だが README で例外として許容されている手段。
     /// 取りやめ（キャンセル）は null。OS が描くので [en] タグは EnTag.Strip で落とす。</summary>
@@ -126,7 +126,8 @@ public sealed class AppServices : IAppServices
         Choices.Current.Save();
     }
 
-    public FontFamily? LoadHeksaFont(string? path) => HeadwordFontState.Load(path);
+    public FontFamily? LoadHeksaFont(HeksaFontSource source, string? path, string? name)
+        => HeadwordFontState.Load(source, path, name);
 
     public string? PickOpenPath(string title, string filter)
     {

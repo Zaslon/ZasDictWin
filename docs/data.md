@@ -38,7 +38,9 @@ OTM-JSON を読み書きする（`Services/OtmJsonIo.cs`。保存は一時ファ
 | `error.log` | 障害ログ（下記） |
 | `WebView2\` | ブラウザのユーザーデータ |
 
-Heksa フォント（`Fazik-regular.ttf`）はリポジトリに含めない。設定 → 表示・動作 から取り込む。
+Heksa フォント（`Fazik-regular.ttf`）はリポジトリに含めない。設定 → 表示・動作 で、フォントファイルを
+直接選ぶか、PC にインストール済みのフォントから選ぶ（`settings.json` の `HeksaFontSource` が `File` なら
+`HeksaFontPath`、`Installed` なら `HeksaFontName` を使う。使わない側の値も消さずに残す）。
 
 ### choices.json
 
