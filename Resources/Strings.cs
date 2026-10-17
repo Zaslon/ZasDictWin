@@ -1,6 +1,7 @@
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Resources;
 
@@ -106,6 +107,15 @@ public static class Strings
             return _contentFont;
         }
     }
+
+    private static FontFamily? _pathFont;
+
+    /// <summary>ファイルパス・リポジトリ内パスを単独で出す欄（入力欄・表示欄とも）のフォント。
+    /// パスは表示言語に依存しないうえ、0/O・l/1 を見分けたいので等幅に固定する。
+    /// 日本語のフォルダ名は Consolas に字が無く別のフォントへ落ちるので、上端が欠けないよう
+    /// 行の高さを底上げしてある（HeadwordFontState.WithRoomForFallback）。
+    /// 文中に差し込むパスはここではなく、各 resx 側の [en] タグで扱う。</summary>
+    public static FontFamily PathFont => _pathFont ??= HeadwordFontState.WithRoomForFallback(new FontFamily("Consolas"));
 
     public static string Common_Cancel => Get();
     public static string Common_Close => Get();
@@ -295,6 +305,10 @@ public static class Strings
     public static string Settings_BrowserOpenOnStartCheckbox => Get();
     public static string Settings_StartUrlLabel => Get();
     public static string Settings_StartUrlNote => Get();
+    public static string Settings_CurrentFileLabel => Get();
+    public static string Settings_CurrentFileNote => Get();
+    public static string Settings_CurrentFileNone => Get();
+    public static string Settings_CurrentFileUnsaved => Get();
     public static string Settings_EditModeHeading => Get();
     public static string Settings_ModeLocal => Get();
     public static string Settings_GitHubModeNote => Get();
@@ -381,6 +395,7 @@ public static class Strings
     public static string Main_OtmFilter => Get();
     public static string Main_LoadFailedStatus => Get();
     public static string Main_LoadFailedTitle => Get();
+    public static string Main_LoadFailedMessage => Get();
     public static string Main_LoadedStatus => Get();
     public static string Main_SaveDialogTitle => Get();
     public static string Main_SaveFailedStatus => Get();

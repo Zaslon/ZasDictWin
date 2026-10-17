@@ -53,7 +53,7 @@ public sealed partial class AppMediator
         if (!result.Ok || result.Document is null)
         {
             SetStatus(string.Format(Strings.Main_LoadFailedStatus, result.Message));
-            Confirm(Strings.Main_LoadFailedTitle, $"{path}{Environment.NewLine}{result.Message}", (Strings.Common_Close, false, null));
+            Confirm(Strings.Main_LoadFailedTitle, string.Format(Strings.Main_LoadFailedMessage, path, result.Message), (Strings.Common_Close, false, null));
             return;
         }
 

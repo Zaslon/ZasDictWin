@@ -119,7 +119,7 @@ public sealed class HeadwordFontState : ViewModelBase
     /// 元のフォントだけを指す合成フォント（.CompositeFont と同じ仕組み）を組んで数値をそちらに持たせる。
     /// 値は em に対する比なので、文字サイズ倍率を変えても同じ割合で広がる。
     /// </summary>
-    private static FontFamily WithRoomForFallback(FontFamily family)
+    internal static FontFamily WithRoomForFallback(FontFamily family)
     {
         if (family.Baseline >= Fallback.Baseline && family.LineSpacing >= Fallback.LineSpacing) return family;
 

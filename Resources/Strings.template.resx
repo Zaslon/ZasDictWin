@@ -288,6 +288,10 @@
   <data name="Settings_BrowserOpenOnStartCheckbox" xml:space="preserve"><value>Open the browser tab at startup</value></data>
   <data name="Settings_StartUrlLabel" xml:space="preserve"><value>Start URL</value></data>
   <data name="Settings_StartUrlNote" xml:space="preserve"><value> (leave blank for the default search page)</value></data>
+  <data name="Settings_CurrentFileLabel" xml:space="preserve"><value>Open Dictionary File</value></data>
+  <data name="Settings_CurrentFileNote" xml:space="preserve"><value>In either edit mode, changes are saved to this file. In GitHub mode, its contents are what gets committed.</value></data>
+  <data name="Settings_CurrentFileNone" xml:space="preserve"><value>No dictionary is open.</value></data>
+  <data name="Settings_CurrentFileUnsaved" xml:space="preserve"><value>The new dictionary hasn't been saved yet.</value></data>
   <data name="Settings_EditModeHeading" xml:space="preserve"><value>Edit Mode</value></data>
   <data name="Settings_ModeLocal" xml:space="preserve"><value>Local Editing</value></data>
   <data name="Settings_GitHubModeNote" xml:space="preserve"><value>In GitHub mode, autosave is disabled and [Load from GitHub] and [Commit] appear in the header.</value></data>
@@ -376,6 +380,8 @@
   <data name="Main_OtmFilter" xml:space="preserve"><value>OTM-JSON (*.json)|*.json|All files (*.*)|*.*</value></data>
   <data name="Main_LoadFailedStatus" xml:space="preserve"><value>Failed to load: {0}</value></data>
   <data name="Main_LoadFailedTitle" xml:space="preserve"><value>Can't Open</value></data>
+  <data name="Main_LoadFailedMessage" xml:space="preserve"><value>{0}
+{1}</value></data>
   <data name="Main_LoadedStatus" xml:space="preserve"><value>Loaded {0}.</value></data>
   <data name="Main_SaveDialogTitle" xml:space="preserve"><value>Save the Dictionary</value></data>
   <data name="Main_SaveFailedStatus" xml:space="preserve"><value>Failed to save: {0}</value></data>

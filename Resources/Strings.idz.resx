@@ -264,6 +264,10 @@
   <data name="Settings_BrowserOpenOnStartCheckbox" xml:space="preserve"><value>起動時にブラウザのタブを開く</value></data>
   <data name="Settings_StartUrlLabel" xml:space="preserve"><value>開始 [en]URL[/en]</value></data>
   <data name="Settings_StartUrlNote" xml:space="preserve"><value>（空にすると既定の検索ページ）</value></data>
+  <data name="Settings_CurrentFileLabel" xml:space="preserve"><value>開いている辞書ファイル</value></data>
+  <data name="Settings_CurrentFileNote" xml:space="preserve"><value>どちらの編集モードでも、保存先はこのファイルです。[en]GitHub[/en]モードではこのファイルの内容をコミットします。</value></data>
+  <data name="Settings_CurrentFileNone" xml:space="preserve"><value>辞書が開かれていません。</value></data>
+  <data name="Settings_CurrentFileUnsaved" xml:space="preserve"><value>新規作成した辞書はまだ保存されていません。</value></data>
   <data name="Settings_EditModeHeading" xml:space="preserve"><value>編集モード</value></data>
   <data name="Settings_ModeLocal" xml:space="preserve"><value>ローカル編集</value></data>
   <data name="Settings_GitHubModeNote" xml:space="preserve"><value>[en]GitHub[/en]モードでは自動保存が無効になり、ヘッダーに［[en]GitHub[/en]から読み込む］［コミット］が現れます。</value></data>
@@ -352,6 +356,8 @@
   <data name="Main_OtmFilter" xml:space="preserve"><value>OTM-JSON (*.json)|*.json|すべてのファイル (*.*)|*.*</value></data>
   <data name="Main_LoadFailedStatus" xml:space="preserve"><value>読み込みに失敗しました: [en]{0}[/en]</value></data>
   <data name="Main_LoadFailedTitle" xml:space="preserve"><value>読み込めません</value></data>
+  <data name="Main_LoadFailedMessage" xml:space="preserve"><value>[en]{0}[/en]
+{1}</value></data>
   <data name="Main_LoadedStatus" xml:space="preserve"><value>[en]{0}[/en] を読み込みました。</value></data>
   <data name="Main_SaveDialogTitle" xml:space="preserve"><value>辞書を保存</value></data>
   <data name="Main_SaveFailedStatus" xml:space="preserve"><value>保存に失敗しました: [en]{0}[/en]</value></data>
@@ -409,5 +415,5 @@
 
 {0}: {1}
 
-詳しい記録: {2}</value></data>
+詳しい記録: [en]{2}[/en]</value></data>
 </root>

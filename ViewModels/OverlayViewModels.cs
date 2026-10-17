@@ -121,6 +121,8 @@ public sealed class SettingsViewModel : OverlayViewModel
         BrowserStartUrl = settings.BrowserStartUrl;
 
         HasDictionary = doc is not null;
+        CurrentFilePath = doc?.Path;
+        CurrentFileMissingText = doc is null ? Strings.Settings_CurrentFileNone : Strings.Settings_CurrentFileUnsaved;
         if (doc is not null)
         {
             Punctuations = string.Concat(
@@ -194,6 +196,12 @@ public sealed class SettingsViewModel : OverlayViewModel
     public string Punctuations { get; set; } = "";
     public string IgnoredPattern { get; set; } = "";
     public bool HasDictionary { get; }
+
+    /// <summary>開いている辞書の実ファイル。GitHub モードでも作業コピーとして手元に置いたファイルを
+    /// 開いて保存しているので、編集モードによらず同じ値になる。新規作成して未保存の間だけ null。</summary>
+    public string? CurrentFilePath { get; }
+    public bool HasCurrentFile => CurrentFilePath is not null;
+    public string CurrentFileMissingText { get; }
 
     private string _streamBackground = "";
 
