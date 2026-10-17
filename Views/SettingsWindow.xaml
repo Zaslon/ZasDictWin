@@ -96,7 +96,7 @@
                                  Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=120}" />
 
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_SortOrderLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
-                        <TextBox Text="{Binding SortOrder}" FontFamily="Consolas" />
+                        <TextBox Text="{Binding SortOrder}" />
 
                         <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_AutoSaveCheckbox}" IsChecked="{Binding AutoSave}" Margin="0,18,0,0" />
 
@@ -126,7 +126,7 @@
                                    v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaDescription}" />
                         <DockPanel Margin="0,8,0,0">
                             <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Settings_PickFileButton}" r:IntentTrigger.OnClick="PickHeksaFontRequested" Margin="8,0,0,0" />
-                            <TextBox Text="{Binding HeksaFontPath, UpdateSourceTrigger=PropertyChanged}" FontFamily="{x:Static res:Strings.PathFont}" />
+                            <TextBox Text="{Binding HeksaFontPath, UpdateSourceTrigger=PropertyChanged}" />
                         </DockPanel>
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaMissingWarning}"
                                    Foreground="{StaticResource Danger}" Margin="0,8,0,0"
@@ -145,7 +145,7 @@
                             </TextBlock>
                         </DockPanel>
                         <TextBox Text="{Binding ReciprocalText}" AcceptsReturn="True" MinHeight="140"
-                                 VerticalScrollBarVisibility="Auto" FontFamily="Consolas" />
+                                 VerticalScrollBarVisibility="Auto" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -159,11 +159,11 @@
                             <TextBlock Style="{StaticResource FieldLabel}">
                                 <Run Text="punctuations" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_PunctuationsNote}" />
                             </TextBlock>
-                            <TextBox Text="{Binding Punctuations}" FontFamily="Consolas" />
+                            <TextBox Text="{Binding Punctuations}" />
                             <TextBlock Style="{StaticResource FieldLabel}" Margin="0,18,0,5">
                                 <Run Text="ignoredPattern" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_IgnoredPatternNote}" />
                             </TextBlock>
-                            <TextBox Text="{Binding IgnoredPattern}" FontFamily="Consolas" />
+                            <TextBox Text="{Binding IgnoredPattern}" />
                             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_DictDependentNote}"
                                        Style="{StaticResource Label}" Margin="0,10,0,0" />
                         </StackPanel>
@@ -207,7 +207,7 @@
                         <TextBlock Style="{StaticResource FieldLabel}" Margin="0,18,0,5">
                             <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_StartUrlLabel}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_StartUrlNote}" />
                         </TextBlock>
-                        <TextBox Text="{Binding BrowserStartUrl, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
+                        <TextBox Text="{Binding BrowserStartUrl, UpdateSourceTrigger=PropertyChanged}" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -217,7 +217,7 @@
                     <StackPanel>
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_CurrentFileLabel}" Style="{StaticResource SectionHeading}" Margin="0,0,0,8" />
                         <!-- 読み取り専用の TextBox にしてあるのは、選択してコピーできるようにするため。 -->
-                        <TextBox Text="{Binding CurrentFilePath, Mode=OneTime}" IsReadOnly="True" FontFamily="{x:Static res:Strings.PathFont}" TextWrapping="Wrap"
+                        <TextBox Text="{Binding CurrentFilePath, Mode=OneTime}" IsReadOnly="True" TextWrapping="Wrap"
                                  Visibility="{Binding HasCurrentFile, Converter={StaticResource BoolVis}}" />
                         <TextBlock v:LocalizedText.Text="{Binding CurrentFileMissingText}" Foreground="{StaticResource Muted}"
                                    Visibility="{Binding HasCurrentFile, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
@@ -256,12 +256,12 @@
                             <TextBlock Style="{StaticResource FieldLabel}" Margin="0,16,0,5">
                                 <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_JsonPathLabel}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_JsonPathNote}" />
                             </TextBlock>
-                            <TextBox Text="{Binding GitHubJsonPath}" FontFamily="{x:Static res:Strings.PathFont}" v:Placeholder.Text="{x:Static res:Strings.Settings_JsonPathPlaceholder}" />
+                            <TextBox Text="{Binding GitHubJsonPath}" v:Placeholder.Text="{x:Static res:Strings.Settings_JsonPathPlaceholder}" />
 
                             <TextBlock Style="{StaticResource FieldLabel}" Margin="0,16,0,5">
                                 <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_ChangelogPathLabel}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_ChangelogPathNote}" />
                             </TextBlock>
-                            <TextBox Text="{Binding GitHubChangelogPath}" FontFamily="{x:Static res:Strings.PathFont}" v:Placeholder.Text="{x:Static res:Strings.Settings_ChangelogPathPlaceholder}" />
+                            <TextBox Text="{Binding GitHubChangelogPath}" v:Placeholder.Text="{x:Static res:Strings.Settings_ChangelogPathPlaceholder}" />
 
                             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_TokenLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,3" />
                             <TextBlock v:LocalizedText.Text="{Binding GitHubTokenHint}" Style="{StaticResource Label}" Margin="0,0,0,5" />

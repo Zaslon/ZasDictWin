@@ -340,7 +340,9 @@
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <!-- 入力欄の中身は UI 文字列ではなく辞書データや設定値なので、表示言語のフォントは継がせない。
              継ぐと Idyerin 表示で主フォントが Heksa になり、日本語が字を持たないフォントから落ちて
-             行の高さが足りなくなる（欄ごとの指定は個別に上書きする。綴り欄の Heksa、パス欄の Strings.PathFont）。 -->
+             行の高さが足りなくなる（欄ごとの指定は個別に上書きする。綴り欄の Heksa、英数字だけの欄の Consolas）。
+             Consolas は色コード・トークンのように仕様上日本語が入りえない欄に限る。日本語の字を持たず
+             行も低いので、パスや正規表現など日本語が混ざりうる欄に当てると同じ理由で上端が欠ける。 -->
         <Setter Property="FontFamily" Value="{x:Static res:Strings.ContentFont}" />
         <Setter Property="Template">
             <Setter.Value>
@@ -356,7 +358,7 @@
                                  折り返してしまい、TextTrimming が働かない。
                                  TextBlock は上の TextBox と違って自分では寄せないので、Margin で同じだけ寄せる。
                                  入力欄の中身と違って必ず UI 文字列なので、入力欄側のフォント
-                                 （URL 欄の en、綴り欄の Heksa、パス欄の Strings.PathFont）は継承させない。 -->
+                                 （URL 欄の en、綴り欄の Heksa、英数字だけの欄の Consolas）は継承させない。 -->
                             <TextBlock x:Name="ph"
                                        v:LocalizedText.Text="{Binding Path=(v:Placeholder.Text), RelativeSource={RelativeSource TemplatedParent}}"
                                        FontFamily="{x:Static res:Strings.UIFont}"

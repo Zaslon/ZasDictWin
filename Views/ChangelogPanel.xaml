@@ -14,7 +14,7 @@
             </StackPanel>
             <!-- パスは 1 行。Label スタイルが Wrap を宣言しているので明示的に打ち消す -->
             <TextBlock Text="{Binding ChangelogPath}" Style="{StaticResource Label}" Margin="0"
-                       FontFamily="{x:Static res:Strings.PathFont}"
+                       FontFamily="{x:Static res:Strings.ContentFont}"
                        VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
         </DockPanel>
 

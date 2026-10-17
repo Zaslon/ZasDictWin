@@ -1,7 +1,6 @@
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
-using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Resources;
 
@@ -107,15 +106,6 @@ public static class Strings
             return _contentFont;
         }
     }
-
-    private static FontFamily? _pathFont;
-
-    /// <summary>ファイルパス・リポジトリ内パスを単独で出す欄（入力欄・表示欄とも）のフォント。
-    /// パスは表示言語に依存しないうえ、0/O・l/1 を見分けたいので等幅に固定する。
-    /// 日本語のフォルダ名は Consolas に字が無く別のフォントへ落ちるので、上端が欠けないよう
-    /// 行の高さを底上げしてある（HeadwordFontState.WithRoomForFallback）。
-    /// 文中に差し込むパスはここではなく、各 resx 側の [en] タグで扱う。</summary>
-    public static FontFamily PathFont => _pathFont ??= HeadwordFontState.WithRoomForFallback(new FontFamily("Consolas"));
 
     public static string Common_Cancel => Get();
     public static string Common_Close => Get();
