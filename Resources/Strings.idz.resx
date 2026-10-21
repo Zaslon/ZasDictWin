@@ -311,6 +311,8 @@
   <data name="GitHub_LoadConfirmTitle" xml:space="preserve"><value>[en]GitHub[/en]から読み込み</value></data>
   <data name="GitHub_LoadConfirmQuestion" xml:space="preserve"><value>ローカルの変更を破棄してGitHubから再読み込みをしますか？</value></data>
   <data name="GitHub_LoadConfirmTarget" xml:space="preserve"><value>上書き先: [en]{0}[/en]</value></data>
+  <data name="GitHub_LoadCreateQuestion" xml:space="preserve"><value>ローカルに辞書ファイルがありません。[en]GitHub[/en]から取得して新しく作成しますか？</value></data>
+  <data name="GitHub_LoadCreateTarget" xml:space="preserve"><value>作成先: [en]{0}[/en]</value></data>
   <data name="GitHub_LoadConfirmYes" xml:space="preserve"><value>読み込む</value></data>
   <data name="GitHub_Loading" xml:space="preserve"><value>[en]GitHub[/en]から読み込み中…</value></data>
   <data name="GitHub_ChangelogLoadFailedStatus" xml:space="preserve"><value>更新履歴の読み込みに失敗しました: [en]{0}[/en]</value></data>

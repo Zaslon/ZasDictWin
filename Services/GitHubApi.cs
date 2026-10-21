@@ -42,10 +42,10 @@ public static class GitHubApi
 {
     private const string ApiBase = "https://api.github.com";
 
-    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(30) };
+    // テストが偽の応答を返す HttpMessageHandler に差し替える。アプリ側からは書き換えない。
+    internal static HttpClient Http { get; set; } = new() { Timeout = TimeSpan.FromSeconds(30) };
 
-    public static string TokenPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZasDictWin", "github_token");
+    public static string TokenPath => AppDataDir.Combine("github_token");
 
     public static string? LoadToken()
     {

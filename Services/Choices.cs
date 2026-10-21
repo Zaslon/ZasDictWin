@@ -64,13 +64,13 @@ public sealed class Choices
     /// <summary>読み込み済みの選択肢。初回アクセスでファイルを読む。</summary>
     public static Choices Current => _current ??= Load();
 
+    /// <summary>次の <see cref="Current"/> でファイルを読み直させる。テストが置き場を差し替えた後に使う。</summary>
+    internal static void Reset() => _current = null;
+
     /// <summary>手を入れる前の選択肢。設定画面の［既定に戻す］が参照する。</summary>
     public static Choices Defaults => new();
 
-    private static string Dir =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZasDictWin");
-
-    private static string FilePath => Path.Combine(Dir, "choices.json");
+    private static string FilePath => AppDataDir.Combine("choices.json");
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -82,7 +82,7 @@ public sealed class Choices
     {
         try
         {
-            Directory.CreateDirectory(Dir);
+            Directory.CreateDirectory(AppDataDir.Root);
             File.WriteAllText(FilePath, JsonSerializer.Serialize(this, Options));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
@@ -136,7 +136,7 @@ public sealed class Choices
     {
         try
         {
-            var path = Path.Combine(Dir, "settings.json");
+            var path = AppDataDir.Combine("settings.json");
             if (!File.Exists(path)) return null;
 
             using var doc = JsonDocument.Parse(File.ReadAllText(path));

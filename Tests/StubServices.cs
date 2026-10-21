@@ -13,7 +13,7 @@ namespace ZasDictWin.Tests;
 internal sealed class StubServices : IAppServices
 {
     public AppSettings Settings { get; } = new();
-    public DateTime Now { get; set; } = new(2026, 9, 25, 12, 0, 0);
+    public DateTime Now { get; } = new(2026, 9, 25, 12, 0, 0);
 
     public Dictionary<string, OtmDocument> Docs { get; } = new();
     public Dictionary<string, string> Files { get; } = new();
@@ -23,7 +23,11 @@ internal sealed class StubServices : IAppServices
     public Dictionary<string, string>? SavedRelations { get; private set; }
     public string? NextOpenPath { get; set; }
     public string? NextSavePath { get; set; }
+    public string? SuggestedFileName { get; private set; }
     public List<(string Csv, List<ChangeEntry> Entries)> Appended { get; } = new();
+    public bool AppendFails { get; set; }
+    public List<(string From, string To)> Copies { get; } = new();
+    public HashSet<string> WrittenWithBom { get; } = new();
     public List<string> Logged { get; } = new();
 
     public bool GitHubConfigured { get; set; } = true;
@@ -33,12 +37,17 @@ internal sealed class StubServices : IAppServices
     public List<(IReadOnlyList<GitHubFileChange> Files, string Message)> Commits { get; } = new();
     public bool HasGitHubToken { get; set; } = true;
     public bool TokenDeleted { get; private set; }
+    public string? SavedGitHubToken { get; private set; }
+
+    public bool HasZpdicApiKey { get; set; }
+    public Func<string, int, ExampleOfferResult> FetchOffer { get; set; } = (_, _) => new ExampleOfferResult(true, "ok", "tr", "sup");
+    public string? SavedZpdicKey { get; private set; }
+    public bool ZpdicKeyDeleted { get; private set; }
 
     public DocumentResult Load(string path)
     {
         if (Docs.TryGetValue(path, out var doc)) return new DocumentResult(true, doc, "");
         if (Files.ContainsKey(path)) return new DocumentResult(true, new OtmDocument(new JsonObject(), Array.Empty<Word>(), path), "");
-        Logged.Add($"load {path}");
         return new DocumentResult(false, null, "not found");
     }
 
@@ -55,7 +64,11 @@ internal sealed class StubServices : IAppServices
     public void SaveRelations(Dictionary<string, string> relations) => SavedRelations = relations;
     public FontFamily? LoadHeksaFont(HeksaFontSource source, string? path, string? name) => null;
     public string? PickOpenPath(string title, string filter) => NextOpenPath;
-    public string? PickSavePath(string title, string filter, string suggestedFileName) => NextSavePath;
+    public string? PickSavePath(string title, string filter, string suggestedFileName)
+    {
+        SuggestedFileName = suggestedFileName;
+        return NextSavePath;
+    }
 
     public bool TryGetGitHubTarget(out GitHubTarget target, out string error)
     {
@@ -73,18 +86,49 @@ internal sealed class StubServices : IAppServices
         return Task.FromResult(CommitResult);
     }
 
-    public void DeleteGitHubToken() => TokenDeleted = true;
-    public void SaveGitHubToken(string token) => HasGitHubToken = true;
-    public Task<ExampleOfferResult> FetchExampleOfferAsync(string catalog, int number) => Task.FromResult(new ExampleOfferResult(true, "ok", "tr", "sup"));
-    public void SaveZpdicApiKey(string key) { }
-    public void DeleteZpdicApiKey() { }
-    public bool HasZpdicApiKey => false;
-    public void AppendChangelog(string csv, IReadOnlyList<ChangeEntry> entries) => Appended.Add((csv, entries.ToList()));
+    public void DeleteGitHubToken()
+    {
+        TokenDeleted = true;
+        HasGitHubToken = false;
+    }
+
+    public void SaveGitHubToken(string token)
+    {
+        SavedGitHubToken = token;
+        HasGitHubToken = true;
+    }
+
+    public Task<ExampleOfferResult> FetchExampleOfferAsync(string catalog, int number) => Task.FromResult(FetchOffer(catalog, number));
+
+    public void SaveZpdicApiKey(string key)
+    {
+        SavedZpdicKey = key;
+        HasZpdicApiKey = true;
+    }
+
+    public void DeleteZpdicApiKey()
+    {
+        ZpdicKeyDeleted = true;
+        HasZpdicApiKey = false;
+    }
+
+    public void AppendChangelog(string csv, IReadOnlyList<ChangeEntry> entries)
+    {
+        if (AppendFails) throw new System.IO.IOException("locked");
+        Appended.Add((csv, entries.ToList()));
+    }
+
     public IReadOnlyList<string[]> ReadChangelog(string csv) => Array.Empty<string[]>();
-    public void CopyFile(string from, string to) { }
+    public void CopyFile(string from, string to) => Copies.Add((from, to));
     public bool FileExists(string path) => Files.ContainsKey(path) || Docs.ContainsKey(path);
     public string ReadAllText(string path) => Files.TryGetValue(path, out var t) ? t : "";
-    public void WriteAllText(string path, string text, bool withBom) => Files[path] = text;
+
+    public void WriteAllText(string path, string text, bool withBom)
+    {
+        Files[path] = text;
+        if (withBom) WrittenWithBom.Add(path);
+    }
+
     public void LogError(string where, Exception ex) => Logged.Add(where);
 }
 

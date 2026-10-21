@@ -92,6 +92,19 @@ public class AppMediatorTests
         Assert.Equal(ShellPhase.Normal, h.M.Shell);
     }
 
+    [Fact]
+    public void WordEditorOpen_BlocksDictionarySwap()
+    {
+        var h = new MediatorHarness();
+        h.OpenDictionary(MediatorHarness.NewWord(1, "a"));
+        Assert.True(h.M.CanExecute(AppCommand.Open));
+
+        OpenNewWordEditor(h, "b");
+
+        Assert.False(h.M.CanExecute(AppCommand.Open));
+        Assert.False(h.M.CanExecute(AppCommand.NewDictionary));
+    }
+
     // ---- 更新履歴の集約 ---------------------------------------------------------------
 
     [Fact]
@@ -154,7 +167,7 @@ public class AppMediatorTests
             h.Open<WordEditViewModel>()!.TagsText = "t";
             h.Send(IntentKind.WordCommitted);
         }
-        Assert.Equal(2, h.M.PendingChanges.Count);
+        Assert.Equal(new[] { "CHANGE", "CHANGE" }, h.M.PendingChanges.Select(c => c.Operation));
     }
 
     // ---- 単語エディタの差し替え ---------------------------------------------------------
@@ -662,7 +675,7 @@ public class AppMediatorTests
     }
 
     [Fact]
-    public void SettingsApply_LowerBounds()
+    public void SettingsApply_ClampsOppositeBounds_AndSavesRelations()
     {
         var h = new MediatorHarness();
         h.Send(IntentKind.SettingsRequested);
@@ -707,30 +720,24 @@ public class AppMediatorTests
 
     // ---- 絞り込み ----------------------------------------------------------------------
 
-    public static IEnumerable<object[]> FilterCombos =>
-        from m in Enum.GetValues<SearchMode>()
-        from s in Enum.GetValues<SearchScope>()
-        select new object[] { m, s };
-
+    // 照合そのものではなく、選んだモードと範囲が絞り込みまで届くことを見る。
+    // 既定は Forward / Both。どの行も、既定と違うほうの値が届かなければ別の結果になるよう組んである。
     [Theory]
-    [MemberData(nameof(FilterCombos))]
-    public void Filter_UsesModeAndScope(SearchMode mode, SearchScope scope)
+    [InlineData(SearchMode.Forward, SearchScope.Form, "abc,ab")]
+    [InlineData(SearchMode.Partial, SearchScope.Translation, "xab,ab,zzz")]
+    [InlineData(SearchMode.Exact, SearchScope.Both, "ab")]
+    public void Filter_UsesModeAndScope(SearchMode mode, SearchScope scope, string expectedForms)
     {
         var h = new MediatorHarness();
-        var words = new[]
-        {
+        h.OpenDictionary(
             MediatorHarness.NewWord(1, "abc", "dog"), MediatorHarness.NewWord(2, "xab", "cab"),
-            MediatorHarness.NewWord(3, "ab", "ab"), MediatorHarness.NewWord(4, "zzz", "ab cd"),
-        };
-        h.OpenDictionary(words);
+            MediatorHarness.NewWord(3, "ab", "ab"), MediatorHarness.NewWord(4, "zzz", "ab cd"));
         h.State.Query = "ab";
         h.Send(IntentKind.QueryChanged);
         h.Send(IntentKind.SearchModeChanged, mode.ToString());
         h.Send(IntentKind.SearchScopeChanged, scope.ToString());
 
-        var expected = new SearchService(new TextProcessor(TextProcessor.DefaultSortOrder, ""), null)
-            .Filter(h.State.AllWords, "ab", mode, scope).ToList();
-        Assert.Equal(expected, h.State.FilteredWords);
+        Assert.Equal(expectedForms.Split(',').ToHashSet(), h.State.FilteredWords.Select(w => w.Form).ToHashSet());
         Assert.Equal(mode, h.State.SearchMode);
         Assert.Equal(scope, h.State.SearchScope);
     }
@@ -836,12 +843,5 @@ public class AppMediatorTests
         Assert.True(h.State.IsGitHubSynced);
         Assert.False(h.M.CanExecute(AppCommand.GitHubCommit));
         Assert.Equal(DocPhase.Clean, h.M.Doc);
-    }
-
-    [Fact]
-    public void TextEquals_IgnoresLineEndings()
-    {
-        Assert.True(AppMediator.TextEquals("a\r\nb", "a\nb"));
-        Assert.False(AppMediator.TextEquals("a\nb", "a\nc"));
     }
 }

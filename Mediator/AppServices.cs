@@ -174,8 +174,7 @@ public sealed class AppServices : IAppServices
     public string GitHubWorkingCopyPath(GitHubTarget target, string? docPath)
     {
         if (docPath is not null) return docPath;
-        var dir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZasDictWin", "github",
+        var dir = AppDataDir.Combine("github",
             $"{SanitizeFileName(target.Owner)}__{SanitizeFileName(target.Repo)}__{SanitizeFileName(target.Branch)}");
         Directory.CreateDirectory(dir);
         return Path.Combine(dir, Path.GetFileName(target.JsonPath));

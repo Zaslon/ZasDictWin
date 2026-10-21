@@ -36,10 +36,11 @@ OBS で画面を配信しながら編集することを前提に、ダイアロ�
 .NET 8 SDK が必要です。
 
 ```
-dotnet build ZasDictWin.sln -c Release
-dotnet test ZasDictWin.sln
-dotnet publish ZasDictWin.csproj -c Release
+dotnet test ZasDictWin.sln -c Release
+dotnet publish ZasDictWin.csproj -c Release --no-build
 ```
+
+ビルドのたびにパッチ番号が 1 つ進むため、`dotnet test` でのビルドを publish でそのまま使う（`--no-build`）。
 
 配布用の exe、成果物の削除などは [開発者向け](docs/development.md) を参照。
 

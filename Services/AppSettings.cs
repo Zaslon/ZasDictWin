@@ -72,10 +72,7 @@ public sealed class AppSettings
     public bool BrowserVisible { get; set; }
     public string BrowserStartUrl { get; set; } = "https://www.google.com/";
 
-    private static string Dir =>
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZasDictWin");
-
-    private static string FilePath => Path.Combine(Dir, "settings.json");
+    private static string FilePath => AppDataDir.Combine("settings.json");
 
     private static readonly JsonSerializerOptions Options = new()
     {
@@ -105,7 +102,7 @@ public sealed class AppSettings
     {
         try
         {
-            Directory.CreateDirectory(Dir);
+            Directory.CreateDirectory(AppDataDir.Root);
             File.WriteAllText(FilePath, JsonSerializer.Serialize(this, Options));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)

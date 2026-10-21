@@ -40,9 +40,4 @@ public static class CommandGate
 
     /// <summary>その種類のタブがすでに開いているか（同じ種類は 1 枚まで）。</summary>
     public static bool IsOpen(string kind, GateContext ctx) => ctx.OpenKinds.Contains(kind);
-
-    /// <summary>ツール類（すでに開いていれば押し直せて前に出す）か。</summary>
-    public static bool IsReopenable(AppCommand command) => command is
-        AppCommand.ShowSettings or AppCommand.ShowDialectTool or AppCommand.ShowIpaTool
-        or AppCommand.ShowStats or AppCommand.ShowLegend or AppCommand.ShowChangelog;
 }

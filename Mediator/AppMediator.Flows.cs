@@ -100,11 +100,12 @@ public sealed partial class AppMediator
             return;
         }
 
-        FlushChangelog();
         Settings.LastDictionaryPath = path;
         _services.SaveSettings();
         _state.IsDirty = false;
         SetStatus(string.Format(Strings.Main_SavedStatus, Path.GetFileName(path)));
+        // 保存の知らせより後に追記する。追記に失敗したときの知らせを「保存しました」で上書きしないため。
+        FlushChangelog();
         RaiseDocumentChanged();
     }
 
@@ -573,8 +574,10 @@ public sealed partial class AppMediator
 
     // ---- GitHub モード ----------------------------------------------------------------
 
-    /// <summary>改行コード（CRLF/LF）の差だけで「差あり」と誤判定しないよう正規化してから比較する。</summary>
-    internal static bool TextEquals(string a, string b) => a.Replace("\r\n", "\n") == b.Replace("\r\n", "\n");
+    /// <summary>改行コード（CRLF/LF）の差だけで「差あり」と誤判定しないよう正規化してから比較する。
+    /// 手元の CSV は BOM 付きで書くが ReadAllText は BOM を落とし、GitHub 側の内容は BOM を文字として残すので、先頭の BOM も無視する。</summary>
+    private static bool TextEquals(string a, string b)
+        => a.TrimStart('﻿').Replace("\r\n", "\n") == b.TrimStart('﻿').Replace("\r\n", "\n");
 
     private async Task LoadFromGitHubAsync()
     {
@@ -582,12 +585,16 @@ public sealed partial class AppMediator
 
         // 差があるかどうかを確認ダイアログの前に見ておく。無ければ「破棄して読み込む」確認自体が
         // 不要（何も破棄されない）なので出さず、その場でステータスに出して終える。
+        // 辞書だけ一致していても更新履歴が違えば読み込む意味があるので、両方を先に取ってから比べる。
         SetGitHubBusy(true);
         SetStatus(Strings.GitHub_Checking);
         GitHubFileResult json;
+        GitHubFileResult? csv = null;
         try
         {
             json = await _services.GetGitHubFileAsync(target, target.JsonPath);
+            if (json.Ok && target.ChangelogPath.Length > 0)
+                csv = await _services.GetGitHubFileAsync(target, target.ChangelogPath);
         }
         catch (Exception ex)
         {
@@ -607,73 +614,89 @@ public sealed partial class AppMediator
             }
 
             var localPath = _services.GitHubWorkingCopyPath(target, _doc?.Path);
-            if (_services.FileExists(localPath) && TextEquals(_services.ReadAllText(localPath), json.Content))
+            var localExists = _services.FileExists(localPath);
+            var csvLocalPath = GitHubChangelogLocalPath(localPath);
+
+            var jsonSame = localExists && TextEquals(_services.ReadAllText(localPath), json.Content);
+            // リモートにまだ CSV が無いのは「最初のコミットで作る」状態で、読み込むものが無いので一致扱い。
+            var csvFailed = csv is { Ok: false, NotFound: false };
+            var csvSame = csv is null or { NotFound: true }
+                || (csv.Ok && _services.FileExists(csvLocalPath) && TextEquals(_services.ReadAllText(csvLocalPath), csv.Content));
+
+            if (jsonSame && csvSame)
             {
                 _state.IsGitHubSynced = true;
                 SetStatus(Strings.GitHub_NoDiff);
                 return;
             }
+            if (jsonSame && csvFailed)
+            {
+                // 辞書は一致しているので読み直しても何も変わらない。一致を確かめられなかったことだけ知らせる。
+                SetStatus(string.Format(Strings.GitHub_ChangelogLoadFailedStatus, csv!.Message));
+                return;
+            }
 
             // 押し間違いで手元のファイルを消さないよう確認を挟む。上書きするのは開いている辞書
-            // そのものなので、どのファイルが置き換わるかを文面に出す。取得済みの内容はそのまま渡し、
-            // 確定後にもう一度取りに行かない。
-            Confirm(Strings.GitHub_LoadConfirmTitle,
-                Strings.GitHub_LoadConfirmQuestion + Environment.NewLine + string.Format(Strings.GitHub_LoadConfirmTarget, localPath),
-                (Strings.GitHub_LoadConfirmYes, true, () => _ = LoadFromGitHubCoreAsync(target, json)),
+            // そのものなので、どのファイルが置き換わる（または新しく作られる）かを文面に出す。
+            // 取得済みの内容はそのまま渡し、確定後にもう一度取りに行かない。
+            var lines = new List<string>
+            {
+                localExists ? Strings.GitHub_LoadConfirmQuestion : Strings.GitHub_LoadCreateQuestion,
+                TargetLine(localPath),
+            };
+            if (csv is { Ok: true }) lines.Add(TargetLine(csvLocalPath));
+            Confirm(Strings.GitHub_LoadConfirmTitle, string.Join(Environment.NewLine, lines),
+                (Strings.GitHub_LoadConfirmYes, true, () => LoadFromGitHubCore(target, json, csv, localPath, csvLocalPath)),
                 (Strings.Common_Stop, false, null));
         });
+
+        string TargetLine(string path) => string.Format(
+            _services.FileExists(path) ? Strings.GitHub_LoadConfirmTarget : Strings.GitHub_LoadCreateTarget, path);
     }
 
-    private async Task LoadFromGitHubCoreAsync(GitHubTarget target, GitHubFileResult jsonResult)
+    /// <summary>GitHub から取った更新履歴を置くローカルの CSV。</summary>
+    private string GitHubChangelogLocalPath(string localPath)
     {
-        SetGitHubBusy(true);
-        SetStatus(Strings.GitHub_Loading);
+        // 設定の CSV は辞書ごとではなく 1 つだけ残るので、開いていない辞書（%APPDATA% 下の作業コピー）に
+        // 対しては前に開いていた別の辞書の CSV を指していることがある。それを上書きしないよう、
+        // 開いている辞書そのものを読み直すとき以外は辞書の隣に置く。
+        if (_doc?.Path != localPath || string.IsNullOrWhiteSpace(Settings.ChangelogPath))
+            return ChangelogService.DefaultPathFor(localPath);
+        // 更新履歴の CSV をローカルで選んであるなら、その CSV を上書きする。
+        // 追記先（FlushChangelog）とコミット対象がここと同じファイルになるようにするため。
+        return Settings.ChangelogPath;
+    }
+
+    private void LoadFromGitHubCore(GitHubTarget target, GitHubFileResult json, GitHubFileResult? csv, string localPath, string csvLocalPath)
+    {
         try
         {
-            var localPath = _services.GitHubWorkingCopyPath(target, _doc?.Path);
-            _services.WriteAllText(localPath, jsonResult.Content, withBom: false);
+            _services.WriteAllText(localPath, json.Content, withBom: false);
 
-            GitHubFileResult? csvResult = null;
-            if (target.ChangelogPath.Length > 0)
-                csvResult = await _services.GetGitHubFileAsync(target, target.ChangelogPath);
-
-            Batch(() =>
+            // 辞書は読み込めても更新履歴の取得にだけ失敗した場合、ローカルのCSVはGitHub側と
+            // 一致していない。その場合はコミットボタンを無効化しない（＝差ありのまま）。
+            var csvSynced = true;
+            if (csv is { Ok: true })
             {
-                if (_closing) return;
-                // 辞書は読み込めても更新履歴の取得にだけ失敗した場合、ローカルのCSVはGitHub側と
-                // 一致していない。その場合はコミットボタンを無効化しない（＝差ありのまま）。
-                var csvSynced = true;
-                if (csvResult is { Ok: true })
-                {
-                    // 更新履歴の CSV をローカルで選んであるなら、その CSV を上書きする。
-                    // 追記先（FlushChangelog）とコミット対象がここと同じファイルになるようにするため。
-                    var csvLocalPath = string.IsNullOrWhiteSpace(Settings.ChangelogPath)
-                        ? ChangelogService.DefaultPathFor(localPath)
-                        : Settings.ChangelogPath;
-                    _services.WriteAllText(csvLocalPath, csvResult.Content, withBom: true);
-                    Settings.ChangelogPath = csvLocalPath;
-                }
-                else if (csvResult is { NotFound: false })
-                {
-                    // 辞書自体は読み込めたので続行する。履歴だけ最初のコミットで新規作成させる。
-                    SetStatus(string.Format(Strings.GitHub_ChangelogLoadFailedStatus, csvResult.Message));
-                    csvSynced = false;
-                }
+                _services.WriteAllText(csvLocalPath, csv.Content, withBom: true);
+                Settings.ChangelogPath = csvLocalPath;
+            }
+            else if (csv is { NotFound: false })
+            {
+                // 辞書自体は読み込めたので続行する。履歴だけ最初のコミットで新規作成させる。
+                SetStatus(string.Format(Strings.GitHub_ChangelogLoadFailedStatus, csv.Message));
+                csvSynced = false;
+            }
 
-                LoadDictionary(localPath);
-                // LoadDictionary が一旦 false に戻すので、その後で確定させる。
-                if (csvSynced) _state.IsGitHubSynced = true;
-                SetStatus(string.Format(Strings.GitHub_LoadedStatus, target.Owner, target.Repo, target.Branch));
-            });
+            LoadDictionary(localPath);
+            // LoadDictionary が一旦 false に戻すので、その後で確定させる。
+            if (csvSynced) _state.IsGitHubSynced = true;
+            SetStatus(string.Format(Strings.GitHub_LoadedStatus, target.Owner, target.Repo, target.Branch));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             _services.LogError("GitHubから取得したファイルの書き込み", ex);
-            Batch(() => SetStatus(string.Format(Strings.GitHub_WriteFailedStatus, ex.Message)));
-        }
-        finally
-        {
-            Batch(() => SetGitHubBusy(false));
+            SetStatus(string.Format(Strings.GitHub_WriteFailedStatus, ex.Message));
         }
     }
 

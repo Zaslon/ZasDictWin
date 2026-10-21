@@ -32,11 +32,11 @@ public static class ZpdicApi
 {
     private const string Endpoint = "https://zpdic.ziphil.com/api/v0/exampleOffer";
 
-    /// <summary>接続とヘッダを使い回す。HttpClient は都度 new するとソケットを食い潰す。</summary>
-    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(10) };
+    /// <summary>接続とヘッダを使い回す。HttpClient は都度 new するとソケットを食い潰す。
+    /// テストが偽の応答を返す HttpMessageHandler に差し替える。アプリ側からは書き換えない。</summary>
+    internal static HttpClient Http { get; set; } = new() { Timeout = TimeSpan.FromSeconds(10) };
 
-    public static string ApiKeyPath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZasDictWin", "zpdic_api_key");
+    public static string ApiKeyPath => AppDataDir.Combine("zpdic_api_key");
 
     public static string? LoadApiKey()
     {

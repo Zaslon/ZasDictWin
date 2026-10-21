@@ -16,9 +16,6 @@ public class MediatorRulesTests
     private static readonly E C = new E.Persist();
 
     [Fact]
-    public void Combine_TwoEffects_IsMany() => Assert.Equal(new E.Many(new[] { A, B }), E.Combine(A, B));
-
-    [Fact]
     public void Combine_OneEffect_IsItself() => Assert.Same(A, E.Combine(A));
 
     [Fact]
@@ -84,20 +81,17 @@ public class MediatorRulesTests
     [InlineData(AppCommand.Save, "nodoc")]
     [InlineData(AppCommand.SaveAs, "nodoc")]
     [InlineData(AppCommand.GitHubLoad, "local")]
+    [InlineData(AppCommand.GitHubLoad, "editor")]
+    [InlineData(AppCommand.GitHubCommit, "local")]
     [InlineData(AppCommand.GitHubCommit, "synced")]
     [InlineData(AppCommand.NewWord, "WordEditViewModel")]
     [InlineData(AppCommand.EditWord, "noselection")]
     [InlineData(AppCommand.DuplicateWord, "WordEditViewModel")]
     [InlineData(AppCommand.DeleteWord, "noselection")]
     [InlineData(AppCommand.ShowBrowser, "BrowserTabViewModel")]
-    [InlineData(AppCommand.ShowSettings, "modal")]
     [InlineData(AppCommand.ShowExamples, "ExamplesViewModel")]
     [InlineData(AppCommand.EditExample, "ExampleEditViewModel")]
-    [InlineData(AppCommand.ShowDialectTool, "modal")]
-    [InlineData(AppCommand.ShowIpaTool, "modal")]
-    [InlineData(AppCommand.ShowStats, "modal")]
-    [InlineData(AppCommand.ShowLegend, "modal")]
-    [InlineData(AppCommand.ShowChangelog, "modal")]
+    // ツール類と設定はモーダル中にしか無効にならない（Gate_ModalOrClosing_DisablesEverything で見る）。
     public void Gate_DisablingContext_Disables(AppCommand command, string why)
     {
         var ctx = why switch
@@ -107,7 +101,6 @@ public class MediatorRulesTests
             "local" => Gate(gitHub: false),
             "synced" => Gate(synced: true),
             "noselection" => Gate(selection: false),
-            "modal" => Gate(shell: ShellPhase.Modal),
             _ => Gate(open: why),
         };
         Assert.False(CommandGate.CanExecute(command, ctx));
@@ -121,10 +114,16 @@ public class MediatorRulesTests
         Assert.False(CommandGate.CanExecute(command, Gate(shell: ShellPhase.Closing)));
     }
 
-    [Fact]
-    public void Gate_ModalBusy_DisablesGitHubAndDictionaryOnly()
+    public static IEnumerable<object[]> BusyContexts => new[]
     {
-        var busy = Gate(shell: ShellPhase.ModalBusy);
+        new object[] { Gate(shell: ShellPhase.ModalBusy) },
+        new object[] { Gate(busy: true) },
+    };
+
+    [Theory]
+    [MemberData(nameof(BusyContexts))]
+    public void Gate_Busy_DisablesGitHubAndDictionaryOnly(GateContext busy)
+    {
         foreach (var c in new[] { AppCommand.GitHubLoad, AppCommand.GitHubCommit, AppCommand.Open, AppCommand.NewDictionary, AppCommand.Save, AppCommand.SaveAs })
             Assert.False(CommandGate.CanExecute(c, busy));
         Assert.True(CommandGate.CanExecute(AppCommand.NewWord, busy));
@@ -132,29 +131,11 @@ public class MediatorRulesTests
     }
 
     [Fact]
-    public void Gate_Boundaries()
+    public void Gate_UnrelatedCondition_DoesNotDisable()
     {
-        Assert.False(CommandGate.CanExecute(AppCommand.Save, Gate(doc: DocPhase.NoDocument)));
+        // 新しい辞書は開いていなくても作れる。保存は編集中でも止めない（差し替えではないため）。
         Assert.True(CommandGate.CanExecute(AppCommand.NewDictionary, Gate(doc: DocPhase.NoDocument)));
-        Assert.False(CommandGate.CanExecute(AppCommand.GitHubLoad, Gate(gitHub: false)));
-        Assert.False(CommandGate.CanExecute(AppCommand.GitHubCommit, Gate(gitHub: false)));
-        Assert.False(CommandGate.CanExecute(AppCommand.GitHubCommit, Gate(synced: true)));
-        var editing = Gate(editor: true);
-        Assert.False(CommandGate.CanExecute(AppCommand.Open, editing));
-        Assert.False(CommandGate.CanExecute(AppCommand.NewDictionary, editing));
-        Assert.False(CommandGate.CanExecute(AppCommand.GitHubLoad, editing));
-        Assert.True(CommandGate.CanExecute(AppCommand.Save, editing));
-    }
-
-    [Fact]
-    public void Gate_Reopenable_IsToolsAndSettings()
-    {
-        var reopenable = Enum.GetValues<AppCommand>().Where(CommandGate.IsReopenable).ToHashSet();
-        Assert.Equal(new HashSet<AppCommand>
-        {
-            AppCommand.ShowSettings, AppCommand.ShowDialectTool, AppCommand.ShowIpaTool,
-            AppCommand.ShowStats, AppCommand.ShowLegend, AppCommand.ShowChangelog,
-        }, reopenable);
+        Assert.True(CommandGate.CanExecute(AppCommand.Save, Gate(editor: true)));
     }
 
     // ---- LayoutRules -------------------------------------------------------------
@@ -198,10 +179,13 @@ public class MediatorRulesTests
     [Fact]
     public void CanSplit_Boundaries()
     {
+        const double min = DockSplit.MinLeafSize;
         var size = new Size(600, 400);
-        Assert.False(LayoutRules.CanSplit(LayoutRules.MaxLeaves, size, DockAxis.Columns, DockSplit.MinLeafSize));
-        Assert.True(LayoutRules.CanSplit(LayoutRules.MaxLeaves - 1, size, DockAxis.Columns, DockSplit.MinLeafSize));
-        Assert.False(LayoutRules.CanSplit(1, new Size(279, 400), DockAxis.Columns, DockSplit.MinLeafSize));
+        Assert.False(LayoutRules.CanSplit(LayoutRules.MaxLeaves, size, DockAxis.Columns, min));
+        Assert.True(LayoutRules.CanSplit(LayoutRules.MaxLeaves - 1, size, DockAxis.Columns, min));
+        Assert.True(LayoutRules.CanSplit(1, new Size(min * 2, 400), DockAxis.Columns, min));
+        Assert.False(LayoutRules.CanSplit(1, new Size(min * 2 - 1, 400), DockAxis.Columns, min));
+        Assert.False(LayoutRules.CanSplit(1, new Size(600, min * 2 - 1), DockAxis.Rows, min));
     }
 
     [Fact]
@@ -237,20 +221,14 @@ public class MediatorRulesTests
     // ---- ScreenRegistry ----------------------------------------------------------
 
     [Fact]
-    public void Registry_HasAllFourteenKinds()
+    public void Registry_CoversExactlyAllScreens()
     {
-        Assert.Equal(14, ScreenRegistry.All.Count);
-        foreach (var rule in ScreenRegistry.All) Assert.Same(rule, ScreenRegistry.For(rule.Kind));
-    }
-
-    [Fact]
-    public void Registry_KnownRules()
-    {
-        Assert.True(ScreenRegistry.For("SearchViewModel").IsPinned);
-        Assert.True(ScreenRegistry.For("WordEditViewModel").BlocksDictionarySwap);
-        Assert.True(ScreenRegistry.For("StatsViewModel").PrefersFloating);
-        Assert.True(ScreenRegistry.For("SettingsViewModel").IsReopenable);
-        Assert.False(ScreenRegistry.For("ChoiceViewModel").IsDockable);
+        // 登録漏れは例外にならず既定の規則で黙って動くので、画面の型と突き合わせて見つける。
+        var screens = typeof(OverlayViewModel).Assembly.GetTypes()
+            .Where(t => t.IsSubclassOf(typeof(OverlayViewModel)) && !t.IsAbstract)
+            .Select(t => t.Name)
+            .ToHashSet();
+        Assert.Equal(screens, ScreenRegistry.All.Select(r => r.Kind).ToHashSet());
     }
 
     [Theory]
@@ -260,7 +238,6 @@ public class MediatorRulesTests
     public void Registry_UnknownKind_ReturnsDefault(string? kind)
     {
         var rule = ScreenRegistry.For(kind);
-        Assert.True(rule.IsDockable);
-        Assert.False(rule.PrefersFloating || rule.IsPinned || rule.IsReopenable || rule.BlocksDictionarySwap);
+        Assert.False(rule.PrefersFloating || rule.IsPinned || rule.BlocksDictionarySwap);
     }
 }

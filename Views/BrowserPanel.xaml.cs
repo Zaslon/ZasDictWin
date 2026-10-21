@@ -8,6 +8,7 @@ using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
 using ZasDictWin.Resources;
 using ZasDictWin.Root;
+using ZasDictWin.Services;
 using ZasDictWin.ViewModels;
 
 namespace ZasDictWin.Views;
@@ -117,8 +118,7 @@ public partial class BrowserPanel : UserControl
         try
         {
             // 既定だと exe の隣にユーザーデータを作るため、Program Files 配置では失敗する。設定置き場に寄せる。
-            var dir = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZasDictWin", "WebView2");
+            var dir = AppDataDir.Combine("WebView2");
             Directory.CreateDirectory(dir);
 
             var env = await CoreWebView2Environment.CreateAsync(userDataFolder: dir);

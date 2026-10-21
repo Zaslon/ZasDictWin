@@ -35,9 +35,6 @@ public abstract class OverlayViewModel : ViewModelBase
 
     public string Title { get; protected set; } = "";
 
-    /// <summary>タブとして並べるか。偽なら中央のモーダルとして 1 枚だけ出す。</summary>
-    public bool IsDockable => ScreenRegistry.For(Kind).IsDockable;
-
     /// <summary>
     /// 行き先を覚えていないとき、本体のタブ束ではなく独立ウィンドウとして開くか。
     /// どちらで開いても、あとからタブを掴んでウィンドウの内と外を行き来させられる。

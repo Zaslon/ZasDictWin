@@ -58,9 +58,18 @@ public sealed class AppServicesTests : IDisposable
     public void Save_ThenLoad_RoundTrips()
     {
         var services = Services();
-        var path = Path.Combine(_dir, "empty.json");
-        Assert.True(services.Save(services.CreateEmpty(), path).Ok);
-        Assert.True(services.Load(path).Ok);
+        var path = Path.Combine(_dir, "roundtrip.json");
+        var doc = services.CreateEmpty();
+        doc.Words.Add(MediatorHarness.NewWord(7, "ab", "訳"));
+
+        Assert.True(services.Save(doc, path).Ok);
+        var loaded = services.Load(path);
+
+        Assert.True(loaded.Ok);
+        var word = Assert.Single(loaded.Document!.Words);
+        Assert.Equal(7, word.Id);
+        Assert.Equal("ab", word.Form);
+        Assert.Equal("訳", word.Translations.Single().Forms.Single());
     }
 
     [Theory]

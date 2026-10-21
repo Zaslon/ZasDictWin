@@ -160,7 +160,8 @@ public static class Markdown
             itemBlocks[0] = repl;
             return true;
         }
-        // 先頭が段落以外（入れ子リスト等）のときはマーカー専用の行を置く。
+        // 先頭が段落以外（表）のときはマーカー専用の行を置く。入れ子リストも段落として描かれるので、
+        // 外側のマーカーは内側の項目の行頭に並ぶ（「• • 項目」）。
         var label = new Paragraph(new Run(marker) { Foreground = Res("Muted", 0xA3A3A3) })
         {
             Margin = new Thickness(indent, 0, 0, S(2, scale)),

@@ -10,8 +10,14 @@ dotnet run --project ZasDictWin.csproj
 dotnet test ZasDictWin.sln
 ```
 
-単体テスト（`Tests/`、xUnit）は画面の裁定（`Mediator/`）と入力の経路（`Root/`）を窓を作らずに検査する。
-通信・ファイルダイアログは使わず、`settings.json` にも書き込まない。
+単体テスト（`Tests/`、xUnit）は画面の裁定（`Mediator/`）・入力の経路（`Root/`）・`Services/`・`Models/`・
+`ViewModels/`・`Presenters/` を、窓を作らずに検査する。WPF の要素が要るテストは STA スレッドで走らせる（`Tests/Sta.cs`）。
+
+- 実際の通信はしない。GitHub と ZpDIC Online の HttpClient は偽の応答を返すもの（`Tests/FakeHttp.cs`）に差し替える
+- ファイルダイアログは使わない
+- 利用者の `%APPDATA%\ZasDictWin`（`settings.json`・`choices.json`・トークン・`error.log`）には触れない。
+  テストは起動時に置き場（`Services/AppDataDir.cs`）を一時フォルダへ向け直す。
+  **`%APPDATA%` 下に新しいファイルを置くときは、必ず `AppDataDir` を通してパスを作ること**（直に組むとテストが実データを読み書きする）
 
 ### 配布用の実行ファイル
 

@@ -341,6 +341,8 @@ public static class Strings
     public static string GitHub_LoadConfirmTitle => Get();
     public static string GitHub_LoadConfirmQuestion => Get();
     public static string GitHub_LoadConfirmTarget => Get();
+    public static string GitHub_LoadCreateQuestion => Get();
+    public static string GitHub_LoadCreateTarget => Get();
     public static string GitHub_LoadConfirmYes => Get();
     public static string GitHub_Loading => Get();
     public static string GitHub_ChangelogLoadFailedStatus => Get();

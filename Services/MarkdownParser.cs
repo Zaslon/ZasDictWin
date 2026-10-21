@@ -327,16 +327,15 @@ internal static class MdBlocks
 
     private static string AtxContent(string line)
     {
-        int ind = IndentOf(line);
-        int level = 0;
-        while (ind + level < line.Length && line[ind + level] == '#') level++;
-        var sb = new StringBuilder();
-        for (int k = ind + level; k < line.Length; k++)
-        {
-            if (line[k] == '#') break; // 閉じシーケンス（行末の # の連続）まで
-            sb.Append(line[k]);
-        }
-        return sb.ToString().Trim();
+        int pos = IndentOf(line);
+        while (pos < line.Length && line[pos] == '#') pos++;
+        int max = line.Length;
+        while (max > pos && line[max - 1] is ' ' or '\t') max--;
+        int closing = max;
+        while (closing > pos && line[closing - 1] == '#') closing--;
+        // 行末の # の連なりが閉じになるのは、直前が空白のときだけ（「C#」の # は見出しの中身）。markdown-it と同じ。
+        if (closing > pos && line[closing - 1] is ' ' or '\t') max = closing;
+        return line[pos..max].Trim();
     }
 
     private static bool IsThematicBreak(string line)

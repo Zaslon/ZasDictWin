@@ -974,11 +974,25 @@ public sealed partial class AppMediator
         s.BrowserVisible = form.BrowserVisible;
         s.BrowserStartUrl = string.IsNullOrWhiteSpace(form.BrowserStartUrl) ? "" : form.BrowserStartUrl.Trim();
 
+        // 句読点と無視パターンは設定ではなく辞書データ（zpdicOnline）の持ち物。変えたときだけ書き込み、
+        // 未保存として扱う（書き込んだまま未保存にしないと、終了時に確認なしで失われる）。
+        // 変えていなければ触らない。書き直すだけで、無かったキーや配列の区切り方が変わって差分が出るため。
+        var docChanged = false;
         if (_doc is not null)
         {
-            _doc.ZpdicOnline["punctuations"] = new JsonArray(
-                form.Punctuations.Select(c => (JsonNode)JsonValue.Create(c.ToString())!).ToArray());
-            _doc.ZpdicOnline["ignoredPattern"] = form.IgnoredPattern;
+            var z = _doc.ZpdicOnline;
+            var oldPunctuations = string.Concat((z["punctuations"] as JsonArray)?.Select(n => n?.GetValue<string>() ?? "") ?? Array.Empty<string>());
+            var oldIgnored = z["ignoredPattern"]?.GetValue<string>() ?? "";
+            if (form.Punctuations != oldPunctuations)
+            {
+                z["punctuations"] = new JsonArray(form.Punctuations.Select(c => (JsonNode)JsonValue.Create(c.ToString())!).ToArray());
+                docChanged = true;
+            }
+            if (form.IgnoredPattern != oldIgnored)
+            {
+                z["ignoredPattern"] = form.IgnoredPattern;
+                docChanged = true;
+            }
         }
 
         _services.SaveSettings();
@@ -992,7 +1006,8 @@ public sealed partial class AppMediator
         Queue(new HostCommand.ApplyShellSize(
             normal ? s.WindowWidth : double.NaN, normal ? s.WindowHeight : double.NaN,
             s.WindowAspectLocked ? s.WindowWidth / s.WindowHeight : null));
-        SetStatus(Strings.Settings_AppliedStatus);
+        if (docChanged) MarkDirty(Strings.Settings_AppliedStatus);
+        else SetStatus(Strings.Settings_AppliedStatus);
         CloseSettings(hostId);
     }
 

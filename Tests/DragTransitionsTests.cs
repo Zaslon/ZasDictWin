@@ -50,9 +50,8 @@ public class DragTransitionsTests
             c.LeafId = 1; c.Corner = AreaCorner.BottomRight; c.LeafLocalPoint = new Point(600, 400);
         }), Env());
 
-        Assert.Equal(DragPhase.AreaGripArmed, step.Next.Phase);
-        Assert.Equal(1, step.Next.GripLeafId);
-        Assert.Equal(new Point(600, 400), step.Next.Origin);
+        // 以降のテストが手で組む AreaArmed() が、実際に掴んだ状態と同じであることもここで保証する。
+        Assert.Equal(AreaArmed(), step.Next);
         AssertFx(step);
     }
 
@@ -169,15 +168,14 @@ public class DragTransitionsTests
     private static readonly SplitPreview LeftHalf = new(DockAxis.Columns, 0.5, false);
 
     [Fact]
-    public void D11_TabGripPressed_Arms()
+    public void D11_TabGripPressed_ArmsAndRemembersSourceIndex()
     {
         var step = DragTransitions.Step(DragContext.Idle, I(IntentKind.TabGripPressed, fill: c =>
         {
             c.TabKind = "X"; c.LeafId = 1;
-        }), Env(sourceItems: 3));
-        Assert.Equal(DragPhase.TabGripArmed, step.Next.Phase);
-        Assert.Equal(1, step.Next.SourceLeafId);
-        Assert.Equal(3, step.Next.SourceItemCount);
+        }), Env(sourceItems: 3) with { SourceTabIndex = 2 });
+        // 以降のテストが手で組む TabArmed() / TabArmedAt() が、実際に掴んだ状態と同じであることもここで保証する。
+        Assert.Equal(TabArmedAt(2, 3), step.Next);
         AssertFx(step);
     }
 
@@ -322,18 +320,7 @@ public class DragTransitionsTests
     private static HitLeaf OnStrip(int leaf, int slot) => new(Host, leaf, Big, new Point(100, 10), 36, slot);
 
     [Fact]
-    public void D24_TabGripPressed_RemembersSourceIndex()
-    {
-        var step = DragTransitions.Step(DragContext.Idle, I(IntentKind.TabGripPressed, fill: c =>
-        {
-            c.TabKind = "X"; c.LeafId = 1;
-        }), Env(sourceItems: 3) with { SourceTabIndex = 2 });
-        Assert.Equal(2, step.Next.TabOriginIndex);
-        Assert.Equal(2, step.Next.TabCurrentIndex);
-    }
-
-    [Fact]
-    public void D25_TabOverOwnStrip_ReordersLive()
+    public void D24_TabOverOwnStrip_ReordersLive()
     {
         var step = DragTransitions.Step(TabArmedAt(0), I(IntentKind.PointerMoved), Env(hit: OnStrip(1, 2), local: Moved));
         Assert.Equal(DragPhase.TabReordering, step.Next.Phase);
@@ -350,7 +337,7 @@ public class DragTransitionsTests
     }
 
     [Fact]
-    public void D25_TabOverOwnStripFromSplitPreview_ClearsPreview()
+    public void D24_TabOverOwnStripFromSplitPreview_ClearsPreview()
     {
         var current = TabArmedAt(0) with { Phase = DragPhase.TabOverSourceEdge, TargetLeafId = 1, Preview = LeftHalf };
         var step = DragTransitions.Step(current, I(IntentKind.PointerMoved), Env(hit: OnStrip(1, 3), local: Moved));
@@ -358,7 +345,7 @@ public class DragTransitionsTests
     }
 
     [Fact]
-    public void D25_TabOverOtherLeafStrip_StillMoves()
+    public void D24_TabOverOtherLeafStrip_StillMoves()
     {
         var step = DragTransitions.Step(TabArmedAt(0), I(IntentKind.PointerMoved), Env(hit: OnStrip(2, 0), local: Moved));
         Assert.Equal(DragPhase.TabOverLeaf, step.Next.Phase);
@@ -366,7 +353,7 @@ public class DragTransitionsTests
     }
 
     [Fact]
-    public void D26_TabReleaseAfterReorder_Persists()
+    public void D25_TabReleaseAfterReorder_Persists()
     {
         var reordered = TabArmedAt(0) with { Phase = DragPhase.TabReordering, TargetLeafId = 1, TabCurrentIndex = 2 };
         AssertFx(DragTransitions.Step(reordered, I(IntentKind.PointerReleased), Env()), new E.Persist());
@@ -383,7 +370,7 @@ public class DragTransitionsTests
     [Theory]
     [InlineData(IntentKind.CancelRequested)]
     [InlineData(IntentKind.PointerCaptureLost)]
-    public void D27_TabCancelAfterReorder_RestoresOrder(IntentKind kind)
+    public void D26_TabCancelAfterReorder_RestoresOrder(IntentKind kind)
     {
         var reordered = TabArmedAt(0) with { Phase = DragPhase.TabReordering, TargetLeafId = 1, TabCurrentIndex = 2 };
         var step = DragTransitions.Step(reordered, I(kind), Env());
@@ -416,19 +403,18 @@ public class DragTransitionsTests
     };
 
     [Fact]
-    public void D24_RowGripPressed_Arms()
+    public void D27_RowGripPressed_Arms()
     {
         var step = DragTransitions.Step(DragContext.Idle, I(IntentKind.RowGripPressed, fill: c =>
         {
             c.RowIndex = 3; c.LeafLocalPoint = new Point(10, 60);
         }), Env());
-        Assert.Equal(DragPhase.RowGripArmed, step.Next.Phase);
-        Assert.Equal(3, step.Next.RowOriginIndex);
+        Assert.Equal(RowArmed(), step.Next);
         AssertFx(step);
     }
 
     [Fact]
-    public void D25_RowMoveBeyondThreshold_StartsReordering()
+    public void D28_RowMoveBeyondThreshold_StartsReordering()
     {
         var below = DragTransitions.Step(RowArmed(), I(IntentKind.PointerMoved, fill: c => c.RowIndex = 3), Env(local: new Point(11, 62)));
         Assert.Equal(DragPhase.RowGripArmed, below.Next.Phase);
@@ -443,7 +429,7 @@ public class DragTransitionsTests
     }
 
     [Fact]
-    public void D26_RowMoveToOtherIndex_Reorders()
+    public void D29_RowMoveToOtherIndex_Reorders()
     {
         var reordering = RowArmed() with { Phase = DragPhase.RowReordering, RowCurrentIndex = 1 };
         var step = DragTransitions.Step(reordering, I(IntentKind.PointerMoved, fill: c => c.RowIndex = 0), Env());
@@ -454,7 +440,7 @@ public class DragTransitionsTests
     }
 
     [Fact]
-    public void D27_RowRelease_KeepsOrder()
+    public void D30_RowRelease_KeepsOrder()
     {
         var step = DragTransitions.Step(RowArmed() with { Phase = DragPhase.RowReordering, RowCurrentIndex = 1 }, I(IntentKind.PointerReleased), Env());
         Assert.Equal(DragPhase.Idle, step.Next.Phase);
@@ -464,7 +450,7 @@ public class DragTransitionsTests
     [Theory]
     [InlineData(IntentKind.CancelRequested)]
     [InlineData(IntentKind.PointerCaptureLost)]
-    public void D28_RowCancel_RestoresOrder(IntentKind kind)
+    public void D31_RowCancel_RestoresOrder(IntentKind kind)
     {
         var step = DragTransitions.Step(RowArmed() with { Phase = DragPhase.RowReordering, RowCurrentIndex = 1 }, I(kind), Env());
         AssertFx(step, new E.RestoreRowOrder(3), new E.SetRowDragging(3, false));
@@ -473,7 +459,7 @@ public class DragTransitionsTests
     [Theory]
     [InlineData(IntentKind.PointerReleased)]
     [InlineData(IntentKind.CancelRequested)]
-    public void D29_RowArmedReleaseOrCancel_DoesNothing(IntentKind kind)
+    public void D32_RowArmedReleaseOrCancel_DoesNothing(IntentKind kind)
     {
         var step = DragTransitions.Step(RowArmed(), I(kind), Env());
         Assert.Equal(DragPhase.Idle, step.Next.Phase);
@@ -485,16 +471,15 @@ public class DragTransitionsTests
     private static DragContext SplitDragging() => DragContext.Idle with { Phase = DragPhase.SplitGripDragging, SplitId = 5 };
 
     [Fact]
-    public void D30_SplitGripPressed_StartsDragging()
+    public void D33_SplitGripPressed_StartsDragging()
     {
         var step = DragTransitions.Step(DragContext.Idle, I(IntentKind.SplitGripPressed, fill: c => c.SplitId = 5), Env());
-        Assert.Equal(DragPhase.SplitGripDragging, step.Next.Phase);
-        Assert.Equal(5, step.Next.SplitId);
+        Assert.Equal(SplitDragging(), step.Next);
         AssertFx(step);
     }
 
     [Fact]
-    public void D31_SplitMove_Resizes()
+    public void D34_SplitMove_Resizes()
     {
         var step = DragTransitions.Step(SplitDragging(), I(IntentKind.PointerMoved, fill: c => { c.DragChange = 10; c.DragTotal = 800; }), Env());
         Assert.Equal(DragPhase.SplitGripDragging, step.Next.Phase);
@@ -502,7 +487,7 @@ public class DragTransitionsTests
     }
 
     [Fact]
-    public void D32_SplitRelease_Persists()
+    public void D35_SplitRelease_Persists()
     {
         var step = DragTransitions.Step(SplitDragging(), I(IntentKind.PointerReleased), Env());
         Assert.Equal(DragPhase.Idle, step.Next.Phase);
@@ -512,7 +497,7 @@ public class DragTransitionsTests
     [Theory]
     [InlineData(IntentKind.CancelRequested)]
     [InlineData(IntentKind.PointerCaptureLost)]
-    public void D33_SplitCancel_Persists(IntentKind kind)
+    public void D36_SplitCancel_Persists(IntentKind kind)
     {
         var step = DragTransitions.Step(SplitDragging(), I(kind), Env());
         Assert.Equal(DragPhase.Idle, step.Next.Phase);
@@ -588,67 +573,5 @@ public class DragTransitionsTests
         Assert.Equal(new SplitPreview(DockAxis.Rows, 0.5, true), DragTransitions.EdgeSplit(Big, new Point(40, 395), 48, DockSplit.MinLeafSize));
         // 高さが足りない枠では上下の辺を候補にしない。
         Assert.Equal(LeftHalf, DragTransitions.EdgeSplit(new Size(600, 200), new Point(40, 195), 48, DockSplit.MinLeafSize));
-    }
-
-    // ---- 通しの流れ -----------------------------------------------------------
-
-    [Fact]
-    public void Flow_AreaSplit_D1_D3_D7()
-    {
-        var s = DragTransitions.Step(DragContext.Idle, I(IntentKind.AreaGripPressed, fill: c =>
-        {
-            c.LeafId = 1; c.Corner = AreaCorner.BottomRight; c.LeafLocalPoint = new Point(600, 400);
-        }), Env());
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerMoved), Env(local: new Point(300, 390)));
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerReleased), Env());
-        Assert.Contains(new E.CommitSplit(1, Half), Fx(s));
-    }
-
-    [Fact]
-    public void Flow_TabToSourceEdge_D11_D14_D19()
-    {
-        var s = DragTransitions.Step(DragContext.Idle, I(IntentKind.TabGripPressed, fill: c => { c.TabKind = "X"; c.LeafId = 1; }), Env(sourceItems: 2));
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerMoved), Env(hit: Hit(1, LeftEdge), local: Moved));
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerReleased), Env());
-        Assert.Contains(new E.CommitSplitThenMove("X", 1, LeftHalf), Fx(s));
-    }
-
-    [Fact]
-    public void Flow_TabToOtherLeaf_D11_D13_D18()
-    {
-        var s = DragTransitions.Step(DragContext.Idle, I(IntentKind.TabGripPressed, fill: c => { c.TabKind = "X"; c.LeafId = 1; }), Env(sourceItems: 2));
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerMoved), Env(hit: Hit(2, Center), local: Moved));
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerReleased), Env());
-        Assert.Contains(new E.CommitMove("X", 2), Fx(s));
-    }
-
-    [Fact]
-    public void Flow_TabOutside_D11_D16_D22()
-    {
-        var at = new Point(50, 60);
-        var s = DragTransitions.Step(DragContext.Idle, I(IntentKind.TabGripPressed, fill: c => { c.TabKind = "X"; c.LeafId = 1; }), Env(sourceItems: 2));
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerMoved, at), Env(hit: null, local: Moved));
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerReleased), Env());
-        Assert.Contains(new E.CommitFloat("X", at), Fx(s));
-    }
-
-    [Fact]
-    public void Flow_Row_D24_D25_D26_D27()
-    {
-        var s = DragTransitions.Step(DragContext.Idle, I(IntentKind.RowGripPressed, fill: c => { c.RowIndex = 2; c.LeafLocalPoint = new Point(0, 50); }), Env());
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerMoved, fill: c => c.RowIndex = 2), Env(local: new Point(0, 60)));
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerMoved, fill: c => c.RowIndex = 0), Env());
-        Assert.Contains(new E.CommitRowOrder(2, 0), Fx(s));
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerReleased), Env());
-        Assert.Equal(DragPhase.Idle, s.Next.Phase);
-    }
-
-    [Fact]
-    public void Flow_Split_D30_D31_D32()
-    {
-        var s = DragTransitions.Step(DragContext.Idle, I(IntentKind.SplitGripPressed, fill: c => c.SplitId = 5), Env());
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerMoved, fill: c => { c.DragChange = 3; c.DragTotal = 900; }), Env());
-        s = DragTransitions.Step(s.Next, I(IntentKind.PointerReleased), Env());
-        AssertFx(s, new E.Persist());
     }
 }

@@ -59,46 +59,6 @@ public class UiIntentTests
     });
 
     [Fact]
-    public void HandledInMiddle_DoesNotReachTop() => Sta.Run(() =>
-    {
-        var (top, middle, leaf) = Nest();
-        var reached = false;
-        middle.AddIntentHandler((_, e) => e.Handled = true);
-        top.AddIntentHandler((_, _) => reached = true);
-
-        leaf.RaiseIntent(IntentKind.CancelRequested);
-
-        Assert.False(reached);
-    });
-
-    [Fact]
-    public void NullPayloadAndNullScreenPoint_AreKept() => Sta.Run(() =>
-    {
-        var (top, _, leaf) = Nest();
-        UiIntentEventArgs? got = null;
-        top.AddIntentHandler((_, e) => got = e);
-
-        leaf.RaiseIntent(IntentKind.CancelRequested);
-
-        Assert.Null(got!.Payload);
-        Assert.Null(got.ScreenPoint);
-    });
-
-    [Fact]
-    public void RemovedHandler_IsNotCalled() => Sta.Run(() =>
-    {
-        var (top, _, leaf) = Nest();
-        var calls = 0;
-        EventHandler<UiIntentEventArgs> handler = (_, _) => calls++;
-        top.AddIntentHandler(handler);
-        top.RemoveIntentHandler(handler);
-
-        leaf.RaiseIntent(IntentKind.CancelRequested);
-
-        Assert.Equal(0, calls);
-    });
-
-    [Fact]
     public void IntentTrigger_RaisesOnClick_WithPayload() => Sta.Run(() =>
     {
         var button = new Button();

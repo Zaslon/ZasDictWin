@@ -8,8 +8,7 @@ namespace ZasDictWin.Services;
 /// </summary>
 public static class ErrorLog
 {
-    public static string FilePath => Path.Combine(
-        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ZasDictWin", "error.log");
+    public static string FilePath => AppDataDir.Combine("error.log");
 
     public static void Write(string context, Exception ex)
     {

@@ -335,6 +335,8 @@
   <data name="GitHub_LoadConfirmTitle" xml:space="preserve"><value>Load from GitHub</value></data>
   <data name="GitHub_LoadConfirmQuestion" xml:space="preserve"><value>Discard local changes and reload from GitHub?</value></data>
   <data name="GitHub_LoadConfirmTarget" xml:space="preserve"><value>Will overwrite: {0}</value></data>
+  <data name="GitHub_LoadCreateQuestion" xml:space="preserve"><value>There's no local dictionary file. Download it from GitHub and create one?</value></data>
+  <data name="GitHub_LoadCreateTarget" xml:space="preserve"><value>Will create: {0}</value></data>
   <data name="GitHub_LoadConfirmYes" xml:space="preserve"><value>Load</value></data>
   <data name="GitHub_Loading" xml:space="preserve"><value>Loading from GitHub…</value></data>
   <data name="GitHub_ChangelogLoadFailedStatus" xml:space="preserve"><value>Failed to load the changelog: {0}</value></data>

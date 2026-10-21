@@ -20,13 +20,12 @@ internal sealed class StubHost : IUiHost
     public HostRole Role { get; }
     public DockNode? DockRoot => null;
     public Rect BoundsDip { get; }
-    public bool IsActiveHost { get; set; }
-    public int LeafId { get; set; }
-    public Size LeafSize { get; set; } = new(400, 300);
-    public int Closed { get; private set; }
+    public bool IsActiveHost { get; }
+    public int LeafId { get; }
+    public Size LeafSize { get; } = new(400, 300);
     public int Focused { get; private set; }
 
-    public void CloseFromRoot() => Closed++;
+    public void CloseFromRoot() { }
     public void FocusFromRoot() => Focused++;
 
     public bool TryHitLeaf(Point screen, out int leafId, out Size leafSize, out Point leafLocal, out double tabStripHeight, out int tabSlot)
