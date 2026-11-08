@@ -24,6 +24,7 @@ public enum IntentKind
 
     // ---- 辞書 ----
     OpenDictionaryRequested, NewDictionaryRequested, SaveRequested, SaveAsRequested,
+    UndoRequested, RedoRequested,
 
     // ---- 単語 ----
     NewWordRequested, EditWordRequested, DuplicateWordRequested, DeleteWordRequested,
@@ -49,14 +50,13 @@ public enum IntentKind
 
     // ---- GitHub ----
     GitHubLoadRequested, GitHubCommitRequested, GitHubCommitConfirmed,
-    GitHubTokenSaveRequested, GitHubTokenDeleteRequested,
 
     // ---- モーダル（確認ダイアログ）----
     ConfirmChoiceSelected, ModalDismissRequested,
 
     // ---- 設定 ----
     SettingsRequested, SettingsApplyRequested, PickHeksaFontRequested, SettingsHeksaSourceSelected,
-    SettingsModeSelected, SettingsReciprocalResetRequested,
+    SettingsModeSelected, SettingsThemeSelected, SettingsReciprocalResetRequested,
 
     // ---- 編集フォームの行（書きかけの入れ物を触るだけ。辞書へは保存まで書かない）----
     TranslationRowAddRequested, TranslationRowRemoveRequested,

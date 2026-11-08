@@ -40,6 +40,7 @@
         </Style>
     </Window.Resources>
 
+    <Grid>
     <DockPanel>
         <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
                 BorderThickness="0,0,0,1" Padding="16,10"
@@ -89,6 +90,17 @@
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_LanguageNote}" Style="{StaticResource Label}" Margin="0,4,0,0" />
+
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_ThemeLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
+                        <WrapPanel>
+                            <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ThemeSystem}" r:IntentTrigger.OnClick="SettingsThemeSelected" r:IntentTrigger.Payload="System"
+                                          IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=System}" />
+                            <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ThemeLight}" r:IntentTrigger.OnClick="SettingsThemeSelected" r:IntentTrigger.Payload="Light"
+                                          IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Light}" />
+                            <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ThemeDark}" r:IntentTrigger.OnClick="SettingsThemeSelected" r:IntentTrigger.Payload="Dark"
+                                          IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Dark}" />
+                        </WrapPanel>
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_LanguageNote}" Style="{StaticResource Label}" Margin="0,4,0,0" />
 
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_FontScaleLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,0" />
@@ -205,9 +217,9 @@
                         <TextBox Text="{Binding StreamFontScale}" HorizontalAlignment="Left"
                                  Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=120}" />
 
-                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_TopmostCheckbox}" IsChecked="{Binding StreamTopmost}" Margin="0,16,0,0" />
+                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_NotTopmostCheckbox}" IsChecked="{Binding StreamNotTopmost}" Margin="0,16,0,0" />
                         <!-- ここから下は単語ウィンドウだけの項目。単語数ウィンドウには出す中身が無い。 -->
-                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_ShowTranslationsCheckbox}" IsChecked="{Binding StreamShowTranslations}" />
+                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_HideTranslationsCheckbox}" IsChecked="{Binding StreamHideTranslations}" />
                         <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_ShowContentsCheckbox}" IsChecked="{Binding StreamShowContents}" />
 
                         <TextBlock Style="{StaticResource Label}" Margin="0,14,0,0"
@@ -282,23 +294,15 @@
 
                             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_TokenLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,3" />
                             <TextBlock v:LocalizedText.Text="{Binding GitHubTokenHint}" Style="{StaticResource Label}" Margin="0,0,0,5" />
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <!-- PasswordBox は Password をバインドできないため TextBox で受ける。
-                                     保存すると即座に空へ戻すので、画面にトークンが残り続けることはない。 -->
-                                <TextBox Grid.Column="0" Text="{Binding GitHubTokenInput, UpdateSourceTrigger=PropertyChanged}"
-                                         v:Placeholder.Text="{x:Static res:Strings.Settings_TokenPlaceholder}" FontFamily="Consolas" />
-                                <Button Grid.Column="1" v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryWhenEnabledButton}"
-                                        Margin="6,0,0,0" r:IntentTrigger.OnClick="GitHubTokenSaveRequested" IsEnabled="{Binding CanSaveGitHubToken}" />
-                            </Grid>
-                            <DockPanel Margin="0,6,0,0">
-                                <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerWhenEnabledButton}"
-                                        r:IntentTrigger.OnClick="GitHubTokenDeleteRequested" IsEnabled="{Binding HasGitHubToken}" Margin="0" />
-                                <TextBlock v:LocalizedText.Text="{Binding GitHubTokenStatus}" Style="{StaticResource Label}" Margin="0" VerticalAlignment="Center" />
-                            </DockPanel>
+                            <!-- PasswordBox は Password をバインドできないため TextBox で受ける。
+                                 ［適用］で保存すると設定画面ごと閉じるので、画面にトークンが残り続けることはない。
+                                 保存・削除も他の項目と同じく［適用］で反映する（同じ画面に即時反映の項目を混ぜない）。 -->
+                            <TextBox Text="{Binding GitHubTokenInput, UpdateSourceTrigger=PropertyChanged}"
+                                     v:Placeholder.Text="{x:Static res:Strings.Settings_TokenPlaceholder}" FontFamily="Consolas" />
+                            <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_TokenDeleteCheckbox}" IsChecked="{Binding DeleteGitHubToken}"
+                                      IsEnabled="{Binding HasGitHubToken}" Margin="0,8,0,0" />
+                            <TextBlock v:LocalizedText.Text="{Binding GitHubTokenStatus}" Foreground="{StaticResource Danger}" Margin="0,6,0,0"
+                                       Visibility="{Binding GitHubTokenStatus, Converter={StaticResource NullVis}}" />
 
                             <TextBlock Style="{StaticResource Label}" Margin="0,16,0,0"
                                        v:LocalizedText.Text="{x:Static res:Strings.Settings_TokenStorageNote}" />
@@ -308,4 +312,11 @@
             </TabItem>
         </TabControl>
     </DockPanel>
+
+    <!-- 確認の層。設定ウィンドウはモーダルで本体を触れないので、本体の確認の層ではなくこの窓の中に出す。 -->
+    <Border Background="{StaticResource Scrim}"
+            Visibility="{Binding Confirm, Converter={StaticResource NullVis}}">
+        <ContentControl Content="{Binding Confirm}" />
+    </Border>
+    </Grid>
 </Window>

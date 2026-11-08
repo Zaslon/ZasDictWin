@@ -102,11 +102,127 @@ public class AppMediatorFlowTests
         Assert.Single(h.M.PendingChanges);
         Assert.Equal(string.Format(Strings.Main_ChangelogAppendFailedStatus, "locked"), h.State.Status);
         Assert.Contains(h.Services.Logged, l => l.Contains("更新履歴の追記"));
+        // 未保存の印が消えて見過ごされるので、ステータスだけでなくダイアログでも知らせる。
+        Assert.Equal((ShellPhase.Modal, Strings.Main_ChangelogAppendFailedTitle), (h.M.Shell, h.Confirm!.Title));
+        Assert.Contains(new HostCommand.FlashStatus(true), h.HostCommands);
 
+        h.Send(IntentKind.ConfirmChoiceSelected, 0);
         h.Services.AppendFails = false;
         h.Send(IntentKind.SaveRequested);
         Assert.Equal("b", Assert.Single(h.Services.Appended).Entries.Single().Form);
         Assert.Empty(h.M.PendingChanges);
+    }
+
+    [Fact]
+    public void ChangelogNotYetWritten_IsAskedAboutOnExit()
+    {
+        var h = new MediatorHarness();
+        h.OpenDictionary(W(1, "a"));
+        AddWord(h, "b");
+        h.Services.AppendFails = true;
+        h.Send(IntentKind.SaveRequested);
+        h.Send(IntentKind.ConfirmChoiceSelected, 0);
+
+        // 辞書は保存済みでも、書けていない履歴が残っていれば黙って終了しない。
+        h.Send(IntentKind.WindowCloseRequested);
+
+        Assert.Equal(ShellPhase.Modal, h.M.Shell);
+        Assert.Equal(string.Format(Strings.App_UnwrittenChangelogMessage, h.State.DictionaryName), h.Confirm!.Message);
+    }
+
+    // ---- 元に戻す・やり直し --------------------------------------------------------------
+
+    private static void DeleteWord(MediatorHarness h, string form)
+    {
+        h.Send(IntentKind.DeleteWordRequested, h.State.AllWords.Single(w => w.Form == form));
+        h.Send(IntentKind.ConfirmChoiceSelected, 0);
+    }
+
+    [Fact]
+    public void Undo_RestoresADeletedWord_AndRedoDeletesItAgain()
+    {
+        var h = new MediatorHarness();
+        h.OpenDictionary(W(1, "a"), W(2, "b"));
+        DeleteWord(h, "b");
+        Assert.True(h.M.CanExecute(AppCommand.Undo));
+
+        h.Send(IntentKind.UndoRequested);
+
+        Assert.Equal(new[] { "a", "b" }, h.State.AllWords.Select(w => w.Form));
+        // まだ CSV に書いていない DELETE は、行ごと取り下げる。
+        Assert.Empty(h.M.PendingChanges);
+        Assert.Equal(string.Format(Strings.Undo_UndoneStatus, string.Format(Strings.Undo_DeleteWord, "b")), h.State.Status);
+        Assert.Equal(DocPhase.Dirty, h.M.Doc);
+        Assert.False(h.M.CanExecute(AppCommand.Undo));
+
+        h.Send(IntentKind.RedoRequested);
+
+        Assert.Equal(new[] { "a" }, h.State.AllWords.Select(w => w.Form));
+        Assert.Equal(("DELETE", "b"), (h.M.PendingChanges.Single().Operation, h.M.PendingChanges.Single().Form));
+        Assert.True(h.M.CanExecute(AppCommand.Undo));
+        Assert.False(h.M.CanExecute(AppCommand.Redo));
+    }
+
+    [Fact]
+    public void Undo_AfterTheChangelogWasWritten_AppendsTheOppositeEntry()
+    {
+        var h = new MediatorHarness();
+        h.OpenDictionary(W(1, "a"), W(2, "b"));
+        DeleteWord(h, "b");
+        h.Send(IntentKind.SaveRequested);
+        Assert.Empty(h.M.PendingChanges);
+
+        h.Send(IntentKind.UndoRequested);
+
+        // CSV は追記しかしないので、書いた DELETE は消さずに ADD を足す。
+        var entry = Assert.Single(h.M.PendingChanges);
+        Assert.Equal(("ADD", "b"), (entry.Operation, entry.Form));
+    }
+
+    [Fact]
+    public void Undo_RestoresRelationsTheEditTouched()
+    {
+        var h = new MediatorHarness();
+        var a = W(1, "a");
+        var b = W(2, "b");
+        a.Relations.Add(new Relation { Title = "対義語", Id = 2, Form = "b" });
+        b.Relations.Add(new Relation { Title = "対義語", Id = 1, Form = "a" });
+        h.OpenDictionary(a, b);
+        DeleteWord(h, "b");
+        Assert.Empty(h.State.AllWords.Single().Relations);
+
+        h.Send(IntentKind.UndoRequested);
+
+        Assert.Equal(2, Assert.Single(h.State.AllWords.Single(w => w.Form == "a").Relations).Id);
+    }
+
+    [Fact]
+    public void Undo_IsBlockedWhileAnEditorIsOpen_AndForgottenWhenAnotherDictionaryOpens()
+    {
+        var h = new MediatorHarness();
+        h.OpenDictionary(W(1, "a"));
+        AddWord(h, "b");
+        Assert.True(h.M.CanExecute(AppCommand.Undo));
+
+        h.Send(IntentKind.NewWordRequested);
+        Assert.False(h.M.CanExecute(AppCommand.Undo));
+        h.Send(IntentKind.WordEditCancelled);
+
+        h.OpenDictionary(W(1, "x"));
+        Assert.False(h.M.CanExecute(AppCommand.Undo));
+    }
+
+    [Fact]
+    public void Undo_KeepsTheSelectionWhenTheWordStillExists()
+    {
+        var h = new MediatorHarness();
+        h.OpenDictionary(W(1, "a"), W(2, "b"));
+        DeleteWord(h, "b");
+        h.Send(IntentKind.SelectWordRequested, h.State.AllWords.Single());
+
+        h.Send(IntentKind.UndoRequested);
+
+        Assert.Equal("a", h.State.SelectedWord!.Form);
     }
 
     [Fact]
@@ -256,9 +372,49 @@ public class AppMediatorFlowTests
         Assert.Same(a, h.Open<WordEditViewModel>()!.Source);
         h.Open<WordEditViewModel>()!.Form = "changed";
 
+        // 書きかけがあるので、捨ててよいか確かめてから閉じる。
         h.Send(IntentKind.WordEditCancelled);
+        Assert.Equal(Strings.WordEdit_DiscardButton, h.Confirm!.Choices[0].Label);
+        h.Send(IntentKind.ConfirmChoiceSelected, 0);
+
         Assert.Null(h.Open<WordEditViewModel>());
         Assert.Equal(("a", DocPhase.Clean), (a.Form, h.M.Doc));
+    }
+
+    [Fact]
+    public void ClosingAnEditorWithChanges_AsksFirst_WhicheverWayItIsClosed()
+    {
+        var h = new MediatorHarness();
+        var a = W(1, "a");
+        h.OpenDictionary(a);
+        h.Send(IntentKind.EditWordRequested, a);
+        var editor = h.Open<WordEditViewModel>()!;
+        editor.Form = "changed";
+
+        // タブの × も Esc も、キャンセルと同じく確認を挟む。「編集を続ける」なら閉じない。
+        h.Send(IntentKind.TabCloseRequested, editor);
+        Assert.Equal(ShellPhase.Modal, h.M.Shell);
+        h.Send(IntentKind.ConfirmChoiceSelected, 1);
+        Assert.Same(editor, h.Open<WordEditViewModel>());
+
+        h.Send(IntentKind.CancelRequested);
+        Assert.Equal(ShellPhase.Modal, h.M.Shell);
+        h.Send(IntentKind.ConfirmChoiceSelected, 0);
+        Assert.Null(h.Open<WordEditViewModel>());
+    }
+
+    [Fact]
+    public void ClosingAnEditorWithoutChanges_ClosesAtOnce()
+    {
+        var h = new MediatorHarness();
+        var a = W(1, "a");
+        h.OpenDictionary(a);
+        h.Send(IntentKind.EditWordRequested, a);
+
+        h.Send(IntentKind.WordEditCancelled);
+
+        Assert.Equal(ShellPhase.Normal, h.M.Shell);
+        Assert.Null(h.Open<WordEditViewModel>());
     }
 
     [Fact]
@@ -761,20 +917,73 @@ public class AppMediatorFlowTests
         return Assert.IsType<HostCommand.OpenSettings>(h.HostCommands.Last()).State;
     }
 
+    [Theory]
+    [InlineData(IntentKind.WindowCloseRequested)]   // ［キャンセル］と ×
+    [InlineData(IntentKind.CancelRequested)]        // Esc
+    public void Settings_ClosingWithUnappliedChanges_AsksInsideTheSettingsWindow(IntentKind close)
+    {
+        var h = new MediatorHarness();
+        var form = OpenSettings(h);
+        var window = h.AddHost(HostRole.Settings);
+        form.SortOrder = "zyx";
+
+        h.Send(close, from: window);
+
+        // 設定ウィンドウはモーダルなので、確認は本体ではなく設定ウィンドウの中に出す。
+        Assert.Equal(Strings.Settings_DiscardButton, form.Confirm!.Choices[0].Label);
+        Assert.Null(h.Confirm);
+        Assert.DoesNotContain(new HostCommand.CloseHost(window.HostId), h.HostCommands);
+
+        h.Send(IntentKind.ConfirmChoiceSelected, 1, from: window);   // 編集を続ける
+        Assert.Null(form.Confirm);
+        Assert.DoesNotContain(new HostCommand.CloseHost(window.HostId), h.HostCommands);
+
+        h.Send(close, from: window);
+        h.Send(IntentKind.ConfirmChoiceSelected, 0, from: window);   // 適用せずに閉じる
+        Assert.Contains(new HostCommand.CloseHost(window.HostId), h.HostCommands);
+        Assert.NotEqual("zyx", h.Services.Settings.SortOrder);
+    }
+
     [Fact]
-    public void Settings_TokenIsSavedAndDeletedFromTheForm()
+    public void Settings_ClosingWithoutChanges_ClosesAtOnce()
+    {
+        var h = new MediatorHarness();
+        var form = OpenSettings(h);
+        var window = h.AddHost(HostRole.Settings);
+
+        h.Send(IntentKind.WindowCloseRequested, from: window);
+
+        Assert.Null(form.Confirm);
+        Assert.Contains(new HostCommand.CloseHost(window.HostId), h.HostCommands);
+    }
+
+    // 同じ画面に即時反映の項目を混ぜないよう、トークンも［適用］を押すまで保存・削除しない。
+    [Fact]
+    public void Settings_TokenIsSavedOnlyOnApply()
     {
         var h = new MediatorHarness(s => s.HasGitHubToken = false);
         var form = OpenSettings(h);
         form.GitHubTokenInput = "tok";
+        Assert.Null(h.Services.SavedGitHubToken);
 
-        h.Send(IntentKind.GitHubTokenSaveRequested);
+        h.Send(IntentKind.SettingsApplyRequested);
+
         Assert.Equal("tok", h.Services.SavedGitHubToken);
-        Assert.Equal(("", Strings.Settings_TokenSaved, true), (form.GitHubTokenInput, form.GitHubTokenStatus, form.HasGitHubToken));
+        Assert.True(h.Services.HasGitHubToken);
+    }
 
-        h.Send(IntentKind.GitHubTokenDeleteRequested);
+    [Fact]
+    public void Settings_TokenIsDeletedOnlyOnApply()
+    {
+        var h = new MediatorHarness();
+        var form = OpenSettings(h);
+        form.DeleteGitHubToken = true;
+        Assert.False(h.Services.TokenDeleted);
+
+        h.Send(IntentKind.SettingsApplyRequested);
+
         Assert.True(h.Services.TokenDeleted);
-        Assert.Equal((Strings.Settings_TokenDeleted, false), (form.GitHubTokenStatus, form.HasGitHubToken));
+        Assert.Null(h.Services.SavedGitHubToken);
     }
 
     [Fact]
@@ -1070,7 +1279,9 @@ public class AppMediatorFlowTests
 
         Assert.Equal(ShellPhase.Modal, h.M.Shell);
         Assert.Equal(Strings.Error_Title, h.Confirm!.Title);
-        Assert.Contains("InvalidOperationException", h.Confirm.Message);
+        Assert.Contains("oops", h.Confirm.Message);
+        // 例外の型名は利用者の役に立たないので出さない（記録には残る）。
+        Assert.DoesNotContain("InvalidOperationException", h.Confirm.Message);
     }
 
     [Fact]

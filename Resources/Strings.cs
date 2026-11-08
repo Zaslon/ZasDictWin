@@ -117,14 +117,28 @@ public static class Strings
     public static string Common_Minimize => Get();
     public static string Common_Maximize => Get();
     public static string Common_Restore => Get();
-    public static string Common_Stop => Get();
     public static string Common_KeepEditing => Get();
 
     public static string Menu_File => Get();
     public static string Menu_Tools => Get();
     public static string Menu_Window => Get();
+    public static string Menu_Edit => Get();
+    public static string Menu_Undo => Get();
+    public static string Menu_Redo => Get();
+    public static string Undo_AddWord => Get();
+    public static string Undo_EditWord => Get();
+    public static string Undo_DuplicateWord => Get();
+    public static string Undo_DeleteWord => Get();
+    public static string Undo_AddExample => Get();
+    public static string Undo_EditExample => Get();
+    public static string Undo_DeleteExample => Get();
+    public static string Undo_EditLegend => Get();
+    public static string Undo_EditDictionarySettings => Get();
+    public static string Undo_UndoneStatus => Get();
+    public static string Undo_RedoneStatus => Get();
     public static string Menu_Open => Get();
     public static string Menu_NewDictionary => Get();
+    public static string Menu_Save => Get();
     public static string Menu_SaveAs => Get();
 
     public static string Search_Title => Get();
@@ -191,6 +205,7 @@ public static class Strings
     public static string Ipa_CandidateHint => Get();
     public static string Legend_Title => Get();
     public static string Legend_UpdatedStatus => Get();
+    public static string Legend_UnsavedMessage => Get();
     public static string Legend_InvalidJson => Get();
 
     public static string Examples_AddButton => Get();
@@ -217,6 +232,7 @@ public static class Strings
     public static string Label_ApiKeyPlaceholder => Get();
     public static string ExampleEdit_SaveKeyButton => Get();
     public static string ExampleEdit_ValidationSentence => Get();
+    public static string ExampleEdit_UnsavedMessage => Get();
 
     public static string Zpdic_KeyHintSaved => Get();
     public static string Zpdic_KeyHintMissing => Get();
@@ -256,6 +272,7 @@ public static class Strings
     public static string WordEdit_NoReciprocalHint => Get();
     public static string WordEdit_UnsavedTitle => Get();
     public static string WordEdit_UnsavedMessage => Get();
+    public static string WordEdit_DiscardButton => Get();
     public static string Relation_DefaultTitle => Get();
 
     public static string Settings_Title => Get();
@@ -290,8 +307,8 @@ public static class Strings
     public static string Settings_DictDependentNote => Get();
     public static string Settings_BackgroundColorLabel => Get();
     public static string Settings_BackgroundColorNote => Get();
-    public static string Settings_TopmostCheckbox => Get();
-    public static string Settings_ShowTranslationsCheckbox => Get();
+    public static string Settings_NotTopmostCheckbox => Get();
+    public static string Settings_HideTranslationsCheckbox => Get();
     public static string Settings_ShowContentsCheckbox => Get();
     public static string Settings_StreamWindowNote => Get();
     public static string Settings_BrowserOpenOnStartCheckbox => Get();
@@ -315,16 +332,22 @@ public static class Strings
     public static string Settings_TokenLabel => Get();
     public static string Settings_TokenPlaceholder => Get();
     public static string Settings_TokenStorageNote => Get();
+    public static string Settings_TokenDeleteCheckbox => Get();
     public static string Settings_PickFontDialogTitle => Get();
     public static string Settings_FontFilter => Get();
-    public static string Settings_TokenSaved => Get();
     public static string Settings_TokenSaveFailed => Get();
-    public static string Settings_TokenDeleted => Get();
     public static string GitHub_TokenHintSaved => Get();
     public static string GitHub_TokenHintMissing => Get();
     public static string Settings_AppliedStatus => Get();
+    public static string Settings_UnappliedTitle => Get();
+    public static string Settings_UnappliedMessage => Get();
+    public static string Settings_DiscardButton => Get();
     public static string Settings_Language => Get();
     public static string Settings_LanguageNote => Get();
+    public static string Settings_ThemeLabel => Get();
+    public static string Settings_ThemeSystem => Get();
+    public static string Settings_ThemeLight => Get();
+    public static string Settings_ThemeDark => Get();
 
     public static string GitHub_LoadButton => Get();
     public static string GitHub_LoadButtonTooltip => Get();
@@ -396,6 +419,8 @@ public static class Strings
     public static string Main_SaveFailedTitle => Get();
     public static string Main_SavedStatus => Get();
     public static string Main_ChangelogAppendFailedStatus => Get();
+    public static string Main_ChangelogAppendFailedTitle => Get();
+    public static string Main_ChangelogAppendFailedMessage => Get();
     public static string Main_NoSavePathStatus => Get();
     public static string Main_NewWordButton => Get();
     public static string Main_ExamplesButtonTooltip => Get();
@@ -417,6 +442,7 @@ public static class Strings
 
     public static string App_UnsavedCloseTitle => Get();
     public static string App_UnsavedCloseMessage => Get();
+    public static string App_UnwrittenChangelogMessage => Get();
     public static string App_SaveAndExit => Get();
     public static string App_ExitWithoutSaving => Get();
 

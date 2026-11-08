@@ -6,9 +6,12 @@
              xmlns:ov="clr-namespace:ZasDictWin.Views.Overlays">
     <Application.Resources>
         <ResourceDictionary>
-            <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="Themes/Theme.xaml" />
-            </ResourceDictionary.MergedDictionaries>
+            <!-- 配色（Themes/Dark.xaml か Light.xaml）と外見（Themes/Theme.xaml）は、ここでは読まない。
+                 起動時に ThemePalette.Load が配色を選んでから読み込む（理由は ThemePalette を参照）。
+                 そのためここのテンプレートからは Theme.xaml のキーを StaticResource で引けない
+                 （App.xaml の読み込み時点で未登録だと解決に失敗し、起動直後に XamlParseException で落ちる）。
+                 ここで使うものは配色に依存しないコンバーターに限り、この辞書に直接置く。 -->
+            <v:BoolToVisibilityConverter x:Key="BoolVis" />
 
             <!-- 画面の割り付け。節と枠の入れ子をそのまま描く（再帰は ContentControl 任せ）。 -->
             <DataTemplate DataType="{x:Type vm:DockSplit}">

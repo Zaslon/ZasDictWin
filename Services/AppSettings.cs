@@ -13,6 +13,9 @@ public enum EditMode { Local, GitHub }
 /// PC にインストール済みのフォント名を使う。</summary>
 public enum HeksaFontSource { File, Installed }
 
+/// <summary>配色。<see cref="System"/> は Windows の「アプリ モード」（ライト／ダーク）に合わせる。</summary>
+public enum AppTheme { System, Light, Dark }
+
 public sealed class AppSettings
 {
     // OS の言語ではなく "ja" を既定にする。settings.json にこの項目がまだ無い（i18n 対応前からの）
@@ -34,6 +37,9 @@ public sealed class AppSettings
 
     public double FontScale { get; set; } = 1.0;
     public bool AutoSave { get; set; }
+
+    // 起動時にだけ反映する（ThemePalette）。
+    public AppTheme Theme { get; set; } = AppTheme.System;
 
     public EditMode Mode { get; set; } = EditMode.Local;
 

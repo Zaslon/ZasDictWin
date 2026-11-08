@@ -28,6 +28,19 @@
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
+        <!-- OS の視覚効果を切っているときの失敗。動かさずに色だけ出し、通常の光らせ（0.9 秒）と同じくらいで消す。 -->
+        <Storyboard x:Key="StatusFailureHoldStoryboard">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="StatusFlashBrush" Storyboard.TargetProperty="Opacity">
+                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.4" />
+                <DiscreteDoubleKeyFrame KeyTime="0:0:1" Value="0" />
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
+        <!-- 前の失敗の色が残っていれば消す。 -->
+        <Storyboard x:Key="StatusFlashClearStoryboard">
+            <DoubleAnimationUsingKeyFrames Storyboard.TargetName="StatusFlashBrush" Storyboard.TargetProperty="Opacity">
+                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0" />
+            </DoubleAnimationUsingKeyFrames>
+        </Storyboard>
     </Window.Resources>
 
     <!-- 標準の枠が無いので、上のヘッダ（アプリ名＋ボタン列）自体をつまみにする。
@@ -78,8 +91,10 @@
 
                     <WrapPanel HorizontalAlignment="Right" Orientation="Horizontal"
 TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}">
-                        <!-- 開く・新規辞書・保存・別名で保存。項目の構成と有効・無効は Mediator が組む。 -->
+                        <!-- 開く・新規辞書・上書き保存・名前を付けて保存。項目の構成と有効・無効は Mediator が組む。 -->
                         <v:MenuButton x:Name="FileMenuButton" Header="{x:Static res:Strings.Menu_File}" Items="{Binding FileMenuItems}" />
+                        <!-- 元に戻す・やり直し。 -->
+                        <v:MenuButton x:Name="EditMenuButton" Header="{x:Static res:Strings.Menu_Edit}" Items="{Binding EditMenuItems}" />
                         <!-- 統計・凡例・更新履歴・方言変換・IPA→綴りは、常設のタブ枠を食わない
                              独立ウィンドウとしてここから開く。 -->
                         <v:MenuButton x:Name="ToolsMenuButton" Header="{x:Static res:Strings.Menu_Tools}" Items="{Binding ToolsMenuItems}" />

@@ -22,6 +22,7 @@ public enum DragPhase
 public enum AppCommand
 {
     Open, NewDictionary, Save, SaveAs, GitHubLoad, GitHubCommit,
+    Undo, Redo,
     NewWord, EditWord, DuplicateWord, DeleteWord,
     ShowBrowser, ShowSettings, ShowExamples, EditExample,
     ShowDialectTool, ShowIpaTool, ShowStats, ShowLegend, ShowChangelog,
@@ -31,7 +32,8 @@ public enum AppCommand
 public readonly record struct GateContext(
     ShellPhase Shell, DocPhase Doc,
     bool GitHubMode, bool GitHubBusy, bool GitHubSynced,
-    bool EditorOpen, IReadOnlySet<string> OpenKinds, bool HasSelection);
+    bool EditorOpen, IReadOnlySet<string> OpenKinds, bool HasSelection,
+    bool CanUndo = false, bool CanRedo = false);
 
 /// <summary>確認ダイアログの中身。View は文言とボタン並びだけを受け取り、押されたら番号を Intent で返す。</summary>
 public sealed record ConfirmSpec(string Title, string Message, IReadOnlyList<ConfirmChoice> Choices);

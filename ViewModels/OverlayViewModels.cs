@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Windows.Media;
 using ZasDictWin.Mediator;
@@ -96,6 +97,7 @@ public sealed class SettingsViewModel : OverlayViewModel
         SortOrder = settings.SortOrder;
         FontScale = settings.FontScale;
         AutoSave = settings.AutoSave;
+        _theme = settings.Theme;
         WindowWidth = settings.WindowWidth;
         WindowHeight = settings.WindowHeight;
         WindowAspectLocked = settings.WindowAspectLocked;
@@ -133,7 +135,29 @@ public sealed class SettingsViewModel : OverlayViewModel
                     .Select(n => n?.GetValue<string>() ?? "") ?? Array.Empty<string>());
             IgnoredPattern = doc.ZpdicOnline["ignoredPattern"]?.GetValue<string>() ?? "";
         }
+
+        _initialSnapshot = Snapshot();
     }
+
+    /// <summary>開いた時点の入力欄の内容。<see cref="HasChanges"/> の基準にする。</summary>
+    private readonly string _initialSnapshot;
+
+    /// <summary>開いた時点から入力欄を変えたか。［適用］せずに閉じるときの確認に使う。</summary>
+    public bool HasChanges => Snapshot() != _initialSnapshot;
+
+    private string Snapshot() => JsonSerializer.Serialize(new object?[]
+    {
+        Language, SortOrder, FontScale, AutoSave, Theme, WindowWidth, WindowHeight, WindowAspectLocked,
+        HeksaEnabled, HeksaFontSource, HeksaFontPath, HeksaFontName, ReciprocalText, Punctuations, IgnoredPattern,
+        StreamBackground, StreamFontScale, StreamTopmost, StreamShowTranslations, StreamShowContents,
+        BrowserVisible, BrowserStartUrl,
+        Mode, GitHubOwner, GitHubRepo, GitHubBranch, GitHubJsonPath, GitHubChangelogPath, GitHubTokenInput, DeleteGitHubToken,
+    });
+
+    private ChoiceViewModel? _confirm;
+
+    /// <summary>この窓の中に出す確認。設定ウィンドウはモーダルで本体を触れないので、本体の確認の層は使えない。</summary>
+    public ChoiceViewModel? Confirm { get => _confirm; internal set => Set(ref _confirm, value); }
 
     private static string FormatReciprocal(IEnumerable<KeyValuePair<string, string>> map)
         => string.Join(Environment.NewLine, map.Select(kv => $"{kv.Key}={kv.Value}"));
@@ -155,6 +179,10 @@ public sealed class SettingsViewModel : OverlayViewModel
     public string SortOrder { get; set; }
     public double FontScale { get; set; }
     public bool AutoSave { get; set; }
+
+    private AppTheme _theme;
+    /// <summary>配色。チップの選択表示が追随するよう PropertyChanged を出す（反映は再起動後）。</summary>
+    public AppTheme Theme { get => _theme; internal set => Set(ref _theme, value); }
 
     public double WindowWidth { get; set; }
     public double WindowHeight { get; set; }
@@ -252,6 +280,11 @@ public sealed class SettingsViewModel : OverlayViewModel
     public bool StreamShowTranslations { get; set; }
     public bool StreamShowContents { get; set; }
 
+    // 手前に出す・訳語を出すが既定なので、チェックボックスは既定から外す側（出さない側）で見せる。
+    // 設定値の意味は変えない（settings.json の互換と、既定を後で変えたくなった場合に備えて）。
+    public bool StreamNotTopmost { get => !StreamTopmost; set => StreamTopmost = !value; }
+    public bool StreamHideTranslations { get => !StreamShowTranslations; set => StreamShowTranslations = !value; }
+
     public bool BrowserVisible { get; set; }
     public string BrowserStartUrl { get; set; } = "";
 
@@ -277,7 +310,7 @@ public sealed class SettingsViewModel : OverlayViewModel
     public string GitHubChangelogPath { get; set; } = "";
 
     private string _gitHubTokenInput = "";
-    /// <summary>トークンの入力欄。保存すると空に戻す（画面にキーを残さない）。</summary>
+    /// <summary>トークンの入力欄。他の項目と同じく［適用］で保存する（空なら保存済みのトークンに触らない）。</summary>
     public string GitHubTokenInput
     {
         get => _gitHubTokenInput;
@@ -285,6 +318,9 @@ public sealed class SettingsViewModel : OverlayViewModel
     }
 
     public bool CanSaveGitHubToken => GitHubTokenInput.Trim().Length > 0;
+
+    /// <summary>［適用］で保存済みのトークンを消すか。</summary>
+    public bool DeleteGitHubToken { get; set; }
 
     private bool _hasGitHubToken;
     public bool HasGitHubToken

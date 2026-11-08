@@ -27,6 +27,7 @@ public partial class App : Application
         // UI 文字列の言語は窓を作るより前に確定させておく必要がある。
         var settings = AppSettings.Load();
         ApplyLanguage(settings.Language);
+        ThemePalette.Load(this, settings.Theme);
 
         // 既定の MessageBox は別 HWND なので OBS に映りません。ここでは記録と継続判断だけを行い、
         // 目に見える案内は確認ダイアログの層（根の裁定）に任せます。
@@ -167,8 +168,8 @@ public partial class App : Application
                     _ghost = null;
                     shown?.Close();
                     break;
-                case HostCommand.FlashStatus:
-                    Shell?.FlashStatus();
+                case HostCommand.FlashStatus flash:
+                    Shell?.FlashStatus(flash.Failure);
                     break;
             }
         }

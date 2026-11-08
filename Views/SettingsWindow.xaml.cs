@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using ZasDictWin.Root;
 using ZasDictWin.ViewModels;
@@ -68,9 +69,15 @@ public partial class SettingsWindow : Window, IUiHost
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Escape) return;
+        CommitFocusedInput();
         this.RaiseIntent(IntentKind.CancelRequested);
         e.Handled = true;
     }
+
+    /// <summary>入力欄の値はフォーカスが外れたときに書き戻される。打った直後に Esc や × で閉じると
+    /// 書き戻す前に「変更なし」と判断されて確認なしに閉じるので、閉じる合図の前に書き戻しておく。</summary>
+    private static void CommitFocusedInput()
+        => (Keyboard.FocusedElement as TextBox)?.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
 
     // 文字サイズ倍率はアプリ全体で 1 つなので、この窓で回しても本体と同じ値を動かす。
     private void OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
@@ -84,13 +91,18 @@ public partial class SettingsWindow : Window, IUiHost
     // 設定は大きさが決め打ちの用途ではないため最大化トグルは持たせていない。
     private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) => DragMove();
 
-    private void Close_Click(object sender, RoutedEventArgs e) => this.RaiseIntent(IntentKind.WindowCloseRequested);
+    private void Close_Click(object sender, RoutedEventArgs e)
+    {
+        CommitFocusedInput();
+        this.RaiseIntent(IntentKind.WindowCloseRequested);
+    }
 
     protected override void OnClosing(CancelEventArgs e)
     {
         if (!_closingFromRoot)
         {
             e.Cancel = true;
+            CommitFocusedInput();
             _requestingClose = true;
             try { this.RaiseIntent(IntentKind.WindowCloseRequested); }
             finally { _requestingClose = false; }

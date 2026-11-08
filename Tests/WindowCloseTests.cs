@@ -23,12 +23,10 @@ public class WindowCloseTests
         public void Close(IUiHost host) => host.CloseFromRoot();
     }
 
-    // Application は 1 プロセスに 1 つで、そのリソースは作ったスレッドからしか引けない。
-    // 窓の XAML が App.xaml のリソースを参照するので、実物の窓を使う確認は 1 つの STA スレッドにまとめる。
+    // 窓の XAML が App.xaml のリソースを参照するので、App を持つスレッドで走らせる。
     [Fact]
-    public void UserClosingStreamAndCountWindows_ClosesWithoutThrowing() => Sta.Run(() =>
+    public void UserClosingStreamAndCountWindows_ClosesWithoutThrowing() => AppThread.Run(() =>
     {
-        if (Application.Current is null) new App().InitializeComponent();
         var services = new StubServices();
         var state = new MainViewModel(services.Settings, () => { });
         var root = AppRoot.Initialize(new AppMediator(services, state, state.Layout));

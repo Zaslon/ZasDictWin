@@ -15,49 +15,8 @@
     <v:SplitMarginConverter x:Key="SplitMargin" />
     <v:PlainTextConverter x:Key="PlainText" />
 
-    <!-- 配色トークン。キー名は参照側（オーバーレイ含む）との契約なので、調整は値だけで行う。
-         Ink=窓 / Panel=ヘッダ・カード / Raised=ボタン と役割で揃える。影系 Effect は一切使わない方針
-         （ビットマップ化されると文字がにじみ、OBS のウィンドウキャプチャ画質を落とすため）。 -->
-    <Color x:Key="InkColor">#181818</Color>
-    <Color x:Key="PanelColor">#1E1E1E</Color>
-    <Color x:Key="RaisedColor">#2E2E2E</Color>
-    <Color x:Key="LineColor">#363636</Color>
-    <Color x:Key="AccentColor">#A18CF7</Color>
-    <!-- 塗りつぶし用のアクセント。文字色・枠用の Accent は暗い面で読める明るさに寄せてあり、
-         そのまま白文字の下地にすると文字が沈むため、面だけ一段濃い色を使う。 -->
-    <Color x:Key="AccentFillColor">#7F6DF2</Color>
-    <!-- タブ列・ヘッダ・フッタなど、中身（Panel）を囲む枠側の面 -->
-    <Color x:Key="ChromeColor">#262626</Color>
-
-    <SolidColorBrush x:Key="Ink" Color="{StaticResource InkColor}" />
-    <SolidColorBrush x:Key="Panel" Color="{StaticResource PanelColor}" />
-    <SolidColorBrush x:Key="Raised" Color="{StaticResource RaisedColor}" />
-    <SolidColorBrush x:Key="Line" Color="{StaticResource LineColor}" />
-    <SolidColorBrush x:Key="Accent" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="Text" Color="#DADADA" />
-    <SolidColorBrush x:Key="Muted" Color="#A3A3A3" />
-    <SolidColorBrush x:Key="Danger" Color="#FB464C" />
-    <SolidColorBrush x:Key="Scrim" Color="#CC0A0A0A" />
-    <!-- 塗りつぶした面（AccentFill / DangerFill）に載せる文字 -->
-    <SolidColorBrush x:Key="OnFill" Color="#FFFFFF" />
-
-    <!-- 上記から分岐する細部用 -->
-    <SolidColorBrush x:Key="Field" Color="#262626" />
-    <SolidColorBrush x:Key="RowHover" Color="#2A2A2A" />
-    <SolidColorBrush x:Key="AccentDim" Color="#2F2B45" />
-    <!-- ドロップ先として着色する枠の面。下の中身を透かして「どの枠に入るか」を見せる -->
-    <SolidColorBrush x:Key="DropFill" Color="{StaticResource AccentColor}" Opacity="0.22" />
-    <!-- 結合で消える側の面。タブは残る枠へ移るが、枠そのものは無くなるので色を分ける -->
-    <SolidColorBrush x:Key="JoinFill" Color="#FB464C" Opacity="0.20" />
-    <SolidColorBrush x:Key="ThumbBrush" Color="#3A3A3A" />
-    <SolidColorBrush x:Key="ThumbHover" Color="#4D4D4D" />
-
-    <!-- 面はすべて単色。グラデーションは縁に明暗の段が出て、隣り合う面との境目が二重に見える。
-         キー名は参照側との契約なので、Fill の名前のまま単色ブラシにしてある。 -->
-    <SolidColorBrush x:Key="AccentFill" Color="{StaticResource AccentFillColor}" />
-    <SolidColorBrush x:Key="DangerFill" Color="#E5484D" />
-    <SolidColorBrush x:Key="HeaderFill" Color="{StaticResource ChromeColor}" />
-    <SolidColorBrush x:Key="FooterFill" Color="{StaticResource ChromeColor}" />
+    <!-- 配色は Themes/Dark.xaml（既定）と Themes/Light.xaml に分けてあり、App.xaml がこの辞書より先に読み込む。
+         起動時に ThemePalette がどちらかに差し替えるので、ここに色の値を書かない。 -->
 
     <Style TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -142,7 +101,7 @@
                             <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                               Margin="{TemplateBinding Padding}" />
-                            <Border x:Name="veil" CornerRadius="4" Background="#FFFFFF" Opacity="0"
+                            <Border x:Name="veil" CornerRadius="4" Background="{StaticResource HoverVeil}" Opacity="0"
                                     IsHitTestVisible="False" />
                         </Grid>
                     </Border>
@@ -151,7 +110,7 @@
                             <Setter TargetName="veil" Property="Opacity" Value="0.06" />
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="veil" Property="Background" Value="#000000" />
+                            <Setter TargetName="veil" Property="Background" Value="{StaticResource PressedVeil}" />
                             <Setter TargetName="veil" Property="Opacity" Value="0.22" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
@@ -300,7 +259,7 @@
                             BorderBrush="{StaticResource Line}" BorderThickness="1">
                         <Grid>
                             <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
-                            <Border x:Name="veil" CornerRadius="3" Background="#FFFFFF" Opacity="0" IsHitTestVisible="False" />
+                            <Border x:Name="veil" CornerRadius="3" Background="{StaticResource HoverVeil}" Opacity="0" IsHitTestVisible="False" />
                         </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -816,7 +775,7 @@
     <!-- オーバーレイ本体。影は使わず、枠と面の差だけで窓から浮いて見せる -->
     <Style x:Key="Card" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource Panel}" />
-        <Setter Property="BorderBrush" Value="#424242" />
+        <Setter Property="BorderBrush" Value="{StaticResource CardBorder}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="10" />
         <Setter Property="Padding" Value="20" />
@@ -1154,7 +1113,7 @@
          せり出して見せる。枠をアクセント色にすると、中の選択行（AccentDim）と色がぶつかる。 -->
     <Style x:Key="DropDownPanel" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource HeaderFill}" />
-        <Setter Property="BorderBrush" Value="#484848" />
+        <Setter Property="BorderBrush" Value="{StaticResource PopupBorder}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="4" />

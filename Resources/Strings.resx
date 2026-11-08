@@ -74,16 +74,30 @@
   <data name="Common_Minimize" xml:space="preserve"><value>最小化</value></data>
   <data name="Common_Maximize" xml:space="preserve"><value>最大化</value></data>
   <data name="Common_Restore" xml:space="preserve"><value>元のサイズに戻す</value></data>
-  <data name="Common_Stop" xml:space="preserve"><value>やめる</value></data>
   <data name="Common_KeepEditing" xml:space="preserve"><value>編集を続ける</value></data>
 
   <!-- Menu -->
   <data name="Menu_File" xml:space="preserve"><value>ファイル</value></data>
   <data name="Menu_Tools" xml:space="preserve"><value>ツール</value></data>
   <data name="Menu_Window" xml:space="preserve"><value>ウィンドウ</value></data>
+  <data name="Menu_Edit" xml:space="preserve"><value>編集</value></data>
+  <data name="Menu_Undo" xml:space="preserve"><value>元に戻す</value></data>
+  <data name="Menu_Redo" xml:space="preserve"><value>やり直し</value></data>
+  <data name="Undo_AddWord" xml:space="preserve"><value>「{0}」の追加</value></data>
+  <data name="Undo_EditWord" xml:space="preserve"><value>「{0}」の編集</value></data>
+  <data name="Undo_DuplicateWord" xml:space="preserve"><value>「{0}」の複製</value></data>
+  <data name="Undo_DeleteWord" xml:space="preserve"><value>「{0}」の削除</value></data>
+  <data name="Undo_AddExample" xml:space="preserve"><value>例文の追加</value></data>
+  <data name="Undo_EditExample" xml:space="preserve"><value>例文の編集</value></data>
+  <data name="Undo_DeleteExample" xml:space="preserve"><value>例文の削除</value></data>
+  <data name="Undo_EditLegend" xml:space="preserve"><value>凡例の編集</value></data>
+  <data name="Undo_EditDictionarySettings" xml:space="preserve"><value>辞書依存設定の変更</value></data>
+  <data name="Undo_UndoneStatus" xml:space="preserve"><value>{0}を元に戻しました。</value></data>
+  <data name="Undo_RedoneStatus" xml:space="preserve"><value>{0}をやり直しました。</value></data>
   <data name="Menu_Open" xml:space="preserve"><value>開く</value></data>
   <data name="Menu_NewDictionary" xml:space="preserve"><value>新規辞書</value></data>
-  <data name="Menu_SaveAs" xml:space="preserve"><value>別名で保存</value></data>
+  <data name="Menu_Save" xml:space="preserve"><value>上書き保存</value></data>
+  <data name="Menu_SaveAs" xml:space="preserve"><value>名前を付けて保存</value></data>
 
   <!-- Search / Detail -->
   <data name="Search_Title" xml:space="preserve"><value>検索</value></data>
@@ -101,7 +115,7 @@
 
   <data name="Detail_Title" xml:space="preserve"><value>単語詳細</value></data>
   <data name="Detail_EmptyTitle" xml:space="preserve"><value>単語を選んでください</value></data>
-  <data name="Detail_EmptyHint" xml:space="preserve"><value>左の一覧から選ぶと、ここに内容が出ます</value></data>
+  <data name="Detail_EmptyHint" xml:space="preserve"><value>一覧から選ぶと、ここに内容が出ます</value></data>
   <data name="Label_Variations" xml:space="preserve"><value>変化形</value></data>
   <data name="Detail_RelatedExamples" xml:space="preserve"><value>参照例文</value></data>
   <data name="Label_Headwords" xml:space="preserve"><value>見出し語</value></data>
@@ -150,18 +164,19 @@
   <data name="Dialect_Or" xml:space="preserve"><value>または</value></data>
 
   <!-- IPA / Legend -->
-  <data name="Ipa_Title" xml:space="preserve"><value>IPA</value></data>
+  <data name="Ipa_Title" xml:space="preserve"><value>IPA → 綴り</value></data>
   <data name="Ipa_SpellingLabel" xml:space="preserve"><value>イジェール語音写</value></data>
   <data name="Ipa_CandidateHint" xml:space="preserve"><value>(a|b) は候補が複数あることを表します。</value></data>
   <data name="Legend_Title" xml:space="preserve"><value>凡例</value></data>
   <data name="Legend_UpdatedStatus" xml:space="preserve"><value>凡例を更新しました。</value></data>
+  <data name="Legend_UnsavedMessage" xml:space="preserve"><value>凡例の編集内容を保存せずに閉じますか？</value></data>
   <data name="Legend_InvalidJson" xml:space="preserve"><value>[en]JSON[/en] として読めません: [en]{0}[/en]</value></data>
 
   <!-- Examples overlay -->
-  <data name="Examples_AddButton" xml:space="preserve"><value>＋ 例文</value></data>
+  <data name="Examples_AddButton" xml:space="preserve"><value>例文を追加</value></data>
   <data name="Examples_FilterHint" xml:space="preserve"><value>例文・訳・補足・タグを部分一致で絞り込みます。</value></data>
   <data name="Examples_SearchPlaceholder" xml:space="preserve"><value>例文を検索…</value></data>
-  <data name="Examples_Empty" xml:space="preserve"><value>表示できる例文がありません。［＋ 例文］から追加できます。</value></data>
+  <data name="Examples_Empty" xml:space="preserve"><value>表示できる例文がありません。［例文を追加］から追加できます。</value></data>
   <data name="Examples_CountLabel" xml:space="preserve"><value>{0} / {1} 文</value></data>
 
   <!-- Example edit overlay -->
@@ -183,6 +198,7 @@
   <data name="Label_ApiKeyPlaceholder" xml:space="preserve"><value>APIキー</value></data>
   <data name="ExampleEdit_SaveKeyButton" xml:space="preserve"><value>キーを保存</value></data>
   <data name="ExampleEdit_ValidationSentence" xml:space="preserve"><value>「文」は必須です。</value></data>
+  <data name="ExampleEdit_UnsavedMessage" xml:space="preserve"><value>例文の編集内容を保存せずに閉じますか？</value></data>
 
   <!-- ZpDIC Online example offer -->
   <data name="Zpdic_KeyHintSaved" xml:space="preserve"><value>APIキーは保存済みです（{0}）。入れ直すと上書きします。</value></data>
@@ -208,7 +224,7 @@
   <data name="WordEdit_AddTitle" xml:space="preserve"><value>単語を追加</value></data>
   <data name="WordEdit_EditTitle" xml:space="preserve"><value>単語を編集</value></data>
   <data name="WordEdit_FormLabel" xml:space="preserve"><value>見出し語</value></data>
-  <data name="WordEdit_AddTranslationButton" xml:space="preserve"><value>＋ 訳語</value></data>
+  <data name="WordEdit_AddTranslationButton" xml:space="preserve"><value>訳語を追加</value></data>
   <data name="WordEdit_DragTooltip" xml:space="preserve"><value>ドラッグで並べ替え</value></data>
   <data name="Label_PartOfSpeech" xml:space="preserve"><value>品詞</value></data>
   <data name="WordEdit_PosPlaceholder" xml:space="preserve"><value>品詞を選ぶ</value></data>
@@ -217,19 +233,20 @@
   <data name="WordEdit_RelationsHeading" xml:space="preserve"><value>関連語</value></data>
   <data name="WordEdit_AddRelationHeading" xml:space="preserve"><value>関連語を追加</value></data>
   <data name="WordEdit_RelationTitlePlaceholder" xml:space="preserve"><value>関係を選ぶ／入力する</value></data>
-  <data name="WordEdit_AddVariationButton" xml:space="preserve"><value>＋ 変化形</value></data>
+  <data name="WordEdit_AddVariationButton" xml:space="preserve"><value>変化形を追加</value></data>
   <data name="WordEdit_VariationHint" xml:space="preserve"><value>左が名称（複数形・過去形など）、右がその綴り。</value></data>
   <data name="WordEdit_ValidationPos" xml:space="preserve"><value>訳語の品詞を選択してください（各訳語で品詞を 1 つ選びます）。</value></data>
   <data name="WordEdit_ReciprocalHint" xml:space="preserve"><value>相手側には「{0}」が自動登録されます</value></data>
   <data name="WordEdit_NoReciprocalHint" xml:space="preserve"><value>対照関係が未定義のため相手側には登録されません</value></data>
   <data name="WordEdit_UnsavedTitle" xml:space="preserve"><value>保存されていない変更があります</value></data>
   <data name="WordEdit_UnsavedMessage" xml:space="preserve"><value>「{0}」の編集内容を保存せずに閉じますか？</value></data>
+  <data name="WordEdit_DiscardButton" xml:space="preserve"><value>保存せずに閉じる</value></data>
   <data name="Relation_DefaultTitle" xml:space="preserve"><value>対義語</value></data>
 
   <!-- Settings -->
   <data name="Settings_Title" xml:space="preserve"><value>設定</value></data>
   <data name="Settings_TabGeneral" xml:space="preserve"><value>表示・動作</value></data>
-  <data name="Settings_TabDictionary" xml:space="preserve"><value>辞書依存</value></data>
+  <data name="Settings_TabDictionary" xml:space="preserve"><value>辞書依存設定</value></data>
   <data name="Settings_TabStreamWindow" xml:space="preserve"><value>単語ウィンドウ</value></data>
   <data name="Settings_TabBrowser" xml:space="preserve"><value>ブラウザ</value></data>
   <data name="Settings_TabStorage" xml:space="preserve"><value>保存先</value></data>
@@ -259,10 +276,10 @@
   <data name="Settings_DictDependentNote" xml:space="preserve"><value>この 2 つは辞書ファイルの zpdicOnline に書き込まれます。</value></data>
   <data name="Settings_BackgroundColorLabel" xml:space="preserve"><value>背景色</value></data>
   <data name="Settings_BackgroundColorNote" xml:space="preserve"><value>（クロマキーなら #00B140 など。透過するなら Transparent）</value></data>
-  <data name="Settings_TopmostCheckbox" xml:space="preserve"><value>常に手前に表示する</value></data>
-  <data name="Settings_ShowTranslationsCheckbox" xml:space="preserve"><value>訳語を表示する</value></data>
+  <data name="Settings_NotTopmostCheckbox" xml:space="preserve"><value>常に手前には表示しない</value></data>
+  <data name="Settings_HideTranslationsCheckbox" xml:space="preserve"><value>訳語を隠す</value></data>
   <data name="Settings_ShowContentsCheckbox" xml:space="preserve"><value>内容（語源・用例など）も表示する</value></data>
-  <data name="Settings_StreamWindowNote" xml:space="preserve"><value>背景色・文字サイズ倍率・常に手前に表示するは、単語数ウィンドウにも同じものが効きます。どちらも独立したウィンドウです。OBS では［ウィンドウキャプチャ］で ZasDict 単語ウィンドウ・ZasDict 単語数ウィンドウ を選び、クロマキーフィルタを掛けてください。</value></data>
+  <data name="Settings_StreamWindowNote" xml:space="preserve"><value>背景色・文字サイズ倍率・「常に手前には表示しない」は、単語数ウィンドウにも同じものが効きます。どちらも独立したウィンドウです。OBS では［ウィンドウキャプチャ］で ZasDict 単語ウィンドウ・ZasDict 単語数ウィンドウ を選び、クロマキーフィルタを掛けてください。</value></data>
   <data name="Settings_BrowserOpenOnStartCheckbox" xml:space="preserve"><value>起動時にブラウザのタブを開く</value></data>
   <data name="Settings_StartUrlLabel" xml:space="preserve"><value>開始 URL</value></data>
   <data name="Settings_StartUrlNote" xml:space="preserve"><value>（空にすると既定の検索ページ）</value></data>
@@ -284,16 +301,22 @@
   <data name="Settings_TokenLabel" xml:space="preserve"><value>アクセストークン</value></data>
   <data name="Settings_TokenPlaceholder" xml:space="preserve"><value>Personal Access Token（repo の Contents 読み書き権限）</value></data>
   <data name="Settings_TokenStorageNote" xml:space="preserve"><value>トークンは settings.json ではなく別ファイルに保存されます。</value></data>
+  <data name="Settings_TokenDeleteCheckbox" xml:space="preserve"><value>保存済みのトークンを削除する</value></data>
   <data name="Settings_PickFontDialogTitle" xml:space="preserve"><value>イジェール文字フォント（Heksa）を選択</value></data>
   <data name="Settings_FontFilter" xml:space="preserve"><value>フォント (*.ttf;*.otf)|*.ttf;*.otf|すべてのファイル (*.*)|*.*</value></data>
-  <data name="Settings_TokenSaved" xml:space="preserve"><value>トークンを保存しました。</value></data>
   <data name="Settings_TokenSaveFailed" xml:space="preserve"><value>トークンを保存できませんでした: {0}</value></data>
-  <data name="Settings_TokenDeleted" xml:space="preserve"><value>トークンを削除しました。</value></data>
   <data name="GitHub_TokenHintSaved" xml:space="preserve"><value>トークンは保存済みです（{0}）。入れ直すと上書きします。</value></data>
   <data name="GitHub_TokenHintMissing" xml:space="preserve"><value>repo の Contents 読み書き権限を持つトークンが必要です。保存先: {0}</value></data>
   <data name="Settings_AppliedStatus" xml:space="preserve"><value>設定を適用しました。</value></data>
+  <data name="Settings_UnappliedTitle" xml:space="preserve"><value>適用していない変更があります</value></data>
+  <data name="Settings_UnappliedMessage" xml:space="preserve"><value>設定の変更を適用せずに閉じますか？</value></data>
+  <data name="Settings_DiscardButton" xml:space="preserve"><value>適用せずに閉じる</value></data>
   <data name="Settings_Language" xml:space="preserve"><value>言語</value></data>
   <data name="Settings_LanguageNote" xml:space="preserve"><value>変更を反映するにはアプリを再起動します。</value></data>
+  <data name="Settings_ThemeLabel" xml:space="preserve"><value>配色</value></data>
+  <data name="Settings_ThemeSystem" xml:space="preserve"><value>OS の設定に合わせる</value></data>
+  <data name="Settings_ThemeLight" xml:space="preserve"><value>ライト</value></data>
+  <data name="Settings_ThemeDark" xml:space="preserve"><value>ダーク</value></data>
 
   <!-- GitHub -->
   <data name="GitHub_LoadButton" xml:space="preserve"><value>GitHubから読み込む</value></data>
@@ -308,8 +331,8 @@
   <data name="GitHub_Checking" xml:space="preserve"><value>GitHubの内容を確認中…</value></data>
   <data name="GitHub_LoadFailedStatus" xml:space="preserve"><value>GitHubからの読み込みに失敗しました: {0}</value></data>
   <data name="GitHub_NoDiff" xml:space="preserve"><value>ローカルとリモートに差がありません。</value></data>
-  <data name="GitHub_LoadConfirmTitle" xml:space="preserve"><value>GitHubから読み込み</value></data>
-  <data name="GitHub_LoadConfirmQuestion" xml:space="preserve"><value>ローカルの変更を破棄してGitHubから再読み込みをしますか？</value></data>
+  <data name="GitHub_LoadConfirmTitle" xml:space="preserve"><value>GitHubから読み込む</value></data>
+  <data name="GitHub_LoadConfirmQuestion" xml:space="preserve"><value>ローカルの変更を破棄して、GitHubから読み込みますか？</value></data>
   <data name="GitHub_LoadConfirmTarget" xml:space="preserve"><value>上書き先: {0}</value></data>
   <data name="GitHub_LoadCreateQuestion" xml:space="preserve"><value>ローカルに辞書ファイルがありません。GitHubから取得して新しく作成しますか？</value></data>
   <data name="GitHub_LoadCreateTarget" xml:space="preserve"><value>作成先: {0}</value></data>
@@ -368,8 +391,14 @@
   <data name="Main_SaveFailedTitle" xml:space="preserve"><value>保存できません</value></data>
   <data name="Main_SavedStatus" xml:space="preserve"><value>{0} に保存しました。</value></data>
   <data name="Main_ChangelogAppendFailedStatus" xml:space="preserve"><value>更新履歴の追記に失敗しました: {0}</value></data>
+  <data name="Main_ChangelogAppendFailedTitle" xml:space="preserve"><value>更新履歴を追記できません</value></data>
+  <data name="Main_ChangelogAppendFailedMessage" xml:space="preserve"><value>辞書は保存しましたが、更新履歴に追記できませんでした。
+追記先: {0}
+原因: {1}
+
+追記できなかった履歴は残してあり、次に保存するときにもう一度追記します。</value></data>
   <data name="Main_NoSavePathStatus" xml:space="preserve"><value>保存先が決まっていません。</value></data>
-  <data name="Main_NewWordButton" xml:space="preserve"><value>＋ 単語</value></data>
+  <data name="Main_NewWordButton" xml:space="preserve"><value>単語を追加</value></data>
   <data name="Main_ExamplesButtonTooltip" xml:space="preserve"><value>辞書の例文（examples）を一覧・編集します</value></data>
   <data name="Main_UnsavedTooltip" xml:space="preserve"><value>未保存の変更があります</value></data>
 
@@ -377,9 +406,9 @@
   <data name="Word_UpdatedStatus" xml:space="preserve"><value>「{0}」を更新しました。</value></data>
   <data name="Word_DuplicatedStatus" xml:space="preserve"><value>「{0}」を複製しました。</value></data>
   <data name="Word_DeleteConfirmTitle" xml:space="preserve"><value>単語を削除</value></data>
-  <data name="Word_DeleteConfirmMessage" xml:space="preserve"><value>「{0}」を削除します。この単語を指している関係も外れます。</value></data>
+  <data name="Word_DeleteConfirmMessage" xml:space="preserve"><value>「{0}」を削除します。他の単語の関連語からも外れます。</value></data>
   <data name="Word_DeletedStatus" xml:space="preserve"><value>「{0}」を削除しました。</value></data>
-  <data name="Word_RelationNotFoundStatus" xml:space="preserve"><value>関係先 id={0}（{1}）が見つかりません。</value></data>
+  <data name="Word_RelationNotFoundStatus" xml:space="preserve"><value>関連語 id={0}（{1}）が見つかりません。</value></data>
 
   <data name="Example_AddedStatus" xml:space="preserve"><value>例文を追加しました。</value></data>
   <data name="Example_UpdatedStatus" xml:space="preserve"><value>例文を更新しました。</value></data>
@@ -389,6 +418,7 @@
 
   <data name="App_UnsavedCloseTitle" xml:space="preserve"><value>未保存の変更があります</value></data>
   <data name="App_UnsavedCloseMessage" xml:space="preserve"><value>{0} の変更が保存されていません。</value></data>
+  <data name="App_UnwrittenChangelogMessage" xml:space="preserve"><value>{0} の更新履歴が、まだ CSV に書き込まれていません。</value></data>
   <data name="App_SaveAndExit" xml:space="preserve"><value>保存して終了</value></data>
   <data name="App_ExitWithoutSaving" xml:space="preserve"><value>保存せず終了</value></data>
 
@@ -401,10 +431,10 @@
   <data name="Window_StreamTitle" xml:space="preserve"><value>ZasDict 単語ウィンドウ</value></data>
   <data name="Window_CountTitle" xml:space="preserve"><value>ZasDict 単語数ウィンドウ</value></data>
   <data name="Window_StreamPlaceholder" xml:space="preserve"><value>単語を選ぶとここに表示されます</value></data>
-  <data name="Window_StreamMenuOpen" xml:space="preserve"><value>単語ウィンドウ</value></data>
+  <data name="Window_StreamMenuOpen" xml:space="preserve"><value>単語ウィンドウを開く</value></data>
   <data name="Window_StreamMenuClose" xml:space="preserve"><value>単語ウィンドウを閉じる</value></data>
   <data name="Window_StreamMenuTooltip" xml:space="preserve"><value>選択中の単語だけを大きく表示します</value></data>
-  <data name="Window_CountMenuOpen" xml:space="preserve"><value>単語数ウィンドウ</value></data>
+  <data name="Window_CountMenuOpen" xml:space="preserve"><value>単語数ウィンドウを開く</value></data>
   <data name="Window_CountMenuClose" xml:space="preserve"><value>単語数ウィンドウを閉じる</value></data>
   <data name="Window_CountMenuTooltip" xml:space="preserve"><value>辞書の総語数だけを大きく表示します</value></data>
 
@@ -417,7 +447,7 @@
   <data name="Error_Title" xml:space="preserve"><value>問題が発生しました</value></data>
   <data name="Error_Message" xml:space="preserve"><value>この操作は中止しましたが、アプリはそのまま続けられます。
 
-{0}: {1}
+{0}
 
-詳しい記録: {2}</value></data>
+詳しい記録: {1}</value></data>
 </root>

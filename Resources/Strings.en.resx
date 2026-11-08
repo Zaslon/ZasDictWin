@@ -74,15 +74,29 @@
   <data name="Common_Minimize" xml:space="preserve"><value>Minimize</value></data>
   <data name="Common_Maximize" xml:space="preserve"><value>Maximize</value></data>
   <data name="Common_Restore" xml:space="preserve"><value>Restore</value></data>
-  <data name="Common_Stop" xml:space="preserve"><value>Cancel</value></data>
   <data name="Common_KeepEditing" xml:space="preserve"><value>Keep editing</value></data>
 
   <!-- Menu -->
   <data name="Menu_File" xml:space="preserve"><value>File</value></data>
   <data name="Menu_Tools" xml:space="preserve"><value>Tools</value></data>
   <data name="Menu_Window" xml:space="preserve"><value>Window</value></data>
+  <data name="Menu_Edit" xml:space="preserve"><value>Edit</value></data>
+  <data name="Menu_Undo" xml:space="preserve"><value>Undo</value></data>
+  <data name="Menu_Redo" xml:space="preserve"><value>Redo</value></data>
+  <data name="Undo_AddWord" xml:space="preserve"><value>adding "{0}"</value></data>
+  <data name="Undo_EditWord" xml:space="preserve"><value>editing "{0}"</value></data>
+  <data name="Undo_DuplicateWord" xml:space="preserve"><value>duplicating "{0}"</value></data>
+  <data name="Undo_DeleteWord" xml:space="preserve"><value>deleting "{0}"</value></data>
+  <data name="Undo_AddExample" xml:space="preserve"><value>adding an example</value></data>
+  <data name="Undo_EditExample" xml:space="preserve"><value>editing an example</value></data>
+  <data name="Undo_DeleteExample" xml:space="preserve"><value>deleting an example</value></data>
+  <data name="Undo_EditLegend" xml:space="preserve"><value>editing the legend</value></data>
+  <data name="Undo_EditDictionarySettings" xml:space="preserve"><value>changing the dictionary-specific settings</value></data>
+  <data name="Undo_UndoneStatus" xml:space="preserve"><value>Undid {0}.</value></data>
+  <data name="Undo_RedoneStatus" xml:space="preserve"><value>Redid {0}.</value></data>
   <data name="Menu_Open" xml:space="preserve"><value>Open</value></data>
   <data name="Menu_NewDictionary" xml:space="preserve"><value>New Dictionary</value></data>
+  <data name="Menu_Save" xml:space="preserve"><value>Save</value></data>
   <data name="Menu_SaveAs" xml:space="preserve"><value>Save As</value></data>
 
   <!-- Search / Detail -->
@@ -101,7 +115,7 @@
 
   <data name="Detail_Title" xml:space="preserve"><value>Word Detail</value></data>
   <data name="Detail_EmptyTitle" xml:space="preserve"><value>Select a word</value></data>
-  <data name="Detail_EmptyHint" xml:space="preserve"><value>Choose one from the list on the left to see its details here</value></data>
+  <data name="Detail_EmptyHint" xml:space="preserve"><value>Choose one from the list to see its details here</value></data>
   <data name="Label_Variations" xml:space="preserve"><value>Variations</value></data>
   <data name="Detail_RelatedExamples" xml:space="preserve"><value>Related Examples</value></data>
   <data name="Label_Headwords" xml:space="preserve"><value>Headwords</value></data>
@@ -150,18 +164,19 @@
   <data name="Dialect_Or" xml:space="preserve"><value> or </value></data>
 
   <!-- IPA / Legend -->
-  <data name="Ipa_Title" xml:space="preserve"><value>IPA</value></data>
+  <data name="Ipa_Title" xml:space="preserve"><value>IPA → Spelling</value></data>
   <data name="Ipa_SpellingLabel" xml:space="preserve"><value>Idyerin Transliteration</value></data>
   <data name="Ipa_CandidateHint" xml:space="preserve"><value>(a|b) means there are multiple candidates.</value></data>
   <data name="Legend_Title" xml:space="preserve"><value>Legend</value></data>
   <data name="Legend_UpdatedStatus" xml:space="preserve"><value>Updated the legend.</value></data>
+  <data name="Legend_UnsavedMessage" xml:space="preserve"><value>Close without saving your changes to the legend?</value></data>
   <data name="Legend_InvalidJson" xml:space="preserve"><value>Not valid JSON: {0}</value></data>
 
   <!-- Examples overlay -->
-  <data name="Examples_AddButton" xml:space="preserve"><value>+ Example</value></data>
+  <data name="Examples_AddButton" xml:space="preserve"><value>Add Example</value></data>
   <data name="Examples_FilterHint" xml:space="preserve"><value>Filters by partial match on the sentence, translation, note, and tags.</value></data>
   <data name="Examples_SearchPlaceholder" xml:space="preserve"><value>Search examples…</value></data>
-  <data name="Examples_Empty" xml:space="preserve"><value>No examples to show. Add one with [+ Example].</value></data>
+  <data name="Examples_Empty" xml:space="preserve"><value>No examples to show. Add one with [Add Example].</value></data>
   <data name="Examples_CountLabel" xml:space="preserve"><value>{0} / {1} sentences</value></data>
 
   <!-- Example edit overlay -->
@@ -183,6 +198,7 @@
   <data name="Label_ApiKeyPlaceholder" xml:space="preserve"><value>API key</value></data>
   <data name="ExampleEdit_SaveKeyButton" xml:space="preserve"><value>Save Key</value></data>
   <data name="ExampleEdit_ValidationSentence" xml:space="preserve"><value>"Sentence" is required.</value></data>
+  <data name="ExampleEdit_UnsavedMessage" xml:space="preserve"><value>Close without saving your changes to this example?</value></data>
 
   <!-- ZpDIC Online example offer -->
   <data name="Zpdic_KeyHintSaved" xml:space="preserve"><value>The API key is already saved ({0}). Entering a new one will overwrite it.</value></data>
@@ -208,7 +224,7 @@
   <data name="WordEdit_AddTitle" xml:space="preserve"><value>Add Word</value></data>
   <data name="WordEdit_EditTitle" xml:space="preserve"><value>Edit Word</value></data>
   <data name="WordEdit_FormLabel" xml:space="preserve"><value>Headword</value></data>
-  <data name="WordEdit_AddTranslationButton" xml:space="preserve"><value>+ Translation</value></data>
+  <data name="WordEdit_AddTranslationButton" xml:space="preserve"><value>Add Translation</value></data>
   <data name="WordEdit_DragTooltip" xml:space="preserve"><value>Drag to reorder</value></data>
   <data name="Label_PartOfSpeech" xml:space="preserve"><value>Part of Speech</value></data>
   <data name="WordEdit_PosPlaceholder" xml:space="preserve"><value>Choose a part of speech</value></data>
@@ -217,19 +233,20 @@
   <data name="WordEdit_RelationsHeading" xml:space="preserve"><value>Related Words</value></data>
   <data name="WordEdit_AddRelationHeading" xml:space="preserve"><value>Add a Related Word</value></data>
   <data name="WordEdit_RelationTitlePlaceholder" xml:space="preserve"><value>Choose or type a relation</value></data>
-  <data name="WordEdit_AddVariationButton" xml:space="preserve"><value>+ Variation</value></data>
+  <data name="WordEdit_AddVariationButton" xml:space="preserve"><value>Add Variation</value></data>
   <data name="WordEdit_VariationHint" xml:space="preserve"><value>The left side is the name (plural, past tense, etc.), the right side is its spelling.</value></data>
   <data name="WordEdit_ValidationPos" xml:space="preserve"><value>Choose a part of speech for each translation (one per translation).</value></data>
   <data name="WordEdit_ReciprocalHint" xml:space="preserve"><value>"{0}" will be registered automatically on the other word</value></data>
   <data name="WordEdit_NoReciprocalHint" xml:space="preserve"><value>Nothing will be registered on the other word because no reciprocal relation is defined</value></data>
   <data name="WordEdit_UnsavedTitle" xml:space="preserve"><value>Unsaved Changes</value></data>
   <data name="WordEdit_UnsavedMessage" xml:space="preserve"><value>Close without saving your changes to "{0}"?</value></data>
+  <data name="WordEdit_DiscardButton" xml:space="preserve"><value>Close Without Saving</value></data>
   <data name="Relation_DefaultTitle" xml:space="preserve"><value>Antonym</value></data>
 
   <!-- Settings -->
   <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
   <data name="Settings_TabGeneral" xml:space="preserve"><value>Display &amp; Behavior</value></data>
-  <data name="Settings_TabDictionary" xml:space="preserve"><value>Dictionary-Specific</value></data>
+  <data name="Settings_TabDictionary" xml:space="preserve"><value>Dictionary-Specific Settings</value></data>
   <data name="Settings_TabStreamWindow" xml:space="preserve"><value>Word Window</value></data>
   <data name="Settings_TabBrowser" xml:space="preserve"><value>Browser</value></data>
   <data name="Settings_TabStorage" xml:space="preserve"><value>Storage</value></data>
@@ -259,10 +276,10 @@
   <data name="Settings_DictDependentNote" xml:space="preserve"><value>Both of these are written to the dictionary file's zpdicOnline.</value></data>
   <data name="Settings_BackgroundColorLabel" xml:space="preserve"><value>Background Color</value></data>
   <data name="Settings_BackgroundColorNote" xml:space="preserve"><value> (e.g. #00B140 for chroma key; Transparent to see through)</value></data>
-  <data name="Settings_TopmostCheckbox" xml:space="preserve"><value>Always on top</value></data>
-  <data name="Settings_ShowTranslationsCheckbox" xml:space="preserve"><value>Show translations</value></data>
+  <data name="Settings_NotTopmostCheckbox" xml:space="preserve"><value>Don't keep on top</value></data>
+  <data name="Settings_HideTranslationsCheckbox" xml:space="preserve"><value>Hide translations</value></data>
   <data name="Settings_ShowContentsCheckbox" xml:space="preserve"><value>Also show content (etymology, usage, etc.)</value></data>
-  <data name="Settings_StreamWindowNote" xml:space="preserve"><value>The background color, font size scale, and always-on-top setting also apply to the word count window. Both are separate windows. In OBS, add a [Window Capture] source, pick "ZasDict Word Window" or "ZasDict Word Count Window", and apply a chroma key filter.</value></data>
+  <data name="Settings_StreamWindowNote" xml:space="preserve"><value>The background color, font size scale, and "Don't keep on top" setting also apply to the word count window. Both are separate windows. In OBS, add a [Window Capture] source, pick "ZasDict Word Window" or "ZasDict Word Count Window", and apply a chroma key filter.</value></data>
   <data name="Settings_BrowserOpenOnStartCheckbox" xml:space="preserve"><value>Open the browser tab at startup</value></data>
   <data name="Settings_StartUrlLabel" xml:space="preserve"><value>Start URL</value></data>
   <data name="Settings_StartUrlNote" xml:space="preserve"><value> (leave blank for the default search page)</value></data>
@@ -284,16 +301,22 @@
   <data name="Settings_TokenLabel" xml:space="preserve"><value>Access Token</value></data>
   <data name="Settings_TokenPlaceholder" xml:space="preserve"><value>Personal access token (repo Contents read/write permission)</value></data>
   <data name="Settings_TokenStorageNote" xml:space="preserve"><value>The token is stored in a separate file, not in settings.json.</value></data>
+  <data name="Settings_TokenDeleteCheckbox" xml:space="preserve"><value>Delete the saved token</value></data>
   <data name="Settings_PickFontDialogTitle" xml:space="preserve"><value>Choose an Idyerin Script Font (Heksa)</value></data>
   <data name="Settings_FontFilter" xml:space="preserve"><value>Fonts (*.ttf;*.otf)|*.ttf;*.otf|All files (*.*)|*.*</value></data>
-  <data name="Settings_TokenSaved" xml:space="preserve"><value>Token saved.</value></data>
   <data name="Settings_TokenSaveFailed" xml:space="preserve"><value>Couldn't save the token: {0}</value></data>
-  <data name="Settings_TokenDeleted" xml:space="preserve"><value>Token deleted.</value></data>
   <data name="GitHub_TokenHintSaved" xml:space="preserve"><value>The token is already saved ({0}). Entering a new one will overwrite it.</value></data>
   <data name="GitHub_TokenHintMissing" xml:space="preserve"><value>A token with repo Contents read/write permission is required. Saved to: {0}</value></data>
   <data name="Settings_AppliedStatus" xml:space="preserve"><value>Settings applied.</value></data>
+  <data name="Settings_UnappliedTitle" xml:space="preserve"><value>Unapplied Changes</value></data>
+  <data name="Settings_UnappliedMessage" xml:space="preserve"><value>Close without applying your changes to the settings?</value></data>
+  <data name="Settings_DiscardButton" xml:space="preserve"><value>Close Without Applying</value></data>
   <data name="Settings_Language" xml:space="preserve"><value>Language</value></data>
   <data name="Settings_LanguageNote" xml:space="preserve"><value>Restart the app for the change to take effect.</value></data>
+  <data name="Settings_ThemeLabel" xml:space="preserve"><value>Color Theme</value></data>
+  <data name="Settings_ThemeSystem" xml:space="preserve"><value>Match Windows</value></data>
+  <data name="Settings_ThemeLight" xml:space="preserve"><value>Light</value></data>
+  <data name="Settings_ThemeDark" xml:space="preserve"><value>Dark</value></data>
 
   <!-- GitHub -->
   <data name="GitHub_LoadButton" xml:space="preserve"><value>Load from GitHub</value></data>
@@ -309,7 +332,7 @@
   <data name="GitHub_LoadFailedStatus" xml:space="preserve"><value>Failed to load from GitHub: {0}</value></data>
   <data name="GitHub_NoDiff" xml:space="preserve"><value>There's no difference between local and remote.</value></data>
   <data name="GitHub_LoadConfirmTitle" xml:space="preserve"><value>Load from GitHub</value></data>
-  <data name="GitHub_LoadConfirmQuestion" xml:space="preserve"><value>Discard local changes and reload from GitHub?</value></data>
+  <data name="GitHub_LoadConfirmQuestion" xml:space="preserve"><value>Discard local changes and load from GitHub?</value></data>
   <data name="GitHub_LoadConfirmTarget" xml:space="preserve"><value>Will overwrite: {0}</value></data>
   <data name="GitHub_LoadCreateQuestion" xml:space="preserve"><value>There's no local dictionary file. Download it from GitHub and create one?</value></data>
   <data name="GitHub_LoadCreateTarget" xml:space="preserve"><value>Will create: {0}</value></data>
@@ -368,8 +391,14 @@
   <data name="Main_SaveFailedTitle" xml:space="preserve"><value>Can't Save</value></data>
   <data name="Main_SavedStatus" xml:space="preserve"><value>Saved to {0}.</value></data>
   <data name="Main_ChangelogAppendFailedStatus" xml:space="preserve"><value>Failed to append to the changelog: {0}</value></data>
+  <data name="Main_ChangelogAppendFailedTitle" xml:space="preserve"><value>Couldn't Update the Changelog</value></data>
+  <data name="Main_ChangelogAppendFailedMessage" xml:space="preserve"><value>The dictionary was saved, but the changelog couldn't be updated.
+File: {0}
+Cause: {1}
+
+The entries that couldn't be written are kept and will be written the next time you save.</value></data>
   <data name="Main_NoSavePathStatus" xml:space="preserve"><value>No save location is set.</value></data>
-  <data name="Main_NewWordButton" xml:space="preserve"><value>+ Word</value></data>
+  <data name="Main_NewWordButton" xml:space="preserve"><value>Add Word</value></data>
   <data name="Main_ExamplesButtonTooltip" xml:space="preserve"><value>Views and edits the dictionary's examples</value></data>
   <data name="Main_UnsavedTooltip" xml:space="preserve"><value>There are unsaved changes</value></data>
 
@@ -377,7 +406,7 @@
   <data name="Word_UpdatedStatus" xml:space="preserve"><value>Updated "{0}".</value></data>
   <data name="Word_DuplicatedStatus" xml:space="preserve"><value>Duplicated "{0}".</value></data>
   <data name="Word_DeleteConfirmTitle" xml:space="preserve"><value>Delete Word</value></data>
-  <data name="Word_DeleteConfirmMessage" xml:space="preserve"><value>This will delete "{0}". Any relations pointing to it will also be removed.</value></data>
+  <data name="Word_DeleteConfirmMessage" xml:space="preserve"><value>This will delete "{0}". It will also be removed from other words' related words.</value></data>
   <data name="Word_DeletedStatus" xml:space="preserve"><value>Deleted "{0}".</value></data>
   <data name="Word_RelationNotFoundStatus" xml:space="preserve"><value>Related word id={0} ({1}) was not found.</value></data>
 
@@ -389,6 +418,7 @@
 
   <data name="App_UnsavedCloseTitle" xml:space="preserve"><value>Unsaved Changes</value></data>
   <data name="App_UnsavedCloseMessage" xml:space="preserve"><value>Changes to {0} haven't been saved.</value></data>
+  <data name="App_UnwrittenChangelogMessage" xml:space="preserve"><value>The changelog for {0} hasn't been written to the CSV yet.</value></data>
   <data name="App_SaveAndExit" xml:space="preserve"><value>Save and Exit</value></data>
   <data name="App_ExitWithoutSaving" xml:space="preserve"><value>Exit Without Saving</value></data>
 
@@ -401,10 +431,10 @@
   <data name="Window_StreamTitle" xml:space="preserve"><value>ZasDict Word Window</value></data>
   <data name="Window_CountTitle" xml:space="preserve"><value>ZasDict Word Count Window</value></data>
   <data name="Window_StreamPlaceholder" xml:space="preserve"><value>Select a word to display it here</value></data>
-  <data name="Window_StreamMenuOpen" xml:space="preserve"><value>Word Window</value></data>
+  <data name="Window_StreamMenuOpen" xml:space="preserve"><value>Open Word Window</value></data>
   <data name="Window_StreamMenuClose" xml:space="preserve"><value>Close Word Window</value></data>
   <data name="Window_StreamMenuTooltip" xml:space="preserve"><value>Shows only the selected word, enlarged</value></data>
-  <data name="Window_CountMenuOpen" xml:space="preserve"><value>Word Count Window</value></data>
+  <data name="Window_CountMenuOpen" xml:space="preserve"><value>Open Word Count Window</value></data>
   <data name="Window_CountMenuClose" xml:space="preserve"><value>Close Word Count Window</value></data>
   <data name="Window_CountMenuTooltip" xml:space="preserve"><value>Shows only the dictionary's total word count, enlarged</value></data>
 
@@ -417,7 +447,7 @@
   <data name="Error_Title" xml:space="preserve"><value>Something Went Wrong</value></data>
   <data name="Error_Message" xml:space="preserve"><value>This operation was cancelled, but you can keep using the app.
 
-{0}: {1}
+{0}
 
-Detailed log: {2}</value></data>
+Detailed log: {1}</value></data>
 </root>

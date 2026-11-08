@@ -83,9 +83,12 @@ public static class LocalizedText
         hc.Header = BuildTextBlock(e.NewValue as string);
     }
 
+    // ボタンなどの中身にする TextBlock。既定の TextBlock スタイル（Theme.xaml）が当たると文字色が本文色に
+    // 固定され、親が決めた文字色（塗りのボタンの白、アクセント色のボタンなど）を継がなくなる。
+    // 空のスタイルを明示して既定のスタイルを外し、既定のスタイルが持つ折り返しだけを付け直す。
     private static TextBlock BuildTextBlock(string? text)
     {
-        var tb = new TextBlock();
+        var tb = new TextBlock { Style = new Style(typeof(TextBlock)), TextWrapping = TextWrapping.Wrap };
         foreach (var inline in Build(text)) tb.Inlines.Add(inline);
         return tb;
     }

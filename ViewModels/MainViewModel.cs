@@ -197,10 +197,12 @@ public sealed class MainViewModel : ViewModelBase
     // ---- ヘッダの階層メニュー（ShellPresenter が Mediator の組んだ項目を写す）----------
 
     private IReadOnlyList<MenuActionSpec> _fileMenuItems = Array.Empty<MenuActionSpec>();
+    private IReadOnlyList<MenuActionSpec> _editMenuItems = Array.Empty<MenuActionSpec>();
     private IReadOnlyList<MenuActionSpec> _toolsMenuItems = Array.Empty<MenuActionSpec>();
     private IReadOnlyList<MenuActionSpec> _windowMenuItems = Array.Empty<MenuActionSpec>();
 
     public IReadOnlyList<MenuActionSpec> FileMenuItems { get => _fileMenuItems; internal set => Set(ref _fileMenuItems, value); }
+    public IReadOnlyList<MenuActionSpec> EditMenuItems { get => _editMenuItems; internal set => Set(ref _editMenuItems, value); }
     public IReadOnlyList<MenuActionSpec> ToolsMenuItems { get => _toolsMenuItems; internal set => Set(ref _toolsMenuItems, value); }
     public IReadOnlyList<MenuActionSpec> WindowMenuItems { get => _windowMenuItems; internal set => Set(ref _windowMenuItems, value); }
 

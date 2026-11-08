@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text.Json;
 using ZasDictWin.Models;
 using ZasDictWin.Resources;
 using ZasDictWin.Services;
@@ -98,7 +99,21 @@ public sealed class ExampleEditViewModel : OverlayViewModel
             _offerNumberText = source.OfferNumber.ToString();
             foreach (var w in source.Words) Words.Add(new ExampleWord { Id = w.Id, Form = w.Form });
         }
+
+        _initialSnapshot = Snapshot();
     }
+
+    /// <summary>開いた直後の内容。<see cref="HasChanges"/> の基準にする。</summary>
+    private readonly string _initialSnapshot;
+
+    /// <summary>開いた直後から中身が変わったか。閉じるときに破棄してよいかを確かめるのに使う。</summary>
+    public bool HasChanges => Snapshot() != _initialSnapshot;
+
+    private string Snapshot() => JsonSerializer.Serialize(new
+    {
+        Sentence, TranslationText, Supplement, TagsText, Catalog, OfferNumberText,
+        Words = Words.Select(w => w.Id).ToList(),
+    });
 
     /// <summary>編集元。null なら新規。</summary>
     public Example? Source { get; }

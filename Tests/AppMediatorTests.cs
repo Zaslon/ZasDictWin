@@ -604,6 +604,7 @@ public class AppMediatorTests
         h.Send(IntentKind.LegendEditRequested);
         legend.Draft = "draft";
         h.Send(IntentKind.LegendEditCancelled);
+        h.Send(IntentKind.ConfirmChoiceSelected, 0);   // 書きかけを捨てる
 
         Assert.False(legend.IsEditing);
         Assert.Null(doc.Legend);

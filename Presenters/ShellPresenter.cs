@@ -53,6 +53,7 @@ public sealed class ShellPresenter
         // 中身が同じなら差し替えない。MenuButton は Items が変わると開いている一覧を畳むので、
         // 一覧を開いたこと自体で起きる裁定のたびに差し替えると、開いた瞬間に閉じてしまう。
         if (!_state.FileMenuItems.SequenceEqual(m.BuildFileMenu())) _state.FileMenuItems = m.BuildFileMenu();
+        if (!_state.EditMenuItems.SequenceEqual(m.BuildEditMenu())) _state.EditMenuItems = m.BuildEditMenu();
         if (!_state.ToolsMenuItems.SequenceEqual(m.BuildToolsMenu())) _state.ToolsMenuItems = m.BuildToolsMenu();
         if (!_state.WindowMenuItems.SequenceEqual(m.BuildWindowMenu())) _state.WindowMenuItems = m.BuildWindowMenu();
     }

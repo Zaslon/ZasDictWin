@@ -24,9 +24,10 @@ public static class OtmJsonIo
         CommentHandling = JsonCommentHandling.Skip
     };
 
-    public static OtmDocument Load(string path)
+    public static OtmDocument Load(string path) => Parse(File.ReadAllText(path), path);
+
+    public static OtmDocument Parse(string text, string? path)
     {
-        var text = File.ReadAllText(path);
         var node = JsonNode.Parse(text, NodeOptions, DocumentOptions)
                    ?? throw new InvalidDataException(Strings.Otm_ParseEmpty);
         if (node is not JsonObject root)
@@ -54,7 +55,7 @@ public static class OtmJsonIo
 
     public static OtmDocument CreateEmpty() => new(new JsonObject(), Array.Empty<Word>(), null);
 
-    public static void Save(OtmDocument doc, string path)
+    public static string ToJson(OtmDocument doc)
     {
         foreach (var w in doc.Words) w.WriteBack();
         foreach (var e in doc.Examples) e.WriteBack();
@@ -68,6 +69,12 @@ public static class OtmJsonIo
         var json = root.ToJsonString(WriteOptions);
         root.Remove("words");
         root.Remove("examples");
+        return json;
+    }
+
+    public static void Save(OtmDocument doc, string path)
+    {
+        var json = ToJson(doc);
 
         // 書き込み中の電断でも元ファイルを壊さないよう、一時ファイル経由で差し替える。
         var tmp = path + ".tmp";

@@ -1,8 +1,10 @@
 ﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Interop;
+using System.Windows.Media;
 using System.Windows.Media.Animation;
 using ZasDictWin.Mediator;
 using ZasDictWin.Resources;
@@ -94,7 +96,16 @@ public partial class MainWindow : Window, IUiHost
 
     // Status は差分の無い書き換えでは光らせない（裁定側が変わったときだけ指示する）。
     // 連続で変わっても Storyboard.Begin は前回分を上書きするだけで済む。
-    public void FlashStatus() => ((Storyboard)Resources["StatusFlashStoryboard"]).Begin(StatusFlashBorder);
+    // OS の視覚効果（アニメーション）を切っている場合、成功は光らせず、失敗は色を一定時間だけ出して戻す
+    // （失敗の色まで省くと、失敗を色で区別できなくなるため）。
+    public void FlashStatus(bool failure)
+    {
+        StatusFlashBrush.Color = (Color)FindResource(failure ? "DangerColor" : "AccentColor");
+        var key = SystemParameters.ClientAreaAnimation ? "StatusFlashStoryboard"
+            : failure ? "StatusFailureHoldStoryboard"
+            : "StatusFlashClearStoryboard";
+        ((Storyboard)Resources[key]).Begin(StatusFlashBorder);
+    }
 
     // WindowChrome 導入前から ResizeBorderThickness だけ残して端をつまむリサイズを効かせている
     // （MainWindow.xaml 参照）ため、比率固定も WM_SIZING を横取りする形でしか実現できない
@@ -181,11 +192,21 @@ public partial class MainWindow : Window, IUiHost
                 Key.Enter or Key.N => IntentKind.NewWordRequested,
                 Key.E => IntentKind.EditWordRequested,
                 Key.D => IntentKind.DuplicateWordRequested,
+                Key.Z => IntentKind.UndoRequested,
+                Key.Y => IntentKind.RedoRequested,
                 _ => null,
             },
-            ModifierKeys.Control | ModifierKeys.Shift when key == Key.S => IntentKind.SaveAsRequested,
+            ModifierKeys.Control | ModifierKeys.Shift => key switch
+            {
+                Key.S => IntentKind.SaveAsRequested,
+                Key.Z => IntentKind.RedoRequested,
+                _ => null,
+            },
             _ => null,
         };
+        // 入力欄の中では、取り消しは入力欄自身の打ち間違いの取り消しに任せる。入力欄に戻せる履歴が
+        // 無いときもキーはここまで届くが、辞書を戻すと打っている本人には何が戻ったか分からない。
+        if (kind is IntentKind.UndoRequested or IntentKind.RedoRequested && Keyboard.FocusedElement is TextBoxBase { IsReadOnly: false }) return;
         if (kind is not { } intent) return;
         this.RaiseIntent(intent);
         e.Handled = true;

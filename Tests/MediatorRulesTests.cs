@@ -66,8 +66,8 @@ public class MediatorRulesTests
     private static GateContext Gate(
         ShellPhase shell = ShellPhase.Normal, DocPhase doc = DocPhase.Clean,
         bool gitHub = true, bool busy = false, bool synced = false, bool editor = false,
-        bool selection = true, params string[] open)
-        => new(shell, doc, gitHub, busy, synced, editor, new HashSet<string>(open), selection);
+        bool selection = true, bool history = true, params string[] open)
+        => new(shell, doc, gitHub, busy, synced, editor, new HashSet<string>(open), selection, history, history);
 
     public static IEnumerable<object[]> AllCommands => Enum.GetValues<AppCommand>().Select(c => new object[] { c });
 
@@ -91,6 +91,11 @@ public class MediatorRulesTests
     [InlineData(AppCommand.ShowBrowser, "BrowserTabViewModel")]
     [InlineData(AppCommand.ShowExamples, "ExamplesViewModel")]
     [InlineData(AppCommand.EditExample, "ExampleEditViewModel")]
+    [InlineData(AppCommand.Undo, "editor")]
+    [InlineData(AppCommand.Undo, "nohistory")]
+    [InlineData(AppCommand.Undo, "busy")]
+    [InlineData(AppCommand.Redo, "editor")]
+    [InlineData(AppCommand.Redo, "nohistory")]
     // ツール類と設定はモーダル中にしか無効にならない（Gate_ModalOrClosing_DisablesEverything で見る）。
     public void Gate_DisablingContext_Disables(AppCommand command, string why)
     {
@@ -101,7 +106,9 @@ public class MediatorRulesTests
             "local" => Gate(gitHub: false),
             "synced" => Gate(synced: true),
             "noselection" => Gate(selection: false),
-            _ => Gate(open: why),
+            "nohistory" => Gate(history: false),
+            "busy" => Gate(busy: true),
+            _ => Gate(open: new[] { why }),
         };
         Assert.False(CommandGate.CanExecute(command, ctx));
     }

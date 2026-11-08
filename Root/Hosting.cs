@@ -59,8 +59,8 @@ public abstract record HostCommand
     public sealed record MoveFocus(FocusTarget Target) : HostCommand;
     /// <summary>配信用ウィンドウの設定（背景色・倍率・最前面）を張り直す。</summary>
     public sealed record RefreshStreamHosts : HostCommand;
-    /// <summary>ステータス文言が変わったことを一瞬光らせて知らせる（Storyboard の再生）。</summary>
-    public sealed record FlashStatus : HostCommand;
+    /// <summary>ステータス文言が変わったことを一瞬光らせて知らせる（Storyboard の再生）。失敗なら光らせる色を変える。</summary>
+    public sealed record FlashStatus(bool Failure = false) : HostCommand;
 }
 
 public enum FocusTarget { QueryBox, ResultList, WordEditForm }

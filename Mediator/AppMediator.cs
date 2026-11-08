@@ -128,7 +128,8 @@ public sealed partial class AppMediator
     /// <summary>ツールバーとショートカットは選択中の単語を、行のメニューは渡された単語を見る。</summary>
     private GateContext Gate(Word? rowItem) => new(
         Shell, Doc, _state.IsGitHubMode, _gitHubBusy, _state.IsGitHubSynced, EditorOpen,
-        _layout.Overlays.Select(o => o.Kind).ToHashSet(), (rowItem ?? _state.SelectedWord) is not null);
+        _layout.Overlays.Select(o => o.Kind).ToHashSet(), (rowItem ?? _state.SelectedWord) is not null,
+        CanUndo, CanRedo);
 
     /// <summary>編集中は辞書の差し替えを止める。保存の宛先だけが入れ替わるのを防ぐため。
     /// 凡例は表示と編集を同じタブで切り替えるので、種類ではなく編集中かどうかで見る。</summary>
@@ -203,12 +204,18 @@ public sealed partial class AppMediator
         }
     }
 
-    private void SetStatus(string status)
+    private void SetStatus(string status) => SetStatus(status, false);
+
+    /// <summary>失敗の知らせ。文言だけで失敗と分かるように書いたうえで、光らせる色も変える。</summary>
+    private void SetFailure(string status) => SetStatus(status, true);
+
+    private void SetStatus(string status, bool failure)
     {
-        if (_state.Status == status) return;
+        // 同じ失敗を繰り返したときも光らせる（変化が無いと、押したのに何も起きなかったように見える）。
+        if (_state.Status == status && !failure) return;
         _state.Status = status;
         // 文言自体は変わったことに気づきにくいので、変わるたびに一瞬光らせる（起動時の復元は除く）。
-        if (!_starting) Queue(new HostCommand.FlashStatus());
+        if (!_starting) Queue(new HostCommand.FlashStatus(failure));
     }
 
     private void SetGitHubBusy(bool busy)
@@ -246,7 +253,7 @@ public sealed partial class AppMediator
                 if (OverlayOf(intent) is { } selected && _layout.LeafOf(selected) is { } leaf) leaf.Selected = selected;
                 break;
             case IntentKind.TabCloseRequested:
-                if (OverlayOf(intent) is { IsPinned: false } closing) CloseOverlay(closing);
+                if (OverlayOf(intent) is { IsPinned: false } closing) RequestCloseOverlay(closing, () => CloseOverlay(closing));
                 break;
             case IntentKind.AreaCloseRequested:
                 if (intent.Context.LeafId is { } areaId && _layout.LeafById(areaId) is { } area)
@@ -274,6 +281,12 @@ public sealed partial class AppMediator
             case IntentKind.SaveAsRequested:
                 if (CanExecute(AppCommand.SaveAs)) Save(true);
                 break;
+            case IntentKind.UndoRequested:
+                if (CanExecute(AppCommand.Undo)) Undo();
+                break;
+            case IntentKind.RedoRequested:
+                if (CanExecute(AppCommand.Redo)) Redo();
+                break;
 
             case IntentKind.NewWordRequested:
                 if (CanExecute(AppCommand.NewWord)) NewWord();
@@ -300,7 +313,7 @@ public sealed partial class AppMediator
                 if (OpenOf<WordEditViewModel>() is { } edited && edited.Validate()) CommitEdit(edited);
                 break;
             case IntentKind.WordEditCancelled:
-                if (OpenOf<WordEditViewModel>() is { } cancelled) CloseOverlay(cancelled);
+                if (OpenOf<WordEditViewModel>() is { } cancelled) RequestCloseOverlay(cancelled, () => CloseOverlay(cancelled));
                 break;
 
             case IntentKind.ShowExamplesRequested:
@@ -319,7 +332,7 @@ public sealed partial class AppMediator
                 if (OpenOf<ExampleEditViewModel>() is { } committed && committed.Validate()) CommitExample(committed);
                 break;
             case IntentKind.ExampleEditCancelled:
-                if (OpenOf<ExampleEditViewModel>() is { } leaving) BackFromExampleEditor(leaving);
+                if (OpenOf<ExampleEditViewModel>() is { } leaving) RequestCloseOverlay(leaving, () => BackFromExampleEditor(leaving));
                 break;
             case IntentKind.ExampleOfferFetchRequested:
                 if (OpenOf<ExampleEditViewModel>() is { CanFetch: true } fetching) _ = FetchOfferAsync(fetching);
@@ -391,7 +404,7 @@ public sealed partial class AppMediator
                 if (OpenOf<LegendViewModel>() is { IsEditing: true } legendEdited) CommitLegend(legendEdited);
                 break;
             case IntentKind.LegendEditCancelled:
-                OpenOf<LegendViewModel>()?.EndEdit();
+                if (OpenOf<LegendViewModel>() is { IsEditing: true } legendCancelled) RequestCloseOverlay(legendCancelled, legendCancelled.EndEdit);
                 break;
 
             case IntentKind.GitHubLoadRequested:
@@ -402,12 +415,6 @@ public sealed partial class AppMediator
                 break;
             case IntentKind.GitHubCommitConfirmed:
                 ConfirmCommit();
-                break;
-            case IntentKind.GitHubTokenSaveRequested:
-                if (_settingsState is { CanSaveGitHubToken: true } tokenForm) SaveGitHubToken(tokenForm);
-                break;
-            case IntentKind.GitHubTokenDeleteRequested:
-                if (_settingsState is { HasGitHubToken: true } tokenOwner) DeleteGitHubToken(tokenOwner);
                 break;
 
             case IntentKind.ConfirmChoiceSelected:
@@ -435,6 +442,10 @@ public sealed partial class AppMediator
             case IntentKind.SettingsModeSelected:
                 if (_settingsState is { } modeForm && payload is string em && Enum.TryParse<EditMode>(em, out var editMode))
                     modeForm.Mode = editMode;
+                break;
+            case IntentKind.SettingsThemeSelected:
+                if (_settingsState is { } themeForm && payload is string th && Enum.TryParse<AppTheme>(th, out var theme))
+                    themeForm.Theme = theme;
                 break;
             case IntentKind.SettingsReciprocalResetRequested:
                 _settingsState?.ResetReciprocal();
@@ -623,11 +634,11 @@ public sealed partial class AppMediator
                 DismissModal();
                 break;
             case EscRouter.EscTarget.CloseActiveTabInShell:
-                if (ActiveOverlay is { } active) CloseOverlay(active);
+                if (ActiveOverlay is { } active) RequestCloseOverlay(active, () => CloseOverlay(active));
                 break;
             case EscRouter.EscTarget.CloseActiveTabInHost:
-                if (role == HostRole.Settings) CloseSettings(intent.Context.HostId);
-                else if (floatTab is not null) CloseOverlay(floatTab);
+                if (role == HostRole.Settings) RequestCloseSettings(intent.Context.HostId);
+                else if (floatTab is not null) RequestCloseOverlay(floatTab, () => CloseOverlay(floatTab));
                 break;
         }
     }
@@ -669,10 +680,21 @@ public sealed partial class AppMediator
         _state.ModalOverlay = vm;
     }
 
+    /// <summary>設定ウィンドウの中に確認を出す。設定ウィンドウはモーダルで本体を触れないため、本体の層には出せない。
+    /// 選ばれた後の流れ（Choose・DismissModal）は本体の確認と共通。</summary>
+    private void ConfirmInSettings(SettingsViewModel form, string title, string message, params (string Label, bool IsDanger, Action? Then)[] choices)
+    {
+        _pendingChoices = choices.Select(c => c.Then).ToArray();
+        _modal = true;
+        form.Confirm = new ChoiceViewModel(new ConfirmSpec(title, message,
+            choices.Select(c => new ConfirmChoice(c.Label, c.IsDanger)).ToList()));
+    }
+
     private void DismissModal()
     {
         _pendingChoices = null;
         _modal = false;
+        if (_settingsState is not null) _settingsState.Confirm = null;
         ConfirmRequested?.Invoke(null);
     }
 
@@ -690,8 +712,9 @@ public sealed partial class AppMediator
     {
         try
         {
+            // 例外の型名は利用者の次の行動に繋がらないので出さない（記録には残る）。
             Confirm(Strings.Error_Title,
-                string.Format(Strings.Error_Message, ex.GetType().Name, ex.Message, ErrorLog.FilePath),
+                string.Format(Strings.Error_Message, ex.Message, ErrorLog.FilePath),
                 (Strings.Common_Close, false, null));
         }
         catch (Exception overlayEx)
@@ -828,11 +851,12 @@ public sealed partial class AppMediator
             case HostRole.Shell:
                 _shellHostId = hostId;
                 if (intent.Payload is WindowBounds bounds) _shellBounds = bounds;
-                if (Doc == DocPhase.Dirty)
+                if (Doc == DocPhase.Dirty || HasUnwrittenChangelog)
                 {
-                    Confirm(Strings.App_UnsavedCloseTitle, string.Format(Strings.App_UnsavedCloseMessage, _state.DictionaryName),
+                    var message = Doc == DocPhase.Dirty ? Strings.App_UnsavedCloseMessage : Strings.App_UnwrittenChangelogMessage;
+                    Confirm(Strings.App_UnsavedCloseTitle, string.Format(message, _state.DictionaryName),
                         // 保存に失敗した・保存先の選択をやめた場合は、書きかけを失わないよう終了しない。
-                        (Strings.App_SaveAndExit, false, () => { Save(false); if (Doc != DocPhase.Dirty) BeginClosing(); }),
+                        (Strings.App_SaveAndExit, false, () => { Save(false); if (Doc != DocPhase.Dirty && !HasUnwrittenChangelog) BeginClosing(); }),
                         (Strings.App_ExitWithoutSaving, true, BeginClosing),
                         (Strings.Common_KeepEditing, false, null));
                 }
@@ -844,15 +868,22 @@ public sealed partial class AppMediator
                 {
                     // 手で閉じた独立ウィンドウ。中のタブは閉じ、閉じられない据え置きのタブ（検索・単語詳細）は
                     // 本体へ引き取る。位置の記憶ごと浮き枠を落とす（窓は裁定の最後に閉じる）。
-                    foreach (var vm in host.Items.Where(vm => !vm.IsPinned).ToList()) CloseOverlay(vm);
-                    _layout.Discard(host);
-                    RequestPersist();
+                    // 中に書きかけのエディタがあれば、窓ごと捨ててよいかを先に確かめる。
+                    var dirty = host.Items.FirstOrDefault(vm => UnsavedMessageOf(vm) is not null);
+                    void CloseFloat()
+                    {
+                        foreach (var vm in host.Items.Where(vm => !vm.IsPinned).ToList()) CloseOverlay(vm);
+                        _layout.Discard(host);
+                        RequestPersist();
+                    }
+                    if (dirty is null) CloseFloat();
+                    else RequestCloseOverlay(dirty, CloseFloat);
                 }
                 else if (hostId is { } orphan) Queue(new HostCommand.CloseHost(orphan));
                 break;
 
             case HostRole.Settings:
-                CloseSettings(hostId);
+                RequestCloseSettings(hostId);
                 break;
 
             case HostRole.Stream:
@@ -918,6 +949,15 @@ public sealed partial class AppMediator
         Queue(new HostCommand.OpenSettings(_settingsState));
     }
 
+    /// <summary>［キャンセル］・×・Esc で閉じる入口。［適用］していない変更があれば、捨ててよいかを確かめる。</summary>
+    private void RequestCloseSettings(Guid? hostId)
+    {
+        if (_settingsState is not { HasChanges: true } form) { CloseSettings(hostId); return; }
+        ConfirmInSettings(form, Strings.Settings_UnappliedTitle, Strings.Settings_UnappliedMessage,
+            (Strings.Settings_DiscardButton, true, () => CloseSettings(hostId)),
+            (Strings.Common_KeepEditing, false, null));
+    }
+
     private void CloseSettings(Guid? hostId)
     {
         _settingsState = null;
@@ -933,11 +973,29 @@ public sealed partial class AppMediator
 
     private void ApplySettingsForm(SettingsViewModel form, Guid? hostId)
     {
+        // トークンも［適用］でまとめて反映する。保存できなければ、入力を残したまま画面を閉じずに止める。
+        if (form.DeleteGitHubToken) _services.DeleteGitHubToken();
+        if (form.CanSaveGitHubToken)
+        {
+            try
+            {
+                _services.SaveGitHubToken(form.GitHubTokenInput);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                form.GitHubTokenStatus = string.Format(Strings.Settings_TokenSaveFailed, ex.Message);
+                form.HasGitHubToken = _services.HasGitHubToken;
+                form.DeleteGitHubToken = false;
+                return;
+            }
+        }
+
         var s = Settings;
         s.Language = form.Language;
         s.SortOrder = string.IsNullOrWhiteSpace(form.SortOrder) ? TextProcessor.DefaultSortOrder : form.SortOrder;
         s.FontScale = Math.Clamp(form.FontScale, MinFontScale, MaxFontScale);
         s.AutoSave = form.AutoSave;
+        s.Theme = form.Theme;
         s.WindowWidth = Math.Max(form.WindowWidth, MinWindowWidth);
         s.WindowHeight = Math.Max(form.WindowHeight, MinWindowHeight);
         s.WindowAspectLocked = form.WindowAspectLocked;
@@ -977,21 +1035,24 @@ public sealed partial class AppMediator
         // 句読点と無視パターンは設定ではなく辞書データ（zpdicOnline）の持ち物。変えたときだけ書き込み、
         // 未保存として扱う（書き込んだまま未保存にしないと、終了時に確認なしで失われる）。
         // 変えていなければ触らない。書き直すだけで、無かったキーや配列の区切り方が変わって差分が出るため。
+        // 比べる段では zpdicOnline を作らずに読む（ZpdicOnline は無ければ空の入れ物を足すので、それだけで差分になる）。
         var docChanged = false;
-        if (_doc is not null)
+        if (_doc is { } doc)
         {
-            var z = _doc.ZpdicOnline;
-            var oldPunctuations = string.Concat((z["punctuations"] as JsonArray)?.Select(n => n?.GetValue<string>() ?? "") ?? Array.Empty<string>());
-            var oldIgnored = z["ignoredPattern"]?.GetValue<string>() ?? "";
-            if (form.Punctuations != oldPunctuations)
+            var z = doc.Root["zpdicOnline"] as JsonObject;
+            var oldPunctuations = string.Concat((z?["punctuations"] as JsonArray)?.Select(n => n?.GetValue<string>() ?? "") ?? Array.Empty<string>());
+            var oldIgnored = z?["ignoredPattern"]?.GetValue<string>() ?? "";
+            var punctuationsChanged = form.Punctuations != oldPunctuations;
+            var ignoredChanged = form.IgnoredPattern != oldIgnored;
+            docChanged = punctuationsChanged || ignoredChanged;
+            if (docChanged)
             {
-                z["punctuations"] = new JsonArray(form.Punctuations.Select(c => (JsonNode)JsonValue.Create(c.ToString())!).ToArray());
-                docChanged = true;
-            }
-            if (form.IgnoredPattern != oldIgnored)
-            {
-                z["ignoredPattern"] = form.IgnoredPattern;
-                docChanged = true;
+                Undoable(() => Strings.Undo_EditDictionarySettings, () =>
+                {
+                    if (punctuationsChanged)
+                        doc.ZpdicOnline["punctuations"] = new JsonArray(form.Punctuations.Select(c => (JsonNode)JsonValue.Create(c.ToString())!).ToArray());
+                    if (ignoredChanged) doc.ZpdicOnline["ignoredPattern"] = form.IgnoredPattern;
+                });
             }
         }
 
@@ -1011,36 +1072,14 @@ public sealed partial class AppMediator
         CloseSettings(hostId);
     }
 
-    private void SaveGitHubToken(SettingsViewModel form)
-    {
-        try
-        {
-            _services.SaveGitHubToken(form.GitHubTokenInput);
-            form.GitHubTokenInput = "";
-            form.GitHubTokenStatus = Strings.Settings_TokenSaved;
-        }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
-        {
-            form.GitHubTokenStatus = string.Format(Strings.Settings_TokenSaveFailed, ex.Message);
-        }
-        form.HasGitHubToken = _services.HasGitHubToken;
-    }
-
-    private void DeleteGitHubToken(SettingsViewModel form)
-    {
-        _services.DeleteGitHubToken();
-        form.GitHubTokenStatus = Strings.Settings_TokenDeleted;
-        form.HasGitHubToken = _services.HasGitHubToken;
-    }
-
     // ---- メニュー -------------------------------------------------------------------
 
-    /// <summary>バーが手狭なので、開く・新規辞書・保存・別名で保存は階層メニューにまとめてある。</summary>
+    /// <summary>バーが手狭なので、開く・新規辞書・上書き保存・名前を付けて保存は階層メニューにまとめてある。</summary>
     public IReadOnlyList<MenuActionSpec> BuildFileMenu() => new[]
     {
         new MenuActionSpec(Strings.Menu_Open, "Ctrl+O", IntentKind.OpenDictionaryRequested, null, CanExecute(AppCommand.Open), false, true),
         new MenuActionSpec(Strings.Menu_NewDictionary, "", IntentKind.NewDictionaryRequested, null, CanExecute(AppCommand.NewDictionary), false, true),
-        new MenuActionSpec(Strings.Common_Save, "Ctrl+S", IntentKind.SaveRequested, null, CanExecute(AppCommand.Save), true, true),
+        new MenuActionSpec(Strings.Menu_Save, "Ctrl+S", IntentKind.SaveRequested, null, CanExecute(AppCommand.Save), true, true),
         new MenuActionSpec(Strings.Menu_SaveAs, "Ctrl+Shift+S", IntentKind.SaveAsRequested, null, CanExecute(AppCommand.SaveAs), false, true),
     };
 

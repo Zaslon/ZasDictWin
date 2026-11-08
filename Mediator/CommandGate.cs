@@ -23,6 +23,9 @@ public static class CommandGate
             AppCommand.GitHubLoad => ctx.GitHubMode && !busy && !ctx.EditorOpen,
             // 同期済み（読み込み・コミット以降に編集していない）ならコミットしても差が出ない。
             AppCommand.GitHubCommit => ctx.GitHubMode && !busy && hasDoc && !ctx.GitHubSynced,
+            // 戻すと単語の実体が作り直されるので、開いたままのエディタが古い単語を指して宙に浮く。
+            AppCommand.Undo => !busy && hasDoc && !ctx.EditorOpen && ctx.CanUndo,
+            AppCommand.Redo => !busy && hasDoc && !ctx.EditorOpen && ctx.CanRedo,
             // 同じ画面は 1 枚まで。開いている種類のボタンは無効にして、書きかけの入力が差し替えで飛ぶのを防ぐ。
             AppCommand.NewWord => hasDoc && !IsOpen("WordEditViewModel", ctx),
             // 編集中の単語を消せると、開いたままのエディタが宙に浮く。

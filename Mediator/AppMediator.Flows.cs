@@ -36,6 +36,7 @@ public sealed partial class AppMediator
         RebuildIndex();
         _state.IsDirty = true;
         _state.IsGitHubSynced = false;
+        ClearUndoHistory();
         ReloadLegends();
         SetStatus(Strings.Main_NewDictionaryCreated);
         RaiseDocumentChanged();
@@ -52,7 +53,7 @@ public sealed partial class AppMediator
         var result = _services.Load(path);
         if (!result.Ok || result.Document is null)
         {
-            SetStatus(string.Format(Strings.Main_LoadFailedStatus, result.Message));
+            SetFailure(string.Format(Strings.Main_LoadFailedStatus, result.Message));
             Confirm(Strings.Main_LoadFailedTitle, string.Format(Strings.Main_LoadFailedMessage, path, result.Message), (Strings.Common_Close, false, null));
             return;
         }
@@ -62,6 +63,7 @@ public sealed partial class AppMediator
         _services.SaveSettings();
         _state.SelectedWord = null;
         _pendingChanges.Clear();
+        ClearUndoHistory();
         _exampleQuery = "";
         _state.Document = _doc;
         ApplySettings();
@@ -95,7 +97,7 @@ public sealed partial class AppMediator
         var result = _services.Save(_doc, path);
         if (!result.Ok)
         {
-            SetStatus(string.Format(Strings.Main_SaveFailedStatus, result.Message));
+            SetFailure(string.Format(Strings.Main_SaveFailedStatus, result.Message));
             Confirm(Strings.Main_SaveFailedTitle, result.Message, (Strings.Common_Close, false, null));
             return;
         }
@@ -121,30 +123,44 @@ public sealed partial class AppMediator
         }
         catch (IOException ex)
         {
-            // 追記に失敗しても未保存の履歴は捨てず、次回保存で再試行する。
+            // 追記に失敗しても未保存の履歴は捨てず、次回保存で再試行する。辞書は保存済みで未保存の印が
+            // 消えるため、ステータスだけでは見過ごされ、そのまま終了すると履歴が失われる。
             _services.LogError($"更新履歴の追記 ({csv})", ex);
-            SetStatus(string.Format(Strings.Main_ChangelogAppendFailedStatus, ex.Message));
+            SetFailure(string.Format(Strings.Main_ChangelogAppendFailedStatus, ex.Message));
+            Confirm(Strings.Main_ChangelogAppendFailedTitle,
+                string.Format(Strings.Main_ChangelogAppendFailedMessage, csv, ex.Message),
+                (Strings.Common_Close, false, null));
         }
     }
 
+    /// <summary>辞書は保存できたが、更新履歴の追記に失敗して書けていない履歴が残っているか。</summary>
+    private bool HasUnwrittenChangelog => _doc?.Path is not null && !_state.IsDirty && _pendingChanges.Count > 0;
+
     /// <summary>保留中の更新履歴にエントリを追加する。同じ見出し語の直近エントリが ADD / CHANGE
     /// の場合に CHANGE を重ねても追記しない（保存までの「追加→編集」「編集→編集」は 1 行に集約）。
-    /// DELETE の後の CHANGE や、別の見出し語への CHANGE は普通に追記する。</summary>
-    private void AddPendingChange(ChangeEntry entry)
+    /// DELETE の後の CHANGE や、別の見出し語への CHANGE は普通に追記する。
+    /// 戻り値は実際に積んだか（集約して積まなかったときは false）。</summary>
+    private bool AddPendingChange(ChangeEntry entry)
     {
         if (entry.Operation == "CHANGE")
         {
             for (int i = _pendingChanges.Count - 1; i >= 0; i--)
             {
                 if (_pendingChanges[i].Form != entry.Form) continue;
-                if (_pendingChanges[i].Operation is "ADD" or "CHANGE") return;
+                if (_pendingChanges[i].Operation is "ADD" or "CHANGE") return false;
                 break;
             }
         }
         _pendingChanges.Add(entry);
+        _recordingChanges?.Add(entry);
+        RefreshChangelogViews();
+        return true;
+    }
 
-        // 更新履歴の画面を開いたままだと ChangelogViewModel はスナップショットのままなので、
-        // 開いていればその場で引き直す（閉じていればどうせ次に開いたときに最新化される）。
+    /// <summary>更新履歴の画面を開いたままだと ChangelogViewModel はスナップショットのままなので、
+    /// 開いていればその場で引き直す（閉じていればどうせ次に開いたときに最新化される）。</summary>
+    private void RefreshChangelogViews()
+    {
         foreach (var vm in _layout.Overlays.OfType<ChangelogViewModel>().ToList())
             vm.Refresh(ReadChangelogRows(vm.ChangelogPath));
     }
@@ -257,19 +273,42 @@ public sealed partial class AppMediator
             return;
         }
 
-        if (!current.HasChanges) { CloseOverlay(current); EditWord(w); return; }
-
-        Confirm(Strings.WordEdit_UnsavedTitle, string.Format(Strings.WordEdit_UnsavedMessage, current.Form),
-            (Strings.Common_Close, true, () => { CloseOverlay(current); EditWord(w); }),
-            (Strings.Common_Stop, false, null));
+        RequestCloseOverlay(current, () => { CloseOverlay(current); EditWord(w); });
     }
+
+    /// <summary>
+    /// 入力内容の破棄を伴う閉じ方（キャンセル・タブの ×・Esc・窓を閉じる）の入口。
+    /// 書きかけの変更があれば確認し、破棄してよいと答えたときだけ close を行う。
+    /// </summary>
+    private void RequestCloseOverlay(OverlayViewModel vm, Action close)
+    {
+        if (UnsavedMessageOf(vm) is not { } message) { close(); return; }
+        Confirm(Strings.WordEdit_UnsavedTitle, message,
+            (Strings.WordEdit_DiscardButton, true, close),
+            (Strings.Common_KeepEditing, false, null));
+    }
+
+    /// <summary>閉じると失われる書きかけがあれば、その確認文。無ければ null。</summary>
+    private static string? UnsavedMessageOf(OverlayViewModel vm) => vm switch
+    {
+        WordEditViewModel { HasChanges: true } word => string.Format(Strings.WordEdit_UnsavedMessage, word.Form.Trim()),
+        ExampleEditViewModel { HasChanges: true } => Strings.ExampleEdit_UnsavedMessage,
+        LegendViewModel { IsEditing: true } legend when legend.Draft != legend.EditSource => Strings.Legend_UnsavedMessage,
+        _ => null,
+    };
 
     private void CommitEdit(WordEditViewModel vm)
     {
         if (_doc is null) return;
+        var label = "";
+        Undoable(() => label, () => label = CommitEditCore(vm));
+    }
 
+    /// <summary>戻り値は取り消しの見出し。</summary>
+    private string CommitEditCore(WordEditViewModel vm)
+    {
         var isNew = vm.Source is null;
-        var word = vm.Source ?? Word.CreateNew(_doc.NextId());
+        var word = vm.Source ?? Word.CreateNew(_doc!.NextId());
         var oldForm = word.Form;
         var formChanged = word.Form != vm.Form.Trim();
 
@@ -278,7 +317,7 @@ public sealed partial class AppMediator
         word.Tags = vm.BuildTags();
         word.Contents = vm.BuildContents();
         word.Variations = vm.BuildVariations();
-        _relations.ApplyRelations(_doc.Words, word, vm.BuildRelations());
+        _relations.ApplyRelations(_doc!.Words, word, vm.BuildRelations());
         word.WriteBack();
         word.NotifyChanged();
 
@@ -296,18 +335,24 @@ public sealed partial class AppMediator
         RebuildIndex();
         SelectWord(word);
         MarkDirty(string.Format(isNew ? Strings.Word_AddedStatus : Strings.Word_UpdatedStatus, word.Form));
+        return string.Format(isNew ? Strings.Undo_AddWord : Strings.Undo_EditWord, word.Form);
     }
 
     private void DuplicateWord(Word? w)
     {
         if (_doc is null || w is null) return;
-        var copy = w.Duplicate(_doc.NextId());
-        _doc.Words.Add(copy);
-        AddPendingChange(new ChangeEntry(_services.Now, "ADD", copy.Form, ""));
-        RebuildIndex();
-        SelectWord(copy);
-        MarkDirty(string.Format(Strings.Word_DuplicatedStatus, w.Form));
-        EditWord(copy);
+        Word? copy = null;
+        Undoable(() => string.Format(Strings.Undo_DuplicateWord, w.Form), () =>
+        {
+            copy = w.Duplicate(_doc.NextId());
+            _doc.Words.Add(copy);
+            AddPendingChange(new ChangeEntry(_services.Now, "ADD", copy.Form, ""));
+            RebuildIndex();
+            SelectWord(copy);
+            MarkDirty(string.Format(Strings.Word_DuplicatedStatus, w.Form));
+        });
+        // エディタを開くのは取り消しの単位の外。開いている間は取り消せないので、閉じれば複製ごと戻せる。
+        if (copy is not null) EditWord(copy);
     }
 
     private void ConfirmDeleteWord(Word? w)
@@ -321,15 +366,18 @@ public sealed partial class AppMediator
     private void DeleteWord(Word w)
     {
         if (_doc is null) return;
-        RelationService.RemoveReferences(_doc.Words, w);
-        _doc.Words.Remove(w);
-        // 例文から参照を外すことはしない（消した単語を後で作り直すことがあるため）。
-        // 表示は「id:12」に落ちるので、例文側で消すかどうかは書き手が決められる。
-        _doc.ResolveExampleForms();
-        AddPendingChange(new ChangeEntry(_services.Now, "DELETE", w.Form, ""));
-        if (_state.SelectedWord == w) SelectWord(null);
-        RebuildIndex();
-        MarkDirty(string.Format(Strings.Word_DeletedStatus, w.Form));
+        Undoable(() => string.Format(Strings.Undo_DeleteWord, w.Form), () =>
+        {
+            RelationService.RemoveReferences(_doc.Words, w);
+            _doc.Words.Remove(w);
+            // 例文から参照を外すことはしない（消した単語を後で作り直すことがあるため）。
+            // 表示は「id:12」に落ちるので、例文側で消すかどうかは書き手が決められる。
+            _doc.ResolveExampleForms();
+            AddPendingChange(new ChangeEntry(_services.Now, "DELETE", w.Form, ""));
+            if (_state.SelectedWord == w) SelectWord(null);
+            RebuildIndex();
+            MarkDirty(string.Format(Strings.Word_DeletedStatus, w.Form));
+        });
     }
 
     private void FollowRelation(Relation? r)
@@ -338,7 +386,7 @@ public sealed partial class AppMediator
         var target = _doc.Words.FirstOrDefault(w => w.Id == r.Id);
         if (target is null)
         {
-            SetStatus(string.Format(Strings.Word_RelationNotFoundStatus, r.Id, r.Form));
+            SetFailure(string.Format(Strings.Word_RelationNotFoundStatus, r.Id, r.Form));
             return;
         }
         SelectWord(target);
@@ -389,31 +437,37 @@ public sealed partial class AppMediator
         if (_doc is null) return;
 
         var isNew = vm.Source is null;
-        var example = vm.Source ?? Example.CreateNew(_doc.NextExampleId());
-        vm.ApplyTo(example);
-        if (isNew) _doc.Examples.Add(example);
+        Undoable(() => isNew ? Strings.Undo_AddExample : Strings.Undo_EditExample, () =>
+        {
+            var example = vm.Source ?? Example.CreateNew(_doc.NextExampleId());
+            vm.ApplyTo(example);
+            if (isNew) _doc.Examples.Add(example);
 
-        RefreshRelatedExamples();
-        BackFromExampleEditor(vm);
-        MarkDirty(isNew ? Strings.Example_AddedStatus : Strings.Example_UpdatedStatus);
+            RefreshRelatedExamples();
+            BackFromExampleEditor(vm);
+            MarkDirty(isNew ? Strings.Example_AddedStatus : Strings.Example_UpdatedStatus);
+        });
     }
 
     private void ConfirmDeleteExample(ExampleEditViewModel vm)
     {
         if (vm.Source is not { } example) return;
-        // 確認は編集画面とは別の層に出るので、やめたときは畳むだけで書きかけの入力はそのまま残る。
+        // 確認は編集画面とは別の層に出るので、キャンセルしたときは畳むだけで書きかけの入力はそのまま残る。
         Confirm(Strings.Example_DeleteConfirmTitle, string.Format(Strings.Example_DeleteConfirmMessage, example.SentencePreview),
             (Strings.Common_DeleteAction, true, () => DeleteExample(vm, example)),
-            (Strings.Common_Stop, false, null));
+            (Strings.Common_Cancel, false, null));
     }
 
     private void DeleteExample(ExampleEditViewModel vm, Example example)
     {
         if (_doc is null) return;
-        _doc.Examples.Remove(example);
-        RefreshRelatedExamples();
-        BackFromExampleEditor(vm);
-        MarkDirty(Strings.Example_DeletedStatus);
+        Undoable(() => Strings.Undo_DeleteExample, () =>
+        {
+            _doc.Examples.Remove(example);
+            RefreshRelatedExamples();
+            BackFromExampleEditor(vm);
+            MarkDirty(Strings.Example_DeletedStatus);
+        });
     }
 
     private async Task FetchOfferAsync(ExampleEditViewModel vm)
@@ -528,9 +582,12 @@ public sealed partial class AppMediator
             }
         }
 
-        _doc.Root["legend"] = legend;
-        ReloadLegends();
-        MarkDirty(Strings.Legend_UpdatedStatus);
+        Undoable(() => Strings.Undo_EditLegend, () =>
+        {
+            _doc.Root["legend"] = legend;
+            ReloadLegends();
+            MarkDirty(Strings.Legend_UpdatedStatus);
+        });
     }
 
     /// <summary>開いている凡例を辞書の今の legend で描き直す。</summary>
@@ -556,7 +613,7 @@ public sealed partial class AppMediator
     /// <summary>書き出し元は開いた時点のパスではなく、画面が今つないでいる CSV。</summary>
     private void ExportChangelog(string csv)
     {
-        if (!_services.FileExists(csv)) { SetStatus(Strings.Changelog_NothingToExportStatus); return; }
+        if (!_services.FileExists(csv)) { SetFailure(Strings.Changelog_NothingToExportStatus); return; }
         if (_services.PickSavePath(Strings.Changelog_ExportDialogTitle, "CSV (*.csv)|*.csv", Path.GetFileName(csv)) is not { } to) return;
         _services.CopyFile(csv, to);
         SetStatus(string.Format(Strings.Changelog_ExportedStatus, to));
@@ -581,7 +638,7 @@ public sealed partial class AppMediator
 
     private async Task LoadFromGitHubAsync()
     {
-        if (!_services.TryGetGitHubTarget(out var target, out var error)) { SetStatus(error); return; }
+        if (!_services.TryGetGitHubTarget(out var target, out var error)) { SetFailure(error); return; }
 
         // 差があるかどうかを確認ダイアログの前に見ておく。無ければ「破棄して読み込む」確認自体が
         // 不要（何も破棄されない）なので出さず、その場でステータスに出して終える。
@@ -609,7 +666,7 @@ public sealed partial class AppMediator
             if (!json.Ok)
             {
                 if (json.AuthFailed) _services.DeleteGitHubToken();
-                SetStatus(string.Format(Strings.GitHub_LoadFailedStatus, json.Message));
+                SetFailure(string.Format(Strings.GitHub_LoadFailedStatus, json.Message));
                 return;
             }
 
@@ -632,7 +689,7 @@ public sealed partial class AppMediator
             if (jsonSame && csvFailed)
             {
                 // 辞書は一致しているので読み直しても何も変わらない。一致を確かめられなかったことだけ知らせる。
-                SetStatus(string.Format(Strings.GitHub_ChangelogLoadFailedStatus, csv!.Message));
+                SetFailure(string.Format(Strings.GitHub_ChangelogLoadFailedStatus, csv!.Message));
                 return;
             }
 
@@ -647,7 +704,7 @@ public sealed partial class AppMediator
             if (csv is { Ok: true }) lines.Add(TargetLine(csvLocalPath));
             Confirm(Strings.GitHub_LoadConfirmTitle, string.Join(Environment.NewLine, lines),
                 (Strings.GitHub_LoadConfirmYes, true, () => LoadFromGitHubCore(target, json, csv, localPath, csvLocalPath)),
-                (Strings.Common_Stop, false, null));
+                (Strings.Common_Cancel, false, null));
         });
 
         string TargetLine(string path) => string.Format(
@@ -696,13 +753,13 @@ public sealed partial class AppMediator
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
             _services.LogError("GitHubから取得したファイルの書き込み", ex);
-            SetStatus(string.Format(Strings.GitHub_WriteFailedStatus, ex.Message));
+            SetFailure(string.Format(Strings.GitHub_WriteFailedStatus, ex.Message));
         }
     }
 
     private void ShowCommitDialog()
     {
-        if (!_services.TryGetGitHubTarget(out var target, out var error)) { SetStatus(error); return; }
+        if (!_services.TryGetGitHubTarget(out var target, out var error)) { SetFailure(error); return; }
         if (_doc is null) { SetStatus(Strings.Main_OpenDictionaryPrompt); return; }
 
         var forms = _pendingChanges.Select(e => e.Form).Distinct().ToList();
@@ -734,7 +791,7 @@ public sealed partial class AppMediator
         // コミットの対象は常にローカルの最新内容。保存は自動保存（または手動保存）が担うが、
         // それがオフの環境でも古い内容をコミットしないよう、念のためここでも確定させる。
         if (_state.IsDirty) Save(false);
-        if (_doc.Path is null) { SetStatus(Strings.Main_NoSavePathStatus); return; }
+        if (_doc.Path is null) { SetFailure(Strings.Main_NoSavePathStatus); return; }
 
         SetGitHubBusy(true);
         SetStatus(Strings.GitHub_Committing);
@@ -761,7 +818,7 @@ public sealed partial class AppMediator
                 if (!result.Ok)
                 {
                     if (result.AuthFailed) _services.DeleteGitHubToken();
-                    SetStatus(string.Format(Strings.GitHub_CommitFailedStatus, result.Message));
+                    SetFailure(string.Format(Strings.GitHub_CommitFailedStatus, result.Message));
                     return;
                 }
                 _state.IsGitHubSynced = true;
@@ -771,7 +828,7 @@ public sealed partial class AppMediator
         catch (IOException ex)
         {
             _services.LogError("コミット対象ファイルの読み込み", ex);
-            Batch(() => SetStatus(string.Format(Strings.GitHub_CommitFailedStatus, ex.Message)));
+            Batch(() => SetFailure(string.Format(Strings.GitHub_CommitFailedStatus, ex.Message)));
         }
         finally
         {
