@@ -96,13 +96,14 @@
                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}"
                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="{Binding TranslationSummary}" Foreground="{StaticResource Muted}"
-                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
+                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                             <!-- 中身（編集・複製・削除）は開く直前に Opening で詰める。
                                  ComboBox 等と同じく Popup は使えない（OBS のウィンドウキャプチャに映らない）ため
                                  v:MenuButton の自前ドロップダウンを流用し、右クリックの近道もこれを開くだけにする。 -->
                             <v:MenuButton Grid.Column="1" Header="⋯" Style="{StaticResource RowMenuButton}"
+                                          AutomationProperties.Name="{x:Static res:Strings.Search_RowMenuName}"
                                           VerticalAlignment="Center"
                                           Opening="RowMenu_Opening" />
                         </Grid>

@@ -12,7 +12,13 @@
     <Border Style="{StaticResource Card}" MaxWidth="520" MaxHeight="640" Margin="40,28"
             VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
         <DockPanel>
-            <TextBlock DockPanel.Dock="Top" v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold"
+            <!-- 開いたときのフォーカスはボタンではなくこの見出しに置く（ChoiceOverlay.xaml.cs）。直前の Enter や連打が
+                 確認文を読む前にボタンを押してしまうのを防ぎ、支援技術には確認の内容から読ませるため。
+                 見出しは Tab の移動先に含めない（Tab を押すと最初のボタンへ移る）。
+                 （ZasDesignSystem rules.md「確認ポップアップの初期フォーカスをボタンに置かない」） -->
+            <TextBlock x:Name="Heading" DockPanel.Dock="Top" v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold"
+                       Focusable="True" KeyboardNavigation.IsTabStop="False" FocusVisualStyle="{x:Null}"
+                       AutomationProperties.HeadingLevel="Level1"
                        FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
 
             <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding Choices}" Margin="0,20,0,0">
@@ -37,10 +43,13 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <!-- 横スクロールは他のオーバーレイと同じく封じる。長い一文は折り返しで吸収させる -->
+            <!-- 横スクロールは他のオーバーレイと同じく封じる。長い一文は折り返しで吸収させる。
+                 本文には例外の内容やファイルのパスが入るので、選択してコピーできる v:SelectableText で描く
+                 （ZasDesignSystem rules.md「表示した情報はコピーできるようにする」）。 -->
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <TextBlock v:LocalizedText.Text="{Binding Message}" Foreground="{StaticResource Muted}" Margin="0,8,0,0"
-                           Visibility="{Binding Message, Converter={StaticResource NullVis}}" />
+                <v:SelectableText Text="{Binding Message, Mode=OneWay, Converter={StaticResource PlainText}}"
+                                  Foreground="{StaticResource Muted}" Margin="0,8,0,0"
+                                  Visibility="{Binding Message, Converter={StaticResource NullVis}}" />
             </ScrollViewer>
         </DockPanel>
     </Border>

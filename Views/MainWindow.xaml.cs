@@ -94,16 +94,19 @@ public partial class MainWindow : Window, IUiHost
         if (maximize) WindowState = WindowState.Maximized;
     }
 
-    // Status は差分の無い書き換えでは光らせない（裁定側が変わったときだけ指示する）。
-    // 連続で変わっても Storyboard.Begin は前回分を上書きするだけで済む。
-    // OS の視覚効果（アニメーション）を切っている場合、成功は光らせず、失敗は色を一定時間だけ出して戻す
-    // （失敗の色まで省くと、失敗を色で区別できなくなるため）。
-    public void FlashStatus(bool failure)
+    // 裁定側は警告・失敗のときだけ指示する。連続で来ても Storyboard.Begin は前回分を上書きするだけで済む。
+    // OS の視覚効果（アニメーション）を切っている場合は、強調の色を一定時間だけ出してアニメーション無しで戻す
+    // （ZasDesignSystem implementation/common.md「ステータスバー」）。
+    public void FlashStatus(StatusSemantic semantic)
     {
-        StatusFlashBrush.Color = (Color)FindResource(failure ? "DangerColor" : "AccentColor");
-        var key = SystemParameters.ClientAreaAnimation ? "StatusFlashStoryboard"
-            : failure ? "StatusFailureHoldStoryboard"
-            : "StatusFlashClearStoryboard";
+        StatusFlashBrush.Color = (Color)FindResource(semantic switch
+        {
+            StatusSemantic.Error => "StatusErrorColor",
+            StatusSemantic.Warning => "StatusWarningColor",
+            StatusSemantic.Success => "StatusSuccessColor",
+            _ => "StatusInfoColor",
+        });
+        var key = SystemParameters.ClientAreaAnimation ? "StatusFlashStoryboard" : "StatusFailureHoldStoryboard";
         ((Storyboard)Resources[key]).Begin(StatusFlashBorder);
     }
 
@@ -254,6 +257,7 @@ public partial class MainWindow : Window, IUiHost
         // MDL2 Assets: ChromeMaximize (E922) / ChromeRestore (E923)
         MaximizeRestoreButton.Content = maximized ? "" : "";
         MaximizeRestoreButton.ToolTip = maximized ? Strings.Common_Restore : Strings.Common_Maximize;
+        System.Windows.Automation.AutomationProperties.SetName(MaximizeRestoreButton, (string)MaximizeRestoreButton.ToolTip);
     }
 
     protected override void OnClosing(CancelEventArgs e)

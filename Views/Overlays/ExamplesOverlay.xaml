@@ -10,7 +10,7 @@
     <Border Style="{StaticResource OverlayCard}"
 >
         <DockPanel>
-            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1"
+            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Divider}" BorderThickness="0,0,0,1"
 >
                 <DockPanel>
                     <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Close}" Style="{StaticResource GhostButton}"
@@ -21,7 +21,7 @@
             </Border>
 
             <!-- 追加ボタンと件数はスクロール領域の外。例文が増えても位置が動かないようにする -->
-            <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
+            <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Divider}" BorderThickness="0,1,0,0">
                 <DockPanel>
                     <Button DockPanel.Dock="Left" v:LocalizedText.Content="{x:Static res:Strings.Examples_AddButton}" Style="{StaticResource PrimaryButton}"
                             r:IntentTrigger.OnClick="NewExampleRequested" Margin="0" />
@@ -57,11 +57,11 @@
                                                    FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
                                         <TextBlock Text="{Binding TranslationPreview}" Foreground="{StaticResource Muted}"
                                                    Margin="0,2,0,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
                                         <TextBlock Text="{Binding TagSummary}" Foreground="{StaticResource Accent}"
                                                    Margin="0,2,0,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                                                    Visibility="{Binding Tags.Count, Converter={StaticResource CountVis}}"
-                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=11}" />
+                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
                                     </StackPanel>
                                 </Button>
                             </DataTemplate>

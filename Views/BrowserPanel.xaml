@@ -19,11 +19,14 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
                     <Button Content="←" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserBackRequested"
-                            ToolTip="{x:Static res:Strings.Browser_Back}" IsEnabled="{Binding CanGoBack}" />
+                            ToolTip="{x:Static res:Strings.Browser_Back}" AutomationProperties.Name="{x:Static res:Strings.Browser_Back}"
+                            IsEnabled="{Binding CanGoBack}" />
                     <Button Content="→" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserForwardRequested"
-                            ToolTip="{x:Static res:Strings.Browser_Forward}" IsEnabled="{Binding CanGoForward}" />
+                            ToolTip="{x:Static res:Strings.Browser_Forward}" AutomationProperties.Name="{x:Static res:Strings.Browser_Forward}"
+                            IsEnabled="{Binding CanGoForward}" />
                     <Button Content="⟳" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserReloadRequested"
-                            ToolTip="{x:Static res:Strings.Browser_Reload}" Margin="0" />
+                            ToolTip="{x:Static res:Strings.Browser_Reload}" AutomationProperties.Name="{x:Static res:Strings.Browser_Reload}"
+                            Margin="0" />
                 </StackPanel>
                 <!-- アドレス欄。枠そのものは TextBox ではなく Border で描き、フォーカス中だけ
                      アクセント色に光らせる。半径は隣の戻る／進む／再読み込みボタン（Button
@@ -32,7 +35,7 @@
                         Background="{StaticResource Field}" VerticalAlignment="Center">
                     <Border.Style>
                         <Style TargetType="Border">
-                            <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+                            <Setter Property="BorderBrush" Value="{StaticResource Divider}" />
                             <Setter Property="BorderThickness" Value="1" />
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding IsKeyboardFocused, ElementName=AddressBox}" Value="True">
@@ -70,7 +73,7 @@
                 </Border.Triggers>
             </Border>
 
-            <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Line}"
+            <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Divider}"
                     BorderThickness="0,1,0,0" Padding="10,5">
                 <!-- 既定の TextBlock スタイルが Wrap なので 1 行に固定し、長い URL は途中を … で
                      省略する（末尾だけ切れると判別できないため先頭と末尾を残す）。
@@ -78,7 +81,7 @@
                      落とすだけ）。行ごと en のフォントに寄せ、URL が読めることを優先する。 -->
                 <TextBlock t:EllipsisMiddle.Source="{Binding Status}" Foreground="{StaticResource Muted}"
                            FontFamily="{x:Static res:Strings.EnFont}"
-                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
+                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
             </Border>
 

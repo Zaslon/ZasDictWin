@@ -18,20 +18,21 @@
         WindowStyle="None" ResizeMode="CanResize">
 
     <Window.Resources>
-        <!-- ステータス文言が変わるたびに FlashStatus（HostCommand.FlashStatus）から呼ぶ。文言自体は変わったことに気づきにくいため、
-             背景を一瞬だけ光らせて変化を知らせる。 -->
+        <!-- 注意を引く通知（警告・失敗）のときに FlashStatus（HostCommand.FlashStatus）から呼ぶ。
+             表示した瞬間に背景を強調の色で光らせ、duration-status-highlight（1 秒）かけて通常の背景色に戻す
+             （ZasDesignSystem implementation/common.md「ステータスバー」）。 -->
         <Storyboard x:Key="StatusFlashStoryboard">
             <DoubleAnimation Storyboard.TargetName="StatusFlashBrush" Storyboard.TargetProperty="Opacity"
-                              From="0.4" To="0" Duration="0:0:0.9">
+                              From="1" To="0" Duration="0:0:1">
                 <DoubleAnimation.EasingFunction>
                     <QuadraticEase EasingMode="EaseOut" />
                 </DoubleAnimation.EasingFunction>
             </DoubleAnimation>
         </Storyboard>
-        <!-- OS の視覚効果を切っているときの失敗。動かさずに色だけ出し、通常の光らせ（0.9 秒）と同じくらいで消す。 -->
+        <!-- OS の視覚効果を切っているとき。動かさずに強調の色を 1 秒出し、アニメーション無しで戻す。 -->
         <Storyboard x:Key="StatusFailureHoldStoryboard">
             <DoubleAnimationUsingKeyFrames Storyboard.TargetName="StatusFlashBrush" Storyboard.TargetProperty="Opacity">
-                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="0.4" />
+                <DiscreteDoubleKeyFrame KeyTime="0:0:0" Value="1" />
                 <DiscreteDoubleKeyFrame KeyTime="0:0:1" Value="0" />
             </DoubleAnimationUsingKeyFrames>
         </Storyboard>
@@ -58,7 +59,7 @@
             <!-- 標準の枠が無いので、このヘッダ自体がウィンドウのドラッグ・つまみを兼ねる（Header_MouseLeftButtonDown）。
                  ボタンは ButtonBase 側が MouseLeftButtonDown を Handled 済みにするため、ここまでは伝播せず、
                  ボタンの無い余白だけがドラッグ領域として働く。 -->
-            <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
+            <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
                     BorderThickness="0,0,0,1" Padding="12,7"
                     MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <DockPanel>
@@ -72,25 +73,33 @@
                         <TextBlock v:LocalizedText.Text="{Binding DictionaryName}" FontWeight="SemiBold"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=15}"
                                    VerticalAlignment="Center" Margin="0,0,8,0" />
-                        <!-- 未保存は「*」よりドット。ラベルと本文の間に記号を挟まない -->
-                        <Ellipse Width="8" Height="8" Fill="{StaticResource Accent}" VerticalAlignment="Center"
-                                 ToolTip="{x:Static res:Strings.Main_UnsavedTooltip}"
-                                 Visibility="{Binding IsDirty, Converter={StaticResource BoolVis}}" />
+                        <!-- 未保存の印。点の色や形だけでは意味が伝わらず、ツールチップは配信に映らないため、
+                             文言を添えて常に示す（ZasDesignSystem rules.md「未保存の変更があることを常に示す」）。 -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                    Visibility="{Binding IsDirty, Converter={StaticResource BoolVis}}">
+                            <Ellipse Width="8" Height="8" Fill="{StaticResource Accent}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Main_UnsavedLabel}" Foreground="{StaticResource Accent}"
+                                       VerticalAlignment="Center" TextWrapping="NoWrap"
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                        </StackPanel>
                     </StackPanel>
 
                     <!-- 最小化・最大化（元に戻す）・閉じる。標準の枠が無いので自前で持つ。
                          アイコンは検索欄の虫眼鏡（SearchPanel.xaml）と同じ Segoe MDL2 Assets。 -->
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
                         <Button Content="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                                Style="{StaticResource IconButton}" Click="Minimize_Click" ToolTip="{x:Static res:Strings.Common_Minimize}" Margin="0" />
+                                Style="{StaticResource IconButton}" Click="Minimize_Click" ToolTip="{x:Static res:Strings.Common_Minimize}"
+                                AutomationProperties.Name="{x:Static res:Strings.Common_Minimize}" Margin="0" />
                         <Button x:Name="MaximizeRestoreButton" Content="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                                Style="{StaticResource IconButton}" Click="MaximizeRestore_Click" ToolTip="{x:Static res:Strings.Common_Maximize}" Margin="4,0,0,0" />
+                                Style="{StaticResource IconButton}" Click="MaximizeRestore_Click" ToolTip="{x:Static res:Strings.Common_Maximize}"
+                                AutomationProperties.Name="{x:Static res:Strings.Common_Maximize}" Margin="4,0,0,0" />
                         <Button Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                                Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="{x:Static res:Strings.Common_Close}" Margin="4,0,0,0" />
+                                Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="{x:Static res:Strings.Common_Close}"
+                                AutomationProperties.Name="{x:Static res:Strings.Common_Close}" Margin="4,0,0,0" />
                     </StackPanel>
 
                     <WrapPanel HorizontalAlignment="Right" Orientation="Horizontal"
-TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}">
+TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}">
                         <!-- 開く・新規辞書・上書き保存・名前を付けて保存。項目の構成と有効・無効は Mediator が組む。 -->
                         <v:MenuButton x:Name="FileMenuButton" Header="{x:Static res:Strings.Menu_File}" Items="{Binding FileMenuItems}" />
                         <!-- 元に戻す・やり直し。 -->
@@ -99,7 +108,7 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                              独立ウィンドウとしてここから開く。 -->
                         <v:MenuButton x:Name="ToolsMenuButton" Header="{x:Static res:Strings.Menu_Tools}" Items="{Binding ToolsMenuItems}" />
                         <!-- GitHubモードのときだけ現れる。設定 → GitHub でリポジトリ・トークンを登録すると使える。 -->
-                        <Border Width="1" Background="{StaticResource Line}" Margin="6,5"
+                        <Border Width="1" Background="{StaticResource Divider}" Margin="6,5"
                                 Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}" />
                         <Button v:LocalizedText.Content="{x:Static res:Strings.GitHub_LoadButton}" Style="{StaticResource ToolbarButton}" r:IntentTrigger.OnClick="GitHubLoadRequested" IsEnabled="{Binding CanGitHubLoad}"
                                 Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}"
@@ -108,7 +117,7 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <Button v:LocalizedText.Content="{x:Static res:Strings.GitHub_CommitButton}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="GitHubCommitRequested" IsEnabled="{Binding CanGitHubCommit}"
                                 Margin="4,0" Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}"
                                 ToolTip="{x:Static res:Strings.GitHub_CommitButtonTooltip}" />
-                        <Border Width="1" Background="{StaticResource Line}" Margin="6,5" />
+                        <Border Width="1" Background="{StaticResource Divider}" Margin="6,5" />
                         <Button v:LocalizedText.Content="{x:Static res:Strings.Main_NewWordButton}" Style="{StaticResource ToolbarAccentButton}" r:IntentTrigger.OnClick="NewWordRequested" IsEnabled="{Binding CanNewWord}" />
                         <Button v:LocalizedText.Content="{x:Static res:Strings.Examples_Title}" Style="{StaticResource ToolbarButton}" r:IntentTrigger.OnClick="ShowExamplesRequested" IsEnabled="{Binding CanShowExamples}"
                                 ToolTip="{x:Static res:Strings.Main_ExamplesButtonTooltip}" />
@@ -116,7 +125,7 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <Button x:Name="BrowserButton" v:LocalizedText.Content="{x:Static res:Strings.Browser_Title}" Style="{StaticResource ToolbarButton}"
                                 r:IntentTrigger.OnClick="OpenScreenRequested" r:IntentTrigger.Payload="{x:Static med:AppCommand.ShowBrowser}"
                                 IsEnabled="{Binding CanShowBrowser}" ToolTip="{x:Static res:Strings.Browser_ButtonTooltip}" />
-                        <Border Width="1" Background="{StaticResource Line}" Margin="6,5" />
+                        <Border Width="1" Background="{StaticResource Divider}" Margin="6,5" />
                         <!-- 単語ウィンドウ・単語数ウィンドウは独立した HWND で、開く／閉じるを切り替える。
                              項目名は開いているかどうかで変わる（Mediator が開閉のたびに組み直す）。 -->
                         <v:MenuButton x:Name="WindowMenuButton" Header="{x:Static res:Strings.Menu_Window}" Items="{Binding WindowMenuItems}" />
@@ -124,27 +133,64 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                 </DockPanel>
             </Border>
 
-            <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Line}"
+            <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Divider}"
                     BorderThickness="0,1,0,0" Padding="12,5">
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Right" Text="{Binding VersionLabel}" Foreground="{StaticResource Muted}"
                                Margin="12,0,0,0" VerticalAlignment="Center"
-                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
-                    <Border DockPanel.Dock="Right" Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                    <Border DockPanel.Dock="Right" Background="{StaticResource Raised}" BorderBrush="{StaticResource Divider}"
                             BorderThickness="1" CornerRadius="4" Padding="10,2" Margin="12,0,0,0" VerticalAlignment="Center">
                         <TextBlock v:LocalizedText.Text="{Binding CountLabel}" Foreground="{StaticResource Muted}"
-                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
                     </Border>
                     <!-- フッタは 1 行固定。折り返すと状況によってフッタの高さが変わり、下端の位置が動く -->
                     <!-- Padding と負の Margin を打ち消し合わせ、光る範囲だけ広げてレイアウトへの影響を消している。
                          StatusFlashBrush は Status が変わるたびに FlashStatus が StatusFlashStoryboard で光らせる。 -->
                     <Border x:Name="StatusFlashBorder" CornerRadius="4" Padding="6,2" Margin="-6,-2,-6,-2">
                         <Border.Background>
-                            <SolidColorBrush x:Name="StatusFlashBrush" Color="{StaticResource AccentColor}" Opacity="0" />
+                            <SolidColorBrush x:Name="StatusFlashBrush" Color="{StaticResource StatusErrorColor}" Opacity="0" />
                         </Border.Background>
-                        <TextBlock v:LocalizedText.Text="{Binding Status}" Foreground="{StaticResource Muted}"
-                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
-                                   VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                        <!-- 状態の種類（Semantic）は色だけでなく、ノティフィケーションアイコンでも示す
+                             （ZasDesignSystem rules.md「色だけで情報を表さない」）。アイコンは文字に添えるので
+                             size-icon-small（16）を文字サイズ倍率に合わせて伸ばす。 -->
+                        <DockPanel Visibility="{Binding Status, Converter={StaticResource NullVis}}">
+                            <Viewbox DockPanel.Dock="Left" Margin="0,0,6,0" VerticalAlignment="Center"
+                                     Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}"
+                                     Height="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}">
+                                <Canvas Width="24" Height="24">
+                                    <Path x:Name="StatusIcon">
+                                        <Path.Style>
+                                            <Style TargetType="Path">
+                                                <Setter Property="Data" Value="{StaticResource Icon_info}" />
+                                                <Setter Property="Fill" Value="{StaticResource NotifyInfo}" />
+                                                <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.Status_Info}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding StatusSemantic}" Value="{x:Static vm:StatusSemantic.Success}">
+                                                        <Setter Property="Data" Value="{StaticResource Icon_success}" />
+                                                        <Setter Property="Fill" Value="{StaticResource NotifySuccess}" />
+                                                        <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.Status_Success}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StatusSemantic}" Value="{x:Static vm:StatusSemantic.Warning}">
+                                                        <Setter Property="Data" Value="{StaticResource Icon_warning}" />
+                                                        <Setter Property="Fill" Value="{StaticResource NotifyWarning}" />
+                                                        <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.Status_Warning}" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding StatusSemantic}" Value="{x:Static vm:StatusSemantic.Error}">
+                                                        <Setter Property="Data" Value="{StaticResource Icon_error}" />
+                                                        <Setter Property="Fill" Value="{StaticResource NotifyError}" />
+                                                        <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.Status_Error}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Path.Style>
+                                    </Path>
+                                </Canvas>
+                            </Viewbox>
+                            <TextBlock v:LocalizedText.Text="{Binding Status}" Foreground="{StaticResource StatusText}"
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
+                                       VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                        </DockPanel>
                     </Border>
                 </DockPanel>
             </Border>

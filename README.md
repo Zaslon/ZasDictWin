@@ -44,6 +44,10 @@ dotnet publish ZasDictWin.csproj -c Release --no-build
 
 配布用の exe、成果物の削除などは [開発者向け](docs/development.md) を参照。
 
+## ライセンス表記
+
+ステータスバーのノティフィケーションアイコン（`Themes/Theme.xaml` の `Icon_info` / `Icon_success` / `Icon_warning` / `Icon_error`）は、デジタル庁「デザインシステム コード例（HTML版）」の図形を基にしています（MIT License、[licenses/LICENSE-dads-code.txt](licenses/LICENSE-dads-code.txt)）。
+
 ## ドキュメント
 
 - [使い方](docs/usage.md) — 画面の分割とタブ、メニュー、GitHub モード、キーボード操作

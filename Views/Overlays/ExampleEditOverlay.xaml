@@ -10,7 +10,7 @@
     <Border Style="{StaticResource OverlayCard}"
 >
         <DockPanel>
-            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,0,0,1"
+            <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Divider}" BorderThickness="0,0,0,1"
 >
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Right" v:LocalizedText.Text="{Binding IdLabel}" Style="{StaticResource Label}"
@@ -21,16 +21,22 @@
             </Border>
 
             <!-- 操作はフッタに固定。入力欄が伸びてもボタンが画面外に出ないようにする -->
-            <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
-                <DockPanel>
-                    <!-- 削除は保存と押し違えないよう、［保存］［キャンセル］から離して反対の端に置く -->
-                    <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}"
-                            r:IntentTrigger.OnClick="DeleteExampleRequested" IsEnabled="{Binding CanDelete}" Margin="0" />
-                    <StackPanel Orientation="Horizontal">
-                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="ExampleCommitted" />
-                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="ExampleEditCancelled" />
-                    </StackPanel>
-                </DockPanel>
+            <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Divider}" BorderThickness="0,1,0,0">
+                <!-- 戻る側を左、進む側を右に並べ、主目的でない削除は間を空けて左端に置く
+                     （ZasDesignSystem rules.md「ボタンは戻る側を左、進む側を右に並べる」）。
+                     Tab の順が見た目と揃うよう、XAML も左から順に書く。 -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}"
+                            r:IntentTrigger.OnClick="DeleteExampleRequested" IsEnabled="{Binding CanDelete}" Margin="0,0,24,0" />
+                    <Button Grid.Column="2" v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="ExampleEditCancelled" />
+                    <Button Grid.Column="3" v:LocalizedText.Content="{x:Static res:Strings.Common_Register}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="ExampleCommitted" Margin="0" />
+                </Grid>
             </Border>
 
             <ScrollViewer Margin="24,14,24,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -72,13 +78,14 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:ExampleWord}">
-                                        <Border Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
-                                                BorderThickness="1" CornerRadius="4" Padding="10,3" Margin="0,0,6,6">
+                                        <Border Background="{StaticResource Raised}" BorderBrush="{StaticResource Divider}"
+                                                BorderThickness="1" CornerRadius="6" Padding="10,3" Margin="0,0,6,6">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="{Binding Form}" VerticalAlignment="Center"
                                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
                                                 <Button Content="✕" Style="{StaticResource GhostButton}" Margin="6,0,0,0" Padding="4,0"
-                                                        MinHeight="0"
+                                                        MinWidth="28" MinHeight="28"
+                                                        AutomationProperties.Name="{Binding Form, StringFormat={x:Static res:Strings.ExampleEdit_RemoveWordName}}"
                                                         r:IntentTrigger.OnClick="ExampleWordRemoveRequested"
                                                         r:IntentTrigger.Payload="{Binding}" />
                                             </StackPanel>
@@ -103,7 +110,7 @@
                                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
                                                 <TextBlock Text="{Binding TranslationSummary}" Foreground="{StaticResource Muted}"
                                                            FontFamily="{x:Static res:Strings.ContentFont}"
-                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
+                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
                                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="520" />
                                             </StackPanel>
                                         </Button>
@@ -141,7 +148,9 @@
                                 <TextBlock v:LocalizedText.Text="{Binding OfferStatus}" Margin="0,6,0,0"
                                            Visibility="{Binding OfferStatus, Converter={StaticResource NullVis}}" />
 
-                                <TextBlock v:LocalizedText.Text="{Binding ApiKeyHint}" Style="{StaticResource Label}" Margin="0,12,0,4" />
+                                <!-- 何を入れる欄かは欄の外のラベルで示す（案内文字は入力を始めると消える） -->
+                                <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Label_ApiKey}" Style="{StaticResource FieldLabel}" Margin="0,12,0,4" />
+                                <TextBlock v:LocalizedText.Text="{Binding ApiKeyHint}" Style="{StaticResource Label}" />
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -150,7 +159,7 @@
                                     <!-- PasswordBox は Password をバインドできないため TextBox で受ける。
                                          保存すると即座に空へ戻すので、画面にキーが残り続けることはない。 -->
                                     <TextBox Grid.Column="0" Text="{Binding ApiKeyInput, UpdateSourceTrigger=PropertyChanged}"
-                                             v:Placeholder.Text="{x:Static res:Strings.Label_ApiKeyPlaceholder}" FontFamily="Consolas" />
+                                             AutomationProperties.Name="{x:Static res:Strings.Label_ApiKey}" FontFamily="Consolas" />
                                     <Button Grid.Column="1" v:LocalizedText.Content="{x:Static res:Strings.ExampleEdit_SaveKeyButton}" Margin="6,0,0,0"
                                             r:IntentTrigger.OnClick="ZpdicApiKeySaveRequested" IsEnabled="{Binding CanSaveApiKey}" />
                                 </Grid>

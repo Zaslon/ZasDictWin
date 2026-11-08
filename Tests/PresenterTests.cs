@@ -46,7 +46,8 @@ public class PresenterTests
         var a = MediatorHarness.NewWord(1, "a");
         h.OpenDictionary(a);
 
-        h.Send(IntentKind.DeleteWordRequested, a);
+        h.Services.NextOpenPath = "missing.json";
+        h.Send(IntentKind.OpenDictionaryRequested);
         Assert.IsType<ChoiceViewModel>(h.State.ModalOverlay);
 
         h.Send(IntentKind.ModalDismissRequested);

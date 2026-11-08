@@ -108,8 +108,8 @@ public static class Strings
     }
 
     public static string Common_Cancel => Get();
+    public static string Common_Register => Get();
     public static string Common_Close => Get();
-    public static string Common_Save => Get();
     public static string Common_Delete => Get();
     public static string Common_DeleteAction => Get();
     public static string Common_Edit => Get();
@@ -153,6 +153,7 @@ public static class Strings
     public static string Search_ScopeFullText => Get();
     public static string Search_NoResults => Get();
     public static string Search_NoResultsHint => Get();
+    public static string Search_RowMenuName => Get();
 
     public static string Detail_Title => Get();
     public static string Detail_EmptyTitle => Get();
@@ -225,11 +226,12 @@ public static class Strings
     public static string ExampleEdit_TagsPlaceholder => Get();
     public static string ExampleEdit_RelatedWordsHeading => Get();
     public static string ExampleEdit_WordSearchPlaceholder => Get();
+    public static string ExampleEdit_RemoveWordName => Get();
     public static string ExampleEdit_SourceHeading => Get();
     public static string ExampleEdit_SourcePlaceholder => Get();
     public static string ExampleEdit_FetchButton => Get();
     public static string ExampleEdit_FetchHint => Get();
-    public static string Label_ApiKeyPlaceholder => Get();
+    public static string Label_ApiKey => Get();
     public static string ExampleEdit_SaveKeyButton => Get();
     public static string ExampleEdit_ValidationSentence => Get();
     public static string ExampleEdit_UnsavedMessage => Get();
@@ -257,6 +259,10 @@ public static class Strings
     public static string WordEdit_EditTitle => Get();
     public static string WordEdit_FormLabel => Get();
     public static string WordEdit_AddTranslationButton => Get();
+    public static string WordEdit_RemoveTranslationName => Get();
+    public static string WordEdit_RemoveContentName => Get();
+    public static string WordEdit_RemoveRelationName => Get();
+    public static string WordEdit_RemoveVariationName => Get();
     public static string WordEdit_DragTooltip => Get();
     public static string Label_PartOfSpeech => Get();
     public static string WordEdit_PosPlaceholder => Get();
@@ -404,6 +410,11 @@ public static class Strings
     public static string Main_OpenDictionaryPrompt => Get();
     public static string Main_NoDictionaryName => Get();
     public static string Main_CountLabel => Get();
+    public static string Status_Info => Get();
+    public static string Status_Success => Get();
+    public static string Status_Warning => Get();
+    public static string Status_Error => Get();
+    public static string Main_UnsavedLabel => Get();
     public static string Main_WordCountLabel => Get();
     public static string Main_VersionLabel => Get();
     public static string Main_FontScaleStatus => Get();
@@ -424,7 +435,6 @@ public static class Strings
     public static string Main_NoSavePathStatus => Get();
     public static string Main_NewWordButton => Get();
     public static string Main_ExamplesButtonTooltip => Get();
-    public static string Main_UnsavedTooltip => Get();
 
     public static string Word_AddedStatus => Get();
     public static string Word_UpdatedStatus => Get();
@@ -462,6 +472,7 @@ public static class Strings
 
     public static string Dock_EmptyHint => Get();
     public static string Dock_CloseAreaButton => Get();
+    public static string Dock_CloseTabName => Get();
     public static string Overlay_DropToFloatHint => Get();
 
     public static string Error_Title => Get();

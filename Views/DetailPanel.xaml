@@ -13,7 +13,7 @@
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center"
                     Visibility="{Binding HasSelection, Converter={StaticResource BoolVis}, ConverterParameter=invert}">
             <Border Width="46" Height="46" CornerRadius="14" Background="{StaticResource Panel}"
-                    BorderBrush="{StaticResource Line}" BorderThickness="1" Margin="0,0,0,14"
+                    BorderBrush="{StaticResource Divider}" BorderThickness="1" Margin="0,0,0,14"
                     HorizontalAlignment="Center">
                 <TextBlock Text="&#xE721;" FontFamily="Segoe MDL2 Assets" FontSize="18"
                            Foreground="{StaticResource Muted}" HorizontalAlignment="Center" VerticalAlignment="Center" />
@@ -26,17 +26,23 @@
         <DockPanel Visibility="{Binding HasSelection, Converter={StaticResource BoolVis}}">
 
             <!-- 操作はフッタに寄せて、本文のスクロールと混ざらないようにする -->
-            <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0"
+            <Border DockPanel.Dock="Bottom" BorderBrush="{StaticResource Divider}" BorderThickness="0,1,0,0"
                     Padding="0,10,0,0" Margin="0,12,0,0">
-                <DockPanel>
-                    <!-- 削除は編集・複製と押し違えないよう、反対の端に離して置く -->
-                    <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}"
-                            r:IntentTrigger.OnClick="DeleteWordRequested" IsEnabled="{Binding CanDeleteWord}" Margin="0" />
-                    <StackPanel Orientation="Horizontal">
-                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Edit}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="EditWordRequested" IsEnabled="{Binding CanEditWord}" />
-                        <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Duplicate}" r:IntentTrigger.OnClick="DuplicateWordRequested" IsEnabled="{Binding CanDuplicateWord}" />
-                    </StackPanel>
-                </DockPanel>
+                <!-- 主目的でない削除は間を空けて左端、主な操作（編集）は右端に置く
+                     （ZasDesignSystem rules.md「ボタンは戻る側を左、進む側を右に並べる」）。
+                     Tab の順が見た目と揃うよう、XAML も左から順に書く。 -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Column="0" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}"
+                            r:IntentTrigger.OnClick="DeleteWordRequested" IsEnabled="{Binding CanDeleteWord}" Margin="0,0,24,0" />
+                    <Button Grid.Column="2" v:LocalizedText.Content="{x:Static res:Strings.Common_Duplicate}" r:IntentTrigger.OnClick="DuplicateWordRequested" IsEnabled="{Binding CanDuplicateWord}" />
+                    <Button Grid.Column="3" v:LocalizedText.Content="{x:Static res:Strings.Common_Edit}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="EditWordRequested" IsEnabled="{Binding CanEditWord}" Margin="0" />
+                </Grid>
             </Border>
 
             <!-- 詳細面は縦スクロールのみ。横に流すと本文の折り返し位置が測定のたびに移り、
@@ -63,7 +69,7 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <!-- 半径は Chip と同じ 6。1 文字のタグでもピルのように丸まらないようにする -->
-                                <Border Background="{StaticResource Raised}" BorderBrush="{StaticResource Line}"
+                                <Border Background="{StaticResource Raised}" BorderBrush="{StaticResource Divider}"
                                         BorderThickness="1" CornerRadius="4" Padding="10,3" Margin="0,0,6,6">
                                     <v:SelectableText Text="{Binding Mode=OneWay}" Foreground="{StaticResource Muted}"
                                                       Style="{StaticResource DetailLabelText}" />

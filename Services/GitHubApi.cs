@@ -43,7 +43,8 @@ public static class GitHubApi
     private const string ApiBase = "https://api.github.com";
 
     // テストが偽の応答を返す HttpMessageHandler に差し替える。アプリ側からは書き換えない。
-    internal static HttpClient Http { get; set; } = new() { Timeout = TimeSpan.FromSeconds(30) };
+    // 辞書は数 MB あり、回線によっては取得・コミットに 30 秒以上かかるため長めに取る。
+    internal static HttpClient Http { get; set; } = new() { Timeout = TimeSpan.FromSeconds(120) };
 
     public static string TokenPath => AppDataDir.Combine("github_token");
 
@@ -97,7 +98,22 @@ public static class GitHubApi
             var encoding = node?["encoding"]?.GetValue<string>() ?? "base64";
 
             // 1MB を超えるファイルは Contents API が content を返さず encoding だけ変わる。
-            // その場合は download_url から生のテキストを直接取りに行く（ZasDictAndroid と同じフォールバック）。
+            // その場合は Git Data API の blob を生のまま取る。download_url（raw.githubusercontent.com）は
+            // 数 MB の辞書で 2 分以上かかることがあり、api.github.com からの取得より桁違いに遅い。
+            if (encoding != "base64" && node?["sha"]?.GetValue<string>() is { Length: > 0 } sha)
+            {
+                var blobUrl = $"{ApiBase}/repos/{Uri.EscapeDataString(owner)}/{Uri.EscapeDataString(repo)}/git/blobs/{Uri.EscapeDataString(sha)}";
+                using var blobRequest = NewRequest(HttpMethod.Get, blobUrl, token);
+                blobRequest.Headers.Accept.Clear();
+                blobRequest.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.raw+json"));
+                using var blobResponse = await Http.SendAsync(blobRequest).ConfigureAwait(false);
+                if (!blobResponse.IsSuccessStatusCode)
+                    return new GitHubFileResult(false, string.Format(Strings.GitHub_DownloadFailed, (int)blobResponse.StatusCode));
+                var bytes = await blobResponse.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                return new GitHubFileResult(true, Strings.GitHub_FetchOk, Encoding.UTF8.GetString(bytes));
+            }
+
+            // sha が無い応答に備えて download_url も残す（ZasDictAndroid と同じフォールバック）。
             if (encoding != "base64")
             {
                 var downloadUrl = node?["download_url"]?.GetValue<string>();

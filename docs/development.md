@@ -113,7 +113,7 @@ UI 要素は配信に映らない。これを避けるため次の構成を取�
 
 ## GitHub モードの通信
 
-- 読み取りは Contents API（Base64 で 1 ファイル取得。1MB を超える場合は download_url から生のまま取る）
+- 読み取りは Contents API（Base64 で 1 ファイル取得。1MB を超える場合は、応答の sha で Git Data API の blob を生のまま取る。raw.githubusercontent.com の download_url は数 MB で 2 分を超えることがあるため、sha が無い応答に限って使う。通信のタイムアウトは 120 秒）
 - 書き込みは Git Data API（ref → commit → tree → commit → ref 更新）。辞書 JSON と更新履歴 CSV を 1 本のツリーに
   積んで 1 回でコミットするので、片方だけ更新した中途半端なコミットにならない。ZasDictAndroid の
   `GitHubApiClient.commitFiles` と同じ組み立て方

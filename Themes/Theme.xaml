@@ -23,12 +23,35 @@
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
+    <!-- キーボードで選んだ要素のフォーカス表示（tokens.md「フォーカス表示」）。要素のすぐ外に黄 2、その外に黒 4。
+         どの背景でもどちらかの線が見える。FocusVisualStyle は AdornerLayer に描かれるので、要素の寸法は変わらない。
+         操作要素の Style ではこれを FocusVisualStyle に指定する（既定の点線は細く、背景によっては見えない）。 -->
+    <Style x:Key="FocusRing">
+        <Setter Property="Control.Template">
+            <Setter.Value>
+                <ControlTemplate>
+                    <Border Margin="-6" BorderBrush="{StaticResource FocusOuter}" BorderThickness="4" CornerRadius="12"
+                            SnapsToDevicePixels="True">
+                        <Border BorderBrush="{StaticResource FocusInner}" BorderThickness="2" CornerRadius="9" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ノティフィケーションアイコン（ZasDesignSystem の icons/wpf/Icons.xaml から写した DADS コード例の図形。
+         MIT License、licenses/LICENSE-dads-code.txt）。24×24 の座標で、色は置く側の Fill で付ける。 -->
+    <PathGeometry x:Key="Icon_info" FillRule="EvenOdd" Figures="M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20ZM12 7a1 1 0 1 0 0 2a1 1 0 1 0 0-2ZM11 11h2v6h-2Z" />
+    <PathGeometry x:Key="Icon_success" FillRule="EvenOdd" Figures="M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20ZM17.6 9.6l-7 7-4.3-4.3L7.7 11l2.9 2.9 5.7-5.6 1.3 1.4Z" />
+    <PathGeometry x:Key="Icon_warning" FillRule="EvenOdd" Figures="M1 21 12 2l11 19H1ZM13 15h-2v-5h2v5ZM12 16a1 1 0 1 0 0 2a1 1 0 1 0 0-2Z" />
+    <PathGeometry x:Key="Icon_error" FillRule="EvenOdd" Figures="M8.25 21 3 15.75v-7.5L8.25 3h7.5L21 8.25v7.5L15.75 21h-7.5ZM12 13.4l-2.85 2.85-1.4-1.4L10.6 12 7.75 9.15l1.4-1.4L12 10.6l2.85-2.85 1.4 1.4L13.4 12l2.85 2.85-1.4 1.4L12 13.4Z" />
+
     <!-- 明示的な Style を指定すると既定（暗黙の）TextBlock スタイルが打ち消されるため、折り返しは
          ここで再度宣言する必要がある。省略すると長い案内文が幅を超えて横にはみ出し、オーバーレイ側で
          横スクロールを封じているために末尾が切れて読めなくなる。 -->
     <Style x:Key="Label" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Margin" Value="0,0,0,4" />
     </Style>
@@ -67,7 +90,7 @@
     <!-- 表示するものがないことを伝える案内 -->
     <Style x:Key="EmptyState" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
         <!-- Stretch にしておかないと要素が内容幅で自動サイズになり、折り返さずにはみ出す -->
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="TextAlignment" Value="Center" />
@@ -75,119 +98,152 @@
         <Setter Property="Margin" Value="24" />
     </Style>
 
-    <!-- ボタン。hover / press は背景を書き換えず、白・黒のヴェールを重ねて表現する。
-         こうしておくと Primary / Danger など塗り色の違う派生ごとに hover 色を用意せずに済む。
-         hover で枠色も変えないのは、Primary/Danger の枠を灰色に汚さないため。 -->
+    <!-- ボタン。既定は枠のボタン（tokens.md「ボタン・入力欄」の color-button-*）。
+         ホバー・押下・無効の色は Style.Triggers で替える。テンプレートのトリガーで替えると、
+         派生スタイル（Primary / Danger / 枠なし）の Setter より優先されてしまい、塗りのボタンまで
+         枠のボタンのホバー色になる。派生スタイルは自分の Style.Triggers で上書きする
+         （同じ条件のトリガーは後に書いたものが勝つので、BasedOn の派生側が勝つ）。 -->
     <Style TargetType="Button">
-        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="Foreground" Value="{StaticResource ButtonText}" />
         <Setter Property="Background" Value="{StaticResource Raised}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderBrush" Value="{StaticResource ButtonBorder}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Padding" Value="12,6" />
         <Setter Property="Margin" Value="0,0,4,0" />
-        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="MinHeight" Value="32" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="HorizontalContentAlignment" Value="Center" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="bd" CornerRadius="5"
+                    <Border x:Name="bd" CornerRadius="8"
                             Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}">
-                        <Grid>
-                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
-                                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
-                                              Margin="{TemplateBinding Padding}" />
-                            <Border x:Name="veil" CornerRadius="4" Background="{StaticResource HoverVeil}" Opacity="0"
-                                    IsHitTestVisible="False" />
-                        </Grid>
+                        <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          Margin="{TemplateBinding Padding}" />
                     </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="veil" Property="Opacity" Value="0.06" />
-                        </Trigger>
-                        <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="veil" Property="Background" Value="{StaticResource PressedVeil}" />
-                            <Setter TargetName="veil" Property="Opacity" Value="0.22" />
-                        </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.45" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource ButtonHover}" />
+                <Setter Property="Foreground" Value="{StaticResource ButtonTextHover}" />
+                <Setter Property="BorderBrush" Value="{StaticResource ButtonTextHover}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{StaticResource ButtonActive}" />
+                <Setter Property="Foreground" Value="{StaticResource ButtonTextActive}" />
+                <Setter Property="BorderBrush" Value="{StaticResource ButtonTextActive}" />
+            </Trigger>
+            <!-- 無効は半透明にせず color-disabled で塗る。半透明だと下の面の色が透けて、塗りのボタンが
+                 押せそうな色のまま残る。 -->
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{StaticResource Disabled}" />
+                <Setter Property="Foreground" Value="{StaticResource OnDisabled}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Disabled}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="{StaticResource AccentFill}" />
         <Setter Property="Foreground" Value="{StaticResource OnFill}" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="BorderBrush" Value="Transparent" />
+        <Setter Property="BorderBrush" Value="{StaticResource AccentFill}" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentFillHover}" />
+                <Setter Property="Foreground" Value="{StaticResource OnFill}" />
+                <Setter Property="BorderBrush" Value="{StaticResource AccentFillHover}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentFillActive}" />
+                <Setter Property="Foreground" Value="{StaticResource OnFill}" />
+                <Setter Property="BorderBrush" Value="{StaticResource AccentFillActive}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{StaticResource Disabled}" />
+                <Setter Property="Foreground" Value="{StaticResource OnDisabled}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Disabled}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
+    <!-- 警告ボタン（color-destructive-*）。削除など、データを失う操作に使う。 -->
     <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="{StaticResource DangerFill}" />
         <Setter Property="Foreground" Value="{StaticResource OnFill}" />
         <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="BorderBrush" Value="Transparent" />
-    </Style>
-
-    <!-- 押せない間は通常のボタンと同じ無彩色に留める。塗りのまま半透明にすると、押せないのに
-         目立つ色が残って操作を促しているように見えるため。 -->
-    <Style x:Key="PrimaryWhenEnabledButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="BorderBrush" Value="{StaticResource DangerFill}" />
         <Style.Triggers>
-            <Trigger Property="IsEnabled" Value="True">
-                <Setter Property="Background" Value="{StaticResource AccentFill}" />
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Background" Value="{StaticResource DangerFillHover}" />
                 <Setter Property="Foreground" Value="{StaticResource OnFill}" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="{StaticResource DangerFillHover}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{StaticResource DangerFillActive}" />
+                <Setter Property="Foreground" Value="{StaticResource OnFill}" />
+                <Setter Property="BorderBrush" Value="{StaticResource DangerFillActive}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="{StaticResource Disabled}" />
+                <Setter Property="Foreground" Value="{StaticResource OnDisabled}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Disabled}" />
             </Trigger>
         </Style.Triggers>
     </Style>
 
-    <Style x:Key="DangerWhenEnabledButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Style.Triggers>
-            <Trigger Property="IsEnabled" Value="True">
-                <Setter Property="Background" Value="{StaticResource DangerFill}" />
-                <Setter Property="Foreground" Value="{StaticResource OnFill}" />
-                <Setter Property="FontWeight" Value="SemiBold" />
-                <Setter Property="BorderBrush" Value="Transparent" />
-            </Trigger>
-        </Style.Triggers>
-    </Style>
-
-    <!-- 枠を取っ払った軽いボタン。hover で文字自体を明るくして押せることを示す -->
+    <!-- 枠の無いボタン（tokens.md の「テキストのボタン」）。面はホバーのときだけ出す。
+         無効のときは面を塗らず、文字だけ color-disabled-text にする。 -->
     <Style x:Key="GhostButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource Muted}" />
+        <Setter Property="Foreground" Value="{StaticResource ButtonText}" />
         <Setter Property="Padding" Value="9,5" />
         <Setter Property="MinHeight" Value="28" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Foreground" Value="{StaticResource Text}" />
+                <Setter Property="Background" Value="{StaticResource RowHover}" />
+                <Setter Property="Foreground" Value="{StaticResource ButtonTextHover}" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{StaticResource RowHover}" />
+                <Setter Property="Foreground" Value="{StaticResource ButtonTextActive}" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
+                <Setter Property="BorderBrush" Value="Transparent" />
             </Trigger>
         </Style.Triggers>
     </Style>
 
     <!-- ヘッダのメニュー列。項目ごとに枠と面を持たせると、10 個近く並んだときに囲みの線が
          文字より目立って項目名を拾えなくなるため、面は hover のときだけ出す。
-         押せることは Hand カーソルと hover の面が示す。 -->
-    <Style x:Key="ToolbarButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="Transparent" />
+         押せることは Hand カーソルと hover の面が示す。文字は本文色にして、枠のボタンと見分ける。 -->
+    <Style x:Key="ToolbarButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
         <Setter Property="Padding" Value="11,6" />
         <Setter Property="Margin" Value="1,0" />
+        <Setter Property="MinHeight" Value="32" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource Raised}" />
+                <Setter Property="Foreground" Value="{StaticResource Text}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource Text}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
             </Trigger>
         </Style.Triggers>
     </Style>
@@ -197,36 +253,51 @@
     <Style x:Key="ToolbarAccentButton" TargetType="Button" BasedOn="{StaticResource ToolbarButton}">
         <Setter Property="Foreground" Value="{StaticResource Accent}" />
         <Setter Property="FontWeight" Value="SemiBold" />
+        <Style.Triggers>
+            <Trigger Property="IsMouseOver" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
+            </Trigger>
+        </Style.Triggers>
     </Style>
 
     <!-- 戻る／進むなど、記号一文字を並べるツールバー用。文字色だけの変化だと当たり判定の広さが
-         見えないので、hover では薄い面も出して押せる範囲を示す。 -->
-    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+         見えないので、hover では薄い面も出して押せる範囲を示す。
+         記号だけで文字を持たないので、使う側で AutomationProperties.Name に読み上げ用の名前を付けること。 -->
+    <Style x:Key="IconButton" TargetType="Button" BasedOn="{StaticResource GhostButton}">
         <Setter Property="MinWidth" Value="32" />
         <Setter Property="MinHeight" Value="28" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="0,0,4,0" />
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Foreground" Value="{StaticResource Text}" />
-                <Setter Property="Background" Value="{StaticResource RowHover}" />
+            </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Foreground" Value="{StaticResource Text}" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
             </Trigger>
         </Style.Triggers>
     </Style>
 
-    <!-- タブの閉じるボタン。IconButton の床（32×28）だとタブの背が伸びて列が間延びするため、
-         箱を小さくする。記号はフォント倍率に連動させ、床だけを下げる。 -->
+    <!-- タブの閉じるボタン。操作範囲は size-target-pointer（28）を下回らせない。 -->
     <Style x:Key="TabCloseButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
-        <Setter Property="MinWidth" Value="18" />
-        <Setter Property="MinHeight" Value="18" />
+        <Setter Property="MinWidth" Value="28" />
+        <Setter Property="MinHeight" Value="28" />
         <Setter Property="Padding" Value="3" />
+        <Setter Property="Margin" Value="0" />
         <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
         <Setter Property="Content" Value="&#xE711;" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=9}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
     </Style>
 
     <!-- ウィンドウを閉じるボタン。hover で他の IconButton と違い赤面にして、押すと閉じる操作だと
@@ -237,43 +308,48 @@
                 <Setter Property="Background" Value="{StaticResource DangerFill}" />
                 <Setter Property="Foreground" Value="{StaticResource OnFill}" />
             </Trigger>
+            <Trigger Property="IsPressed" Value="True">
+                <Setter Property="Background" Value="{StaticResource DangerFillActive}" />
+                <Setter Property="Foreground" Value="{StaticResource OnFill}" />
+            </Trigger>
         </Style.Triggers>
     </Style>
 
-    <!-- 検索条件の切り替え。単体でも選んだ状態が分かるよう、ON は淡い紫の面＋アクセント枠にする
-         （全面をアクセント色で塗ると 8 個並んだときに主張が強すぎるため）。 -->
-    <!-- chip の角は「長丸（CornerRadius=999）」ではなく角丸にする。ピルだと文字数の少ない
-         項目（「訳語」「名詞」など）がほぼ真円に見えて、隣の角丸のボタンや入力欄と形が揃わない。
-         半径はボタンの 5・カードの 10 より一段小さい 4 で、要素の大きさと段を合わせている。 -->
+    <!-- 検索条件の切り替え。選んだ状態は面（color-selected-background）とアクセント枠に加えて
+         太字でも示す（色だけに頼らない）。全面をアクセント色で塗ると 8 個並んだときに主張が強すぎる。
+         角は radius-chip。長丸にすると文字数の少ない項目（「訳語」「名詞」など）がほぼ真円に見えて、
+         隣のボタンや入力欄と形が揃わない。 -->
     <Style x:Key="Chip" TargetType="ToggleButton">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Padding" Value="9,4" />
         <Setter Property="Margin" Value="0,0,5,0" />
+        <Setter Property="MinHeight" Value="28" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
-                    <Border x:Name="bd" CornerRadius="4" Background="{TemplateBinding Background}"
+                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}"
                             BorderBrush="{StaticResource Line}" BorderThickness="1">
-                        <Grid>
-                            <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
-                            <Border x:Name="veil" CornerRadius="3" Background="{StaticResource HoverVeil}" Opacity="0" IsHitTestVisible="False" />
-                        </Grid>
+                        <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
                     </Border>
                     <ControlTemplate.Triggers>
+                        <!-- ホバーは選択より前に書く。後に書くと選んだチップに触れたときに選択の面が消える -->
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
+                            <Setter Property="Foreground" Value="{StaticResource Text}" />
+                        </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />
                             <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
                             <Setter Property="Foreground" Value="{StaticResource Text}" />
                             <Setter Property="FontWeight" Value="SemiBold" />
                         </Trigger>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="veil" Property="Opacity" Value="0.06" />
-                        </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.45" />
+                            <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Disabled}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -286,9 +362,10 @@
         <Setter Property="Foreground" Value="{StaticResource Text}" />
         <Setter Property="CaretBrush" Value="{StaticResource Accent}" />
         <Setter Property="Background" Value="{StaticResource Field}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="18,12" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="SelectionBrush" Value="{StaticResource Accent}" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <!-- 単一行の入力欄は中身を縦中央に置く。高さを明示した欄でも余白が上下に割れるようにするため。
@@ -306,7 +383,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
-                    <Border x:Name="bd" CornerRadius="5" Background="{TemplateBinding Background}"
+                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
                             <!-- ここに Margin="{TemplateBinding Padding}" を足さないこと。TextBox は
@@ -331,11 +408,16 @@
                         <Trigger Property="Text" Value="">
                             <Setter TargetName="ph" Property="Visibility" Value="Visible" />
                         </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Text}" />
+                        </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
                             <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.5" />
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource Disabled}" />
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Disabled}" />
+                            <Setter Property="Foreground" Value="{StaticResource OnDisabled}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -346,94 +428,6 @@
                 <Setter Property="VerticalContentAlignment" Value="Top" />
             </Trigger>
         </Style.Triggers>
-    </Style>
-
-    <!-- プルダウン（言語選択など）。既定の ComboBox は Windows のライトテーマのまま出てしまい暗い画面で浮くため、
-         Field/Panel/Line の配色に合わせてテンプレートを丸ごと差し替える。矢印は他の窓ボタンと同じアイコン
-         フォント（Segoe MDL2 Assets）の Chevron Down。 -->
-    <Style TargetType="ComboBox">
-        <Setter Property="Foreground" Value="{StaticResource Text}" />
-        <Setter Property="Background" Value="{StaticResource Field}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="9,6" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="SnapsToDevicePixels" Value="True" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ComboBox">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Border x:Name="bd" Grid.ColumnSpan="2" CornerRadius="5" Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" />
-                        <ContentPresenter Grid.Column="0" Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
-                                           IsHitTestVisible="False" Content="{TemplateBinding SelectionBoxItem}"
-                                           ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}" />
-                        <TextBlock Grid.Column="1" Text="&#xE70D;" FontFamily="Segoe MDL2 Assets" FontSize="9"
-                                   Foreground="{StaticResource Muted}" Margin="0,0,10,0" VerticalAlignment="Center"
-                                   IsHitTestVisible="False" />
-                        <!-- 開閉トグルは面全体に重ねて透明ボタンとして置く。中身（選択中の項目）を描くのは
-                             上の ContentPresenter 側なので、こちらは当たり判定だけ持てばよい。 -->
-                        <ToggleButton Grid.ColumnSpan="2" Background="Transparent" BorderThickness="0" ClickMode="Press"
-                                      IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
-                            <ToggleButton.Template>
-                                <ControlTemplate TargetType="ToggleButton">
-                                    <Border Background="{TemplateBinding Background}" />
-                                </ControlTemplate>
-                            </ToggleButton.Template>
-                        </ToggleButton>
-                        <Popup x:Name="popup" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Fade"
-                               Focusable="False" IsOpen="{TemplateBinding IsDropDownOpen}"
-                               Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}">
-                            <Border Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
-                                    BorderThickness="1" CornerRadius="8" Margin="0,4,0,0" Padding="4">
-                                <ScrollViewer MaxHeight="240" VerticalScrollBarVisibility="Auto">
-                                    <ItemsPresenter />
-                                </ScrollViewer>
-                            </Border>
-                        </Popup>
-                    </Grid>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
-                        </Trigger>
-                        <Trigger Property="IsDropDownOpen" Value="True">
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.5" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <Style TargetType="ComboBoxItem">
-        <Setter Property="Foreground" Value="{StaticResource Text}" />
-        <Setter Property="Padding" Value="9,6" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="SnapsToDevicePixels" Value="True" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ComboBoxItem">
-                    <Border x:Name="bd" CornerRadius="4" Background="Transparent">
-                        <ContentPresenter Margin="{TemplateBinding Padding}" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <Trigger Property="IsHighlighted" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
-                        </Trigger>
-                        <Trigger Property="IsSelected" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
     </Style>
 
     <!-- 選択してコピーできる本文（v:SelectableText / v:SelectableRichText）。中身は読み取り専用の
@@ -489,6 +483,8 @@
         <Setter Property="Margin" Value="0,4" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="MinHeight" Value="28" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
@@ -505,7 +501,7 @@
                         <Border x:Name="box" Grid.Column="0" CornerRadius="4"
                                 Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}"
                                 Height="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}"
-                                Background="{StaticResource Field}" BorderBrush="{StaticResource Line}"
+                                Background="{StaticResource Field}" BorderBrush="{StaticResource InputBorder}"
                                 BorderThickness="1" VerticalAlignment="Center">
                             <Path x:Name="check" Data="M 3.4,8.6 L 7.0,12.0 L 14.2,4.6"
                                   Stroke="{StaticResource OnFill}" StrokeThickness="2.2"
@@ -524,7 +520,9 @@
                             <Setter TargetName="box" Property="BorderBrush" Value="{StaticResource Accent}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.45" />
+                            <Setter TargetName="box" Property="Background" Value="{StaticResource Disabled}" />
+                            <Setter TargetName="box" Property="BorderBrush" Value="{StaticResource Disabled}" />
+                            <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -554,7 +552,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
                     <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="5"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter VerticalAlignment="Center" />
                     </Border>
@@ -578,10 +576,11 @@
         <Setter Property="Margin" Value="2,1" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="bd" CornerRadius="5" Background="Transparent" Padding="{TemplateBinding Padding}">
+                    <Border x:Name="bd" CornerRadius="8" Background="Transparent" Padding="{TemplateBinding Padding}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="3" />
@@ -611,7 +610,7 @@
          タブと中身が別の面に見えて切り離される。 -->
     <Style TargetType="TabControl">
         <Setter Property="Background" Value="{StaticResource Panel}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Divider}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
         <Setter Property="Padding" Value="14,0" />
@@ -648,6 +647,7 @@
     <Style TargetType="TabItem">
         <Setter Property="Padding" Value="14,7" />
         <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <!-- 下の -1 はページ枠との重ね代。0 に戻すと選択タブとページの間に枠線が残って分断される -->
         <Setter Property="Margin" Value="0,0,2,-1" />
         <Setter Property="Template">
@@ -681,7 +681,7 @@
                             <Setter TargetName="bd" Property="TextElement.Foreground" Value="{StaticResource Text}" />
                             <Setter TargetName="bd" Property="TextElement.FontWeight" Value="SemiBold" />
                             <Setter TargetName="bd" Property="Background" Value="{StaticResource Panel}" />
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Line}" />
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Divider}" />
                             <Setter TargetName="ul" Property="Opacity" Value="1" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -723,9 +723,10 @@
         </Setter>
     </Style>
 
+    <!-- 幅は size-scrollbar、溝とつまみは color-scrollbar-*。 -->
     <Style TargetType="ScrollBar">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Width" Value="10" />
+        <Setter Property="Background" Value="{StaticResource ScrollTrack}" />
+        <Setter Property="Width" Value="12" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ScrollBar">
@@ -748,7 +749,7 @@
         <Style.Triggers>
             <Trigger Property="Orientation" Value="Horizontal">
                 <Setter Property="Width" Value="Auto" />
-                <Setter Property="Height" Value="10" />
+                <Setter Property="Height" Value="12" />
                 <Setter Property="Template">
                     <Setter.Value>
                         <ControlTemplate TargetType="ScrollBar">
@@ -775,9 +776,9 @@
     <!-- オーバーレイ本体。影は使わず、枠と面の差だけで窓から浮いて見せる -->
     <Style x:Key="Card" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource Panel}" />
-        <Setter Property="BorderBrush" Value="{StaticResource CardBorder}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="10" />
+        <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="20" />
     </Style>
 
@@ -800,6 +801,7 @@
         <Setter Property="ItemContainerStyle">
             <Setter.Value>
                 <Style TargetType="TabItem">
+                    <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
                     <Setter Property="Foreground" Value="{StaticResource Muted}" />
                     <Setter Property="Background" Value="Transparent" />
                     <Setter Property="BorderBrush" Value="Transparent" />
@@ -826,12 +828,12 @@
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource Text}" />
-                                        <Setter Property="Background" Value="{StaticResource Raised}" />
+                                        <Setter Property="Background" Value="{StaticResource RowHover}" />
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource Text}" />
                                         <Setter Property="Background" Value="{StaticResource Panel}" />
-                                        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+                                        <Setter Property="BorderBrush" Value="{StaticResource Divider}" />
                                         <Setter Property="Margin" Value="0,0,2,-1" />
                                         <Setter Property="Padding" Value="12,7,12,8" />
                                     </Trigger>
@@ -853,7 +855,7 @@
                         <TabPanel Grid.Row="0" IsItemsHost="True" Margin="6,0,6,0" Panel.ZIndex="1" />
                         <Border Grid.Row="1"
                                 Background="{StaticResource Panel}"
-                                BorderBrush="{StaticResource Line}"
+                                BorderBrush="{StaticResource Divider}"
                                 BorderThickness="1"
                                 CornerRadius="8">
                             <ContentPresenter ContentSource="SelectedContent" />
@@ -885,12 +887,12 @@
             <!-- hover は表のタブより前に書く。後に書くと表のタブに触れたときに面が上書きされ、
                  中身との地続きが切れる。 -->
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource Raised}" />
+                <Setter Property="Background" Value="{StaticResource RowHover}" />
                 <Setter Property="TextElement.Foreground" Value="{StaticResource Text}" />
             </Trigger>
             <DataTrigger Binding="{Binding IsActive}" Value="True">
                 <Setter Property="Background" Value="{StaticResource Panel}" />
-                <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+                <Setter Property="BorderBrush" Value="{StaticResource Divider}" />
                 <!-- 下の -1 は区切り線との重ね代。0 に戻すと線がタブの下を通り、中身と切り離されて見える。
                      文字は箱の中央に来るので、下へ伸びたぶん（重ね代 1px）は Padding 下に足して
                      中央を押し戻し、裏のタブと文字の高さを揃える。 -->
@@ -924,8 +926,8 @@
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
                     <Grid Background="Transparent">
-                        <Border x:Name="vline" Width="1" HorizontalAlignment="Center" Background="{StaticResource Line}" />
-                        <Border x:Name="hline" Height="1" VerticalAlignment="Center" Background="{StaticResource Line}"
+                        <Border x:Name="vline" Width="1" HorizontalAlignment="Center" Background="{StaticResource Divider}" />
+                        <Border x:Name="hline" Height="1" VerticalAlignment="Center" Background="{StaticResource Divider}"
                                 Visibility="Collapsed" />
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -990,13 +992,13 @@
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="TextAlignment" Value="Center" />
         <Setter Property="TextWrapping" Value="Wrap" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
     </Style>
 
     <!-- 単語詳細の節。囲みを積み重ねるとカードの縁ばかりが目に付き、本文より枠が強く出るため、
          区切りは上辺の一本線と余白だけに留める。 -->
     <Style x:Key="DetailSection" TargetType="Border">
-        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Divider}" />
         <Setter Property="BorderThickness" Value="0,1,0,0" />
         <Setter Property="Padding" Value="0,12,0,0" />
         <Setter Property="Margin" Value="0,12,0,0" />
@@ -1006,11 +1008,11 @@
          本文＝継承の 14 と、この 13 の 2 つだけに揃えてある。欄ごとに FontSize を直書きすると
          訳語欄と内容欄のように大きさがずれるので、必ずこの style を経由させること。 -->
     <Style x:Key="DetailLabel" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
     </Style>
 
     <Style x:Key="DetailLabelText" TargetType="{x:Type v:SelectableText}" BasedOn="{StaticResource {x:Type v:SelectableText}}">
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
     </Style>
 
     <!-- 詳細面に残す数少ない見出し（行の添え字だけでは何の節か読めないもの）。
@@ -1024,7 +1026,7 @@
     <!-- 検索条件のような、面として固める小さな区切り -->
     <Style x:Key="FilterCard" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource Panel}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Divider}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="12,10" />
@@ -1036,17 +1038,18 @@
     <Style TargetType="{x:Type v:DropDown}">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
         <Setter Property="Background" Value="{StaticResource Field}" />
-        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="9,6" />
-        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="MinHeight" Value="32" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="Focusable" Value="True" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:DropDown}">
-                    <Border x:Name="bd" CornerRadius="5" Background="{TemplateBinding Background}"
+                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -1101,7 +1104,10 @@
                             <Setter TargetName="arrow" Property="Fill" Value="{StaticResource Text}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.45" />
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource Disabled}" />
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Disabled}" />
+                            <Setter TargetName="txt" Property="Foreground" Value="{StaticResource OnDisabled}" />
+                            <Setter TargetName="arrow" Property="Fill" Value="{StaticResource OnDisabled}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -1113,7 +1119,7 @@
          せり出して見せる。枠をアクセント色にすると、中の選択行（AccentDim）と色がぶつかる。 -->
     <Style x:Key="DropDownPanel" TargetType="Border">
         <Setter Property="Background" Value="{StaticResource HeaderFill}" />
-        <Setter Property="BorderBrush" Value="{StaticResource PopupBorder}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
         <Setter Property="Padding" Value="4" />
@@ -1138,13 +1144,14 @@
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="11,6" />
         <Setter Property="Margin" Value="1,0" />
-        <Setter Property="MinHeight" Value="30" />
+        <Setter Property="MinHeight" Value="32" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:MenuButton}">
-                    <Border x:Name="bd" CornerRadius="5" Background="{TemplateBinding Background}"
+                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <StackPanel Orientation="Horizontal" Margin="{TemplateBinding Padding}">
                             <TextBlock v:LocalizedText.Text="{TemplateBinding Header}" Foreground="{TemplateBinding Foreground}"
@@ -1155,14 +1162,14 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource Raised}" />
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
                         </Trigger>
                         <!-- 開いている間は hover の面を残し、どのボタンから一覧が出ているかを示す -->
                         <Trigger Property="IsOpen" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource Raised}" />
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Opacity" Value="0.45" />
+                            <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -1175,15 +1182,17 @@
     <Style x:Key="RowMenuButton" TargetType="{x:Type v:MenuButton}">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Width" Value="26" />
-        <Setter Property="Height" Value="24" />
-        <Setter Property="MinHeight" Value="24" />
+        <!-- 操作範囲は size-target-pointer（28）を下回らせない -->
+        <Setter Property="Width" Value="28" />
+        <Setter Property="Height" Value="28" />
+        <Setter Property="MinHeight" Value="28" />
         <Setter Property="Cursor" Value="Hand" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:MenuButton}">
-                    <Border x:Name="bd" CornerRadius="4" Background="{TemplateBinding Background}">
+                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}">
                         <TextBlock x:Name="txt"
                                    v:LocalizedText.Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}}"
                                    Foreground="{TemplateBinding Foreground}"
@@ -1195,7 +1204,7 @@
                             <Setter TargetName="txt" Property="Foreground" Value="{StaticResource Text}" />
                         </Trigger>
                         <Trigger Property="IsOpen" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource Raised}" />
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
                             <Setter TargetName="txt" Property="Foreground" Value="{StaticResource Text}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -1216,20 +1225,12 @@
     </Style>
 
     <!-- 開いた一覧の 1 行。枠付きのボタンを器（DropDownPanel）の中に積むと囲みが二重になり、
-         項目名より線のほうが目立つので、行は hover の面だけで示す。面は器（HeaderFill）より
-         明るい Raised にする。RowHover だと器との差がほとんど無く、どの行に当たっているか読めない。 -->
-    <Style x:Key="MenuItemButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="BorderBrush" Value="Transparent" />
+         項目名より線のほうが目立つので、行は hover の面だけで示す（tokens.md「メニューリスト」）。 -->
+    <Style x:Key="MenuItemButton" TargetType="Button" BasedOn="{StaticResource ToolbarButton}">
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Left" />
         <Setter Property="Padding" Value="11,6" />
         <Setter Property="Margin" Value="0,1" />
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource Raised}" />
-            </Trigger>
-        </Style.Triggers>
     </Style>
 
     <!-- 項目 1 つぶん。保存など IsPrimary の項目だけ、文字色と太さで強調する

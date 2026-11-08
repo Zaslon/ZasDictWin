@@ -171,10 +171,22 @@ public sealed class SettingsViewModel : OverlayViewModel
     /// 再起動しないと切り替わらない（Strings.cs 参照）ため、ここで選んでもすぐには反映しない。
     /// プルダウンの選択表示は Mode（編集モード）と同じく PropertyChanged で追随させる必要があるので、
     /// 素の自動プロパティにしない。</summary>
-    public string Language { get => _language; set => Set(ref _language, value); }
+    public string Language
+    {
+        get => _language;
+        set { if (Set(ref _language, value)) Raise(nameof(SelectedLanguage)); }
+    }
 
     /// <summary>設定画面の言語プルダウンの選択肢。対応言語を増やすには Languages.All を編集する。</summary>
     public IReadOnlyList<LanguageOption> AvailableLanguages => Languages.All;
+
+    /// <summary>言語プルダウン（v:DropDown）の選択中の項目。DropDown は SelectedValuePath を持たないので、
+    /// 項目と言語コードをここで読み替える。</summary>
+    public LanguageOption? SelectedLanguage
+    {
+        get => AvailableLanguages.FirstOrDefault(l => l.Code == Language);
+        set { if (value is not null) Language = value.Code; }
+    }
 
     public string SortOrder { get; set; }
     public double FontScale { get; set; }

@@ -230,7 +230,9 @@ public class AppMediatorTests
         var a = MediatorHarness.NewWord(1, "a");
         h.OpenDictionary(a);
         h.State.SelectedWord = a;
-        h.Send(IntentKind.DeleteWordRequested);
+        // 開けなかった旨の確認を出してモーダルにする（削除は取り消せるので確認を出さない）。
+        h.Services.NextOpenPath = "missing.json";
+        h.Send(IntentKind.OpenDictionaryRequested);
         Assert.Equal(ShellPhase.Modal, h.M.Shell);
 
         h.Send(IntentKind.NewWordRequested);
@@ -247,7 +249,9 @@ public class AppMediatorTests
         var h = new MediatorHarness();
         var a = MediatorHarness.NewWord(1, "a");
         h.OpenDictionary(a);
-        h.Send(IntentKind.DeleteWordRequested, a);
+        h.Services.NextOpenPath = "missing.json";
+        h.Send(IntentKind.OpenDictionaryRequested);
+        Assert.Equal(ShellPhase.Modal, h.M.Shell);
 
         h.Send(IntentKind.CancelRequested);
 

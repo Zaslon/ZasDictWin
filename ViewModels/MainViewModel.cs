@@ -121,6 +121,15 @@ public sealed class MainViewModel : ViewModelBase
         internal set => Set(ref _status, value);
     }
 
+    private StatusSemantic _statusSemantic;
+
+    /// <summary>Status の種類。ステータスバーはこれでノティフィケーションアイコンと強調の色を選ぶ。</summary>
+    public StatusSemantic StatusSemantic
+    {
+        get => _statusSemantic;
+        internal set => Set(ref _statusSemantic, value);
+    }
+
     public string CountLabel => _document is null ? "" : string.Format(Strings.Main_CountLabel, FilteredWords.Count, _document.Words.Count);
 
     /// <summary>単語数ウィンドウに出す総語数。絞り込みには連動させない（配信で見せるのは辞書の規模）。</summary>

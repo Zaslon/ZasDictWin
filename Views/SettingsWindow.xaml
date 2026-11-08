@@ -9,6 +9,7 @@
         Title="{Binding Title, Converter={StaticResource PlainText}, StringFormat={}ZasDict {0}}"
         Width="820" Height="760" MinWidth="560" MinHeight="440"
         Background="{StaticResource Ink}"
+        BorderBrush="{StaticResource Line}" BorderThickness="1"
         FontFamily="{x:Static res:Strings.UIFont}"
         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
         TextOptions.TextFormattingMode="Ideal"
@@ -42,22 +43,24 @@
 
     <Grid>
     <DockPanel>
-        <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Line}"
+        <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
                 BorderThickness="0,0,0,1" Padding="16,10"
                 MouseLeftButtonDown="Header_MouseLeftButtonDown">
             <DockPanel>
                 <Button DockPanel.Dock="Right" Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="10"
-                        Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="{x:Static res:Strings.Common_Close}" Margin="0" />
+                        Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="{x:Static res:Strings.Common_Close}"
+                        AutomationProperties.Name="{x:Static res:Strings.Common_Close}" Margin="0" />
                 <TextBlock v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
                            FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=15}" />
             </DockPanel>
         </Border>
 
-        <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Line}"
+        <Border DockPanel.Dock="Bottom" Background="{StaticResource FooterFill}" BorderBrush="{StaticResource Divider}"
                 BorderThickness="0,1,0,0" Padding="24,14">
-            <StackPanel Orientation="Horizontal">
-                <Button v:LocalizedText.Content="{x:Static res:Strings.Settings_ApplyButton}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="SettingsApplyRequested" />
-                <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="WindowCloseRequested" Margin="0" />
+            <!-- 戻る側を左、進む側を右に並べる（ZasDesignSystem rules.md「ボタンは戻る側を左、進む側を右に並べる」） -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="WindowCloseRequested" />
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Settings_ApplyButton}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="SettingsApplyRequested" Margin="0" />
             </StackPanel>
         </Border>
 
@@ -73,23 +76,14 @@
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_Language}" Style="{StaticResource FieldLabel}" />
                         <!-- 選択肢は Resources/Languages.cs の一覧をそのまま出す。対応言語を増やす手順は
                              同ファイルのコメントを参照（新しい Strings.<コード>.resx を用意し、一覧に1行足すだけ）。 -->
-                        <!-- DisplayMemberPath だと閉じた状態の表示（SelectionBoxItem）に反映されず
-                             LanguageOption の既定 ToString() がそのまま出てしまうため、ItemTemplate で明示する。 -->
-                        <!-- Width は文字サイズ倍率に追従させる（固定幅のままだと拡大時に選択中の言語名が
-                             欄からはみ出す）。ConverterParameter は倍率 1 のときの幅。 -->
-                        <ComboBox ItemsSource="{Binding AvailableLanguages}" SelectedValuePath="Code"
-                                  SelectedValue="{Binding Language}" HorizontalAlignment="Left"
-                                  Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=200}">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <!-- 言語名はどれも「その言語自身での表記」なので、表示中の言語の
-                                         UI フォントを継ぐと自分以外の名前が読めなくなる（Idyerin 表示なら
-                                         "日本語" も "English" もイジェール文字で描かれる）。
-                                         どの名前も字を持つ Strings.EnFont に固定する。 -->
-                                    <TextBlock Text="{Binding Name}" FontFamily="{x:Static res:Strings.EnFont}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                        <!-- ComboBox の一覧は別 HWND（Popup）になり OBS のウィンドウキャプチャに映らないため、
+                             窓の中に一覧を描く v:DropDown を使う。DropDown は値も一覧も ContentFont で描くので、
+                             言語名（どれもその言語自身での表記）が表示中の UI フォント（Idyerin なら Heksa）で崩れない。
+                             Width は文字サイズ倍率に追従させる。ConverterParameter は倍率 1 のときの幅。 -->
+                        <v:DropDown ItemsSource="{Binding AvailableLanguages}" DisplayMemberPath="Name"
+                                    SelectedItem="{Binding SelectedLanguage}" HorizontalAlignment="Left"
+                                    AutomationProperties.Name="{x:Static res:Strings.Settings_Language}"
+                                    Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=200}" />
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_LanguageNote}" Style="{StaticResource Label}" Margin="0,4,0,0" />
 
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_ThemeLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
@@ -146,20 +140,14 @@
                             <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Settings_PickFileButton}" r:IntentTrigger.OnClick="PickHeksaFontRequested" Margin="8,0,0,0" />
                             <TextBox Text="{Binding HeksaFontPath, UpdateSourceTrigger=PropertyChanged}" />
                         </DockPanel>
-                        <!-- 項目は名前の文字列そのものなので、閉じた状態でキーを打てば先頭一致で選べる（TextSearch）。 -->
-                        <ComboBox ItemsSource="{Binding InstalledFontNames}" SelectedItem="{Binding HeksaFontName}" Margin="0,8,0,0"
-                                  Visibility="{Binding IsHeksaFromFile, Converter={StaticResource BoolVis}, ConverterParameter=invert}">
-                            <ComboBox.ItemTemplate>
-                                <DataTemplate>
-                                    <!-- フォント名は英字で付いているので、窓の UI フォント（Idyerin 表示なら
-                                         イジェール文字）は継がず Strings.EnFont で描く。 -->
-                                    <TextBlock Text="{Binding}" FontFamily="{x:Static res:Strings.EnFont}" />
-                                </DataTemplate>
-                            </ComboBox.ItemTemplate>
-                        </ComboBox>
+                        <!-- 言語と同じ理由で ComboBox ではなく v:DropDown。フォント名も ContentFont で描くので、
+                             窓の UI フォント（Idyerin 表示ならイジェール文字）では描かれない。 -->
+                        <v:DropDown ItemsSource="{Binding InstalledFontNames}" SelectedItem="{Binding HeksaFontName}" Margin="0,8,0,0"
+                                    AutomationProperties.Name="{x:Static res:Strings.Settings_HeksaSourceInstalled}"
+                                    Visibility="{Binding IsHeksaFromFile, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaMissingWarning}"
                                    Foreground="{StaticResource Danger}" Margin="0,8,0,0"
-                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}"
+                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
                                    Visibility="{Binding IsFontMissing, Converter={StaticResource BoolVis}}" />
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaSampleLabel}" Margin="0,8,0,0"
                                    FontFamily="{Binding PreviewFontFamily}"

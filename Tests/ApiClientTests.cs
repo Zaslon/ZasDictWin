@@ -84,6 +84,22 @@ public class GitHubApiTests
     }
 
     [Fact]
+    public async Task GetFile_LargeFile_PrefersBlobApiOverDownloadUrl()
+    {
+        using var http = FakeHttp.Install(r => r.RequestUri!.AbsolutePath.Contains("/git/blobs/")
+            ? new HttpResponseMessage(HttpStatusCode.OK) { Content = new ByteArrayContent(Encoding.UTF8.GetBytes("生のテキスト")) }
+            : FakeHttp.Json("""{ "encoding": "none", "sha": "abc123", "download_url": "https://raw.example/d.json" }"""));
+
+        var result = await Get();
+
+        Assert.Equal("生のテキスト", result.Content);
+        Assert.Equal(2, http.Requests.Count);
+        Assert.Equal("https://api.github.com/repos/own%20er/repo/git/blobs/abc123", http.Requests[1].Url);
+        Assert.Equal("application/vnd.github.raw+json", http.Requests[1].Headers["Accept"]);
+        Assert.Equal("Bearer tok", http.Requests[1].Headers["Authorization"]);
+    }
+
+    [Fact]
     public async Task GetFile_LargeFileWithoutDownloadUrl_Fails()
     {
         using var http = FakeHttp.Install(_ => FakeHttp.Json("""{ "encoding": "none" }"""));

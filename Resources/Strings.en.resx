@@ -65,8 +65,8 @@
 
   <!-- Common -->
   <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Register" xml:space="preserve"><value>Register</value></data>
   <data name="Common_Close" xml:space="preserve"><value>Close</value></data>
-  <data name="Common_Save" xml:space="preserve"><value>Save</value></data>
   <data name="Common_Delete" xml:space="preserve"><value>Delete</value></data>
   <data name="Common_DeleteAction" xml:space="preserve"><value>Delete</value></data>
   <data name="Common_Edit" xml:space="preserve"><value>Edit</value></data>
@@ -95,7 +95,7 @@
   <data name="Undo_UndoneStatus" xml:space="preserve"><value>Undid {0}.</value></data>
   <data name="Undo_RedoneStatus" xml:space="preserve"><value>Redid {0}.</value></data>
   <data name="Menu_Open" xml:space="preserve"><value>Open</value></data>
-  <data name="Menu_NewDictionary" xml:space="preserve"><value>New Dictionary</value></data>
+  <data name="Menu_NewDictionary" xml:space="preserve"><value>Create New Dictionary</value></data>
   <data name="Menu_Save" xml:space="preserve"><value>Save</value></data>
   <data name="Menu_SaveAs" xml:space="preserve"><value>Save As</value></data>
 
@@ -112,6 +112,7 @@
   <data name="Search_ScopeFullText" xml:space="preserve"><value>Full text</value></data>
   <data name="Search_NoResults" xml:space="preserve"><value>No matching headwords</value></data>
   <data name="Search_NoResultsHint" xml:space="preserve"><value>Try switching the mode to "Partial" and the target to "Full text"</value></data>
+  <data name="Search_RowMenuName" xml:space="preserve"><value>Actions for this word</value></data>
 
   <data name="Detail_Title" xml:space="preserve"><value>Word Detail</value></data>
   <data name="Detail_EmptyTitle" xml:space="preserve"><value>Select a word</value></data>
@@ -169,7 +170,7 @@
   <data name="Ipa_CandidateHint" xml:space="preserve"><value>(a|b) means there are multiple candidates.</value></data>
   <data name="Legend_Title" xml:space="preserve"><value>Legend</value></data>
   <data name="Legend_UpdatedStatus" xml:space="preserve"><value>Updated the legend.</value></data>
-  <data name="Legend_UnsavedMessage" xml:space="preserve"><value>Close without saving your changes to the legend?</value></data>
+  <data name="Legend_UnsavedMessage" xml:space="preserve"><value>Close without registering your changes to the legend?</value></data>
   <data name="Legend_InvalidJson" xml:space="preserve"><value>Not valid JSON: {0}</value></data>
 
   <!-- Examples overlay -->
@@ -182,7 +183,7 @@
   <!-- Example edit overlay -->
   <data name="ExampleEdit_AddTitle" xml:space="preserve"><value>Add Example</value></data>
   <data name="ExampleEdit_EditTitle" xml:space="preserve"><value>Edit Example</value></data>
-  <data name="ExampleEdit_IdPending" xml:space="preserve"><value>ID: — (assigned on save)</value></data>
+  <data name="ExampleEdit_IdPending" xml:space="preserve"><value>ID: — (assigned on register)</value></data>
   <data name="ExampleEdit_IdFormat" xml:space="preserve"><value>ID: {0}</value></data>
   <data name="ExampleEdit_SentenceLabel" xml:space="preserve"><value>Sentence (required)</value></data>
   <data name="ExampleEdit_TranslationLabel" xml:space="preserve"><value>Translation</value></data>
@@ -191,20 +192,21 @@
   <data name="ExampleEdit_TagsPlaceholder" xml:space="preserve"><value>e.g. greeting, everyday</value></data>
   <data name="ExampleEdit_RelatedWordsHeading" xml:space="preserve"><value>Related Words</value></data>
   <data name="ExampleEdit_WordSearchPlaceholder" xml:space="preserve"><value>Search for a word to add…</value></data>
+  <data name="ExampleEdit_RemoveWordName" xml:space="preserve"><value>Remove "{0}" from related words</value></data>
   <data name="ExampleEdit_SourceHeading" xml:space="preserve"><value>Source</value></data>
   <data name="ExampleEdit_SourcePlaceholder" xml:space="preserve"><value>Choose a source</value></data>
   <data name="ExampleEdit_FetchButton" xml:space="preserve"><value>Fetch</value></data>
   <data name="ExampleEdit_FetchHint" xml:space="preserve"><value>Fetching will overwrite the translation and note.</value></data>
-  <data name="Label_ApiKeyPlaceholder" xml:space="preserve"><value>API key</value></data>
+  <data name="Label_ApiKey" xml:space="preserve"><value>API key</value></data>
   <data name="ExampleEdit_SaveKeyButton" xml:space="preserve"><value>Save Key</value></data>
   <data name="ExampleEdit_ValidationSentence" xml:space="preserve"><value>"Sentence" is required.</value></data>
-  <data name="ExampleEdit_UnsavedMessage" xml:space="preserve"><value>Close without saving your changes to this example?</value></data>
+  <data name="ExampleEdit_UnsavedMessage" xml:space="preserve"><value>Close without registering your changes to this example?</value></data>
 
   <!-- ZpDIC Online example offer -->
   <data name="Zpdic_KeyHintSaved" xml:space="preserve"><value>The API key is already saved ({0}). Entering a new one will overwrite it.</value></data>
   <data name="Zpdic_KeyHintMissing" xml:space="preserve"><value>Fetching requires a ZpDIC Online API key. Saved to: {0}</value></data>
   <data name="Zpdic_EnterNumber" xml:space="preserve"><value>Enter a number.</value></data>
-  <data name="Zpdic_KeyMissing" xml:space="preserve"><value>No API key is set. Enter one below and press [Save Key].</value></data>
+  <data name="Zpdic_KeyMissing" xml:space="preserve"><value>No API key is set. Enter one in the [API key] field and press [Save Key].</value></data>
   <data name="Zpdic_Fetching" xml:space="preserve"><value>Fetching…</value></data>
   <data name="Zpdic_FetchFailed" xml:space="preserve"><value>Fetch failed: {0}</value></data>
   <data name="Zpdic_KeySaved" xml:space="preserve"><value>API key saved.</value></data>
@@ -225,6 +227,10 @@
   <data name="WordEdit_EditTitle" xml:space="preserve"><value>Edit Word</value></data>
   <data name="WordEdit_FormLabel" xml:space="preserve"><value>Headword</value></data>
   <data name="WordEdit_AddTranslationButton" xml:space="preserve"><value>Add Translation</value></data>
+  <data name="WordEdit_RemoveTranslationName" xml:space="preserve"><value>Delete translation</value></data>
+  <data name="WordEdit_RemoveContentName" xml:space="preserve"><value>Delete "{0}"</value></data>
+  <data name="WordEdit_RemoveRelationName" xml:space="preserve"><value>Delete related word "{0}"</value></data>
+  <data name="WordEdit_RemoveVariationName" xml:space="preserve"><value>Delete variation</value></data>
   <data name="WordEdit_DragTooltip" xml:space="preserve"><value>Drag to reorder</value></data>
   <data name="Label_PartOfSpeech" xml:space="preserve"><value>Part of Speech</value></data>
   <data name="WordEdit_PosPlaceholder" xml:space="preserve"><value>Choose a part of speech</value></data>
@@ -234,13 +240,13 @@
   <data name="WordEdit_AddRelationHeading" xml:space="preserve"><value>Add a Related Word</value></data>
   <data name="WordEdit_RelationTitlePlaceholder" xml:space="preserve"><value>Choose or type a relation</value></data>
   <data name="WordEdit_AddVariationButton" xml:space="preserve"><value>Add Variation</value></data>
-  <data name="WordEdit_VariationHint" xml:space="preserve"><value>The left side is the name (plural, past tense, etc.), the right side is its spelling.</value></data>
+  <data name="WordEdit_VariationHint" xml:space="preserve"><value>On each row, enter the name of the form (plural, past tense, etc.) and its spelling.</value></data>
   <data name="WordEdit_ValidationPos" xml:space="preserve"><value>Choose a part of speech for each translation (one per translation).</value></data>
   <data name="WordEdit_ReciprocalHint" xml:space="preserve"><value>"{0}" will be registered automatically on the other word</value></data>
   <data name="WordEdit_NoReciprocalHint" xml:space="preserve"><value>Nothing will be registered on the other word because no reciprocal relation is defined</value></data>
-  <data name="WordEdit_UnsavedTitle" xml:space="preserve"><value>Unsaved Changes</value></data>
-  <data name="WordEdit_UnsavedMessage" xml:space="preserve"><value>Close without saving your changes to "{0}"?</value></data>
-  <data name="WordEdit_DiscardButton" xml:space="preserve"><value>Close Without Saving</value></data>
+  <data name="WordEdit_UnsavedTitle" xml:space="preserve"><value>Unregistered Changes</value></data>
+  <data name="WordEdit_UnsavedMessage" xml:space="preserve"><value>Close without registering your changes to "{0}"?</value></data>
+  <data name="WordEdit_DiscardButton" xml:space="preserve"><value>Close Without Registering</value></data>
   <data name="Relation_DefaultTitle" xml:space="preserve"><value>Antonym</value></data>
 
   <!-- Settings -->
@@ -289,7 +295,7 @@
   <data name="Settings_CurrentFileUnsaved" xml:space="preserve"><value>The new dictionary hasn't been saved yet.</value></data>
   <data name="Settings_EditModeHeading" xml:space="preserve"><value>Edit Mode</value></data>
   <data name="Settings_ModeLocal" xml:space="preserve"><value>Local Editing</value></data>
-  <data name="Settings_GitHubModeNote" xml:space="preserve"><value>In GitHub mode, autosave is disabled and [Load from GitHub] and [Commit] appear in the header.</value></data>
+  <data name="Settings_GitHubModeNote" xml:space="preserve"><value>In GitHub mode, autosave is disabled and [Load from GitHub] and [Commit to GitHub] appear in the header.</value></data>
   <data name="Settings_RepoLabel" xml:space="preserve"><value>Repository</value></data>
   <data name="Settings_BranchLabel" xml:space="preserve"><value>Branch</value></data>
   <data name="Settings_JsonPathLabel" xml:space="preserve"><value>Dictionary JSON Path</value></data>
@@ -320,8 +326,8 @@
 
   <!-- GitHub -->
   <data name="GitHub_LoadButton" xml:space="preserve"><value>Load from GitHub</value></data>
-  <data name="GitHub_LoadButtonTooltip" xml:space="preserve"><value>Fetches the content from GitHub and reloads it locally</value></data>
-  <data name="GitHub_CommitButton" xml:space="preserve"><value>Commit</value></data>
+  <data name="GitHub_LoadButtonTooltip" xml:space="preserve"><value>Reloads the dictionary and changelog from GitHub</value></data>
+  <data name="GitHub_CommitButton" xml:space="preserve"><value>Commit to GitHub</value></data>
   <data name="GitHub_CommitButtonTooltip" xml:space="preserve"><value>Saves the local dictionary and changelog, then commits them to GitHub</value></data>
   <data name="GitHub_CommitDialogTitle" xml:space="preserve"><value>Commit to GitHub</value></data>
   <data name="GitHub_CommitSummaryLabel" xml:space="preserve"><value>What This Commit Includes</value></data>
@@ -334,7 +340,7 @@
   <data name="GitHub_LoadConfirmTitle" xml:space="preserve"><value>Load from GitHub</value></data>
   <data name="GitHub_LoadConfirmQuestion" xml:space="preserve"><value>Discard local changes and load from GitHub?</value></data>
   <data name="GitHub_LoadConfirmTarget" xml:space="preserve"><value>Will overwrite: {0}</value></data>
-  <data name="GitHub_LoadCreateQuestion" xml:space="preserve"><value>There's no local dictionary file. Download it from GitHub and create one?</value></data>
+  <data name="GitHub_LoadCreateQuestion" xml:space="preserve"><value>There's no local dictionary file. Load it from GitHub and create one?</value></data>
   <data name="GitHub_LoadCreateTarget" xml:space="preserve"><value>Will create: {0}</value></data>
   <data name="GitHub_LoadConfirmYes" xml:space="preserve"><value>Load</value></data>
   <data name="GitHub_Loading" xml:space="preserve"><value>Loading from GitHub…</value></data>
@@ -350,9 +356,9 @@
   <data name="GitHub_Committed" xml:space="preserve"><value>Committed to GitHub.</value></data>
   <data name="GitHub_TokenInvalidChars" xml:space="preserve"><value>The token contains characters that can't be used. Please enter it again.</value></data>
   <data name="GitHub_FileNotFound" xml:space="preserve"><value>{0} ({1}) was not found.</value></data>
-  <data name="GitHub_FileTooLarge" xml:space="preserve"><value>The file is too large to fetch (encoding: {0}).</value></data>
+  <data name="GitHub_FileTooLarge" xml:space="preserve"><value>The file is too large to load (encoding: {0}).</value></data>
   <data name="GitHub_DownloadFailed" xml:space="preserve"><value>Download failed (HTTP {0}).</value></data>
-  <data name="GitHub_FetchOk" xml:space="preserve"><value>Fetched successfully</value></data>
+  <data name="GitHub_FetchOk" xml:space="preserve"><value>Loaded successfully</value></data>
   <data name="Network_Timeout" xml:space="preserve"><value>The connection timed out. Check your network.</value></data>
   <data name="GitHub_FetchFailed" xml:space="preserve"><value>Fetch failed: {0}</value></data>
   <data name="GitHub_NoChangesToCommit" xml:space="preserve"><value>There are no changes to commit.</value></data>
@@ -375,6 +381,11 @@
   <data name="Main_OpenDictionaryPrompt" xml:space="preserve"><value>Please open a dictionary.</value></data>
   <data name="Main_NoDictionaryName" xml:space="preserve"><value>No dictionary</value></data>
   <data name="Main_CountLabel" xml:space="preserve"><value>{0} / {1} words</value></data>
+  <data name="Status_Info" xml:space="preserve"><value>Information</value></data>
+  <data name="Status_Success" xml:space="preserve"><value>Success</value></data>
+  <data name="Status_Warning" xml:space="preserve"><value>Warning</value></data>
+  <data name="Status_Error" xml:space="preserve"><value>Error</value></data>
+  <data name="Main_UnsavedLabel" xml:space="preserve"><value>Unsaved</value></data>
   <data name="Main_WordCountLabel" xml:space="preserve"><value>{0} words</value></data>
   <data name="Main_VersionLabel" xml:space="preserve"><value>v{0}</value></data>
   <data name="Main_FontScaleStatus" xml:space="preserve"><value>Font size {0}%</value></data>
@@ -400,7 +411,6 @@ The entries that couldn't be written are kept and will be written the next time 
   <data name="Main_NoSavePathStatus" xml:space="preserve"><value>No save location is set.</value></data>
   <data name="Main_NewWordButton" xml:space="preserve"><value>Add Word</value></data>
   <data name="Main_ExamplesButtonTooltip" xml:space="preserve"><value>Views and edits the dictionary's examples</value></data>
-  <data name="Main_UnsavedTooltip" xml:space="preserve"><value>There are unsaved changes</value></data>
 
   <data name="Word_AddedStatus" xml:space="preserve"><value>Added "{0}".</value></data>
   <data name="Word_UpdatedStatus" xml:space="preserve"><value>Updated "{0}".</value></data>
@@ -441,6 +451,7 @@ The entries that couldn't be written are kept and will be written the next time 
   <!-- Dock -->
   <data name="Dock_EmptyHint" xml:space="preserve"><value>Drag a tab here</value></data>
   <data name="Dock_CloseAreaButton" xml:space="preserve"><value>Close This Pane</value></data>
+  <data name="Dock_CloseTabName" xml:space="preserve"><value>Close tab</value></data>
   <data name="Overlay_DropToFloatHint" xml:space="preserve"><value>Release to open as its own window</value></data>
 
   <!-- Error overlay -->

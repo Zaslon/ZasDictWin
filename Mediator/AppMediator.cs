@@ -204,18 +204,28 @@ public sealed partial class AppMediator
         }
     }
 
-    private void SetStatus(string status) => SetStatus(status, false);
+    /// <summary>処理中・状態の知らせ（INF）。</summary>
+    private void SetStatus(string status) => SetStatus(status, StatusSemantic.Info);
 
-    /// <summary>失敗の知らせ。文言だけで失敗と分かるように書いたうえで、光らせる色も変える。</summary>
-    private void SetFailure(string status) => SetStatus(status, true);
+    /// <summary>操作の完了の知らせ（SUC）。</summary>
+    private void SetSuccess(string status) => SetStatus(status, StatusSemantic.Success);
 
-    private void SetStatus(string status, bool failure)
+    /// <summary>一部だけ果たせなかった・操作が実行されなかった知らせ（WRN）。</summary>
+    private void SetWarning(string status) => SetStatus(status, StatusSemantic.Warning);
+
+    /// <summary>失敗の知らせ（ERR）。文言だけで失敗と分かるように書いたうえで、アイコンと強調の色も変える。</summary>
+    private void SetFailure(string status) => SetStatus(status, StatusSemantic.Error);
+
+    private void SetStatus(string status, StatusSemantic semantic)
     {
+        var attention = semantic is StatusSemantic.Warning or StatusSemantic.Error;
         // 同じ失敗を繰り返したときも光らせる（変化が無いと、押したのに何も起きなかったように見える）。
-        if (_state.Status == status && !failure) return;
+        if (_state.Status == status && _state.StatusSemantic == semantic && !attention) return;
         _state.Status = status;
-        // 文言自体は変わったことに気づきにくいので、変わるたびに一瞬光らせる（起動時の復元は除く）。
-        if (!_starting) Queue(new HostCommand.FlashStatus(failure));
+        _state.StatusSemantic = semantic;
+        // 光らせるのは注意を引く通知だけ。情報・成功は強調しない
+        // （ZasDesignSystem implementation/common.md「ステータスバー」：Interruption 0・1 は強調しない）。
+        if (attention && !_starting) Queue(new HostCommand.FlashStatus(semantic));
     }
 
     private void SetGitHubBusy(bool busy)
@@ -1068,7 +1078,7 @@ public sealed partial class AppMediator
             normal ? s.WindowWidth : double.NaN, normal ? s.WindowHeight : double.NaN,
             s.WindowAspectLocked ? s.WindowWidth / s.WindowHeight : null));
         if (docChanged) MarkDirty(Strings.Settings_AppliedStatus);
-        else SetStatus(Strings.Settings_AppliedStatus);
+        else SetSuccess(Strings.Settings_AppliedStatus);
         CloseSettings(hostId);
     }
 

@@ -28,7 +28,7 @@ public static class Markdown
             ColumnWidth = double.PositiveInfinity,
             Background = Brushes.Transparent,
             // FlowDocument は載せた先から文字色を継がず、既定の黒のままになる。暗い面に描くので明示する。
-            Foreground = Res("Text", 0xDADADA),
+            Foreground = Res("Text", 0xFFFFFF),
             // 描くのは辞書の凡例（辞書データ）なので、表示言語のフォントではなく辞書データ用を使う。
             // 器から継がないぶん今は窓のフォントに引きずられないが、継承の有無に頼らず明示しておく。
             FontFamily = ZasDictWin.Resources.Strings.ContentFont,
@@ -75,7 +75,7 @@ public static class Markdown
                         FontFamily = CodeFont,
                         FontSize = S(13, scale),
                         Background = Res("Raised", 0x2E2E2E),
-                        BorderBrush = Res("Line", 0x363636),
+                        BorderBrush = Res("Line", 0x767676),
                         BorderThickness = new Thickness(S(1, scale)),
                         Padding = new Thickness(S(10, scale), S(6, scale), S(10, scale), S(6, scale)),
                         Margin = new Thickness(indent, 0, 0, S(8, scale)),
@@ -92,7 +92,7 @@ public static class Markdown
                 case MdQuote q:
                 {
                     var children = RenderBlocks(q.Blocks, indent + S(14, scale), scale);
-                    var border = Res("Line", 0x363636);
+                    var border = Res("Line", 0x767676);
                     foreach (var child in children)
                     {
                         if (child is Paragraph cp)
@@ -112,7 +112,7 @@ public static class Markdown
                         var itemBlocks = RenderBlocks(l.Items[i].Blocks, indent + S(18, scale), scale);
                         if (!PrependMarker(itemBlocks, marker, indent, scale))
                         {
-                            var label = new Paragraph(new Run(marker) { Foreground = Res("Muted", 0xA3A3A3) })
+                            var label = new Paragraph(new Run(marker) { Foreground = Res("Muted", 0xB3B3B3) })
                             {
                                 Margin = new Thickness(indent, 0, 0, S(2, scale)),
                             };
@@ -126,7 +126,7 @@ public static class Markdown
                 {
                     var para = new Paragraph(new Run(""))
                     {
-                        BorderBrush = Res("Line", 0x363636),
+                        BorderBrush = Res("Line", 0x767676),
                         BorderThickness = new Thickness(0, S(1, scale), 0, 0),
                         FontSize = S(1, scale),
                         Margin = new Thickness(indent, S(12, scale), 0, S(12, scale)),
@@ -150,7 +150,7 @@ public static class Markdown
         {
             // InlineCollection には Insert が無いので、マーカーを先頭に置いた段落を
             // 作り直し、既存インラインを移し替える。
-            var repl = new Paragraph(new Run(marker) { Foreground = Res("Muted", 0xA3A3A3) });
+            var repl = new Paragraph(new Run(marker) { Foreground = Res("Muted", 0xB3B3B3) });
             CopyParagraphProps(first, repl);
             while (first.Inlines.FirstInline is { } head)
             {
@@ -162,7 +162,7 @@ public static class Markdown
         }
         // 先頭が段落以外（表）のときはマーカー専用の行を置く。入れ子リストも段落として描かれるので、
         // 外側のマーカーは内側の項目の行頭に並ぶ（「• • 項目」）。
-        var label = new Paragraph(new Run(marker) { Foreground = Res("Muted", 0xA3A3A3) })
+        var label = new Paragraph(new Run(marker) { Foreground = Res("Muted", 0xB3B3B3) })
         {
             Margin = new Thickness(indent, 0, 0, S(2, scale)),
         };
@@ -183,7 +183,7 @@ public static class Markdown
     /// 列の整列は区切り行のコロンの位置に従う。</summary>
     private static Block BuildTable(MdTable t, double indent, double scale)
     {
-        var line = Res("Line", 0x363636);
+        var line = Res("Line", 0x767676);
         double bw = Math.Max(1.0, S(1, scale));
         var table = new Table
         {
@@ -272,7 +272,7 @@ public static class Markdown
                 }
                 case MdLink l:
                 {
-                    var link = new Hyperlink { Foreground = Res("Accent", 0xA18CF7) };
+                    var link = new Hyperlink { Foreground = Res("Accent", 0xB3B0FF) };
                     if (TryUri(l.Url, out var uri)) link.NavigateUri = uri;
                     link.RequestNavigate += OnRequestNavigate;
                     WrapInline(link, l.Children, scale);

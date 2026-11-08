@@ -9,9 +9,9 @@
     <Grid>
         <!-- 表示 -->
         <DockPanel Visibility="{Binding IsEditing, Converter={StaticResource BoolVis}, ConverterParameter=invert}">
-            <!-- 編集に入ると同じ位置に［保存］が出るよう、編集時のフッタと寸法を揃える -->
-            <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
-                <StackPanel Orientation="Horizontal">
+            <!-- 編集に入ると同じ位置（右端）に［登録］が出るよう、編集時のフッタと寸法を揃える -->
+            <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Divider}" BorderThickness="0,1,0,0">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Edit}" Style="{StaticResource PrimaryButton}"
                             r:IntentTrigger.OnClick="LegendEditRequested" IsEnabled="{Binding CanEdit}" Margin="0" />
                 </StackPanel>
@@ -24,10 +24,11 @@
 
         <!-- 編集。操作はフッタに固定し、本文が長くてもボタンが画面外に出ないようにする -->
         <DockPanel Visibility="{Binding IsEditing, Converter={StaticResource BoolVis}}">
-            <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Line}" BorderThickness="0,1,0,0">
-                <StackPanel Orientation="Horizontal">
-                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Save}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="LegendCommitted" />
-                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="LegendEditCancelled" Margin="0" />
+            <Border DockPanel.Dock="Bottom" Padding="24,12,24,18" BorderBrush="{StaticResource Divider}" BorderThickness="0,1,0,0">
+                <!-- 戻る側を左、進む側を右に並べる（ZasDesignSystem rules.md「ボタンは戻る側を左、進む側を右に並べる」） -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="LegendEditCancelled" />
+                    <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Register}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="LegendCommitted" Margin="0" />
                 </StackPanel>
             </Border>
 
@@ -40,7 +41,7 @@
                      VerticalContentAlignment="Top"
                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                      FontFamily="{x:Static res:Strings.ContentFont}"
-                     FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=13}" />
+                     FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
         </DockPanel>
     </Grid>
 </UserControl>

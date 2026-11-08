@@ -56,7 +56,11 @@ public class MenuButton : Control, IPopupLayer
     /// 使い回しで別の行のものが残るため、開くたびに組み直す。</summary>
     public event EventHandler? Opening;
 
-    public void Open()
+    public void Open() => Open(null);
+
+    /// <summary><paramref name="at"/> はこのボタン基準の位置。右クリックで開くときはポインタの位置を渡す。
+    /// 行の ⋯ は行の右端にあるので、⋯ の下に出すと、行の左側を右クリックしたときに一覧がポインタから遠く離れる。</summary>
+    public void Open(Point? at)
     {
         if (IsOpen) return;
         Opening?.Invoke(this, EventArgs.Empty);
@@ -86,7 +90,7 @@ public class MenuButton : Control, IPopupLayer
         // ウィンドウ既定（本文と同じ大きさ）に戻ってしまう。項目が親のボタンより大きく見えないよう写す。
         _panel.SetValue(TextElement.FontSizeProperty, FontSize);
 
-        _adorner = new MenuAdorner(this, _panel);
+        _adorner = new MenuAdorner(this, _panel, at);
         _layer.Add(_adorner);
 
         _window = Window.GetWindow(this);
@@ -169,15 +173,17 @@ public class MenuButton : Control, IPopupLayer
 
     private void OnWindowDeactivated(object? sender, EventArgs e) => Close();
 
-    /// <summary>一覧そのもの。配置ロジックは DropDown.ListAdorner と同じ
-    /// （本体の下、入り切らなければ上へ）。</summary>
+    /// <summary>一覧そのもの。本体の下（位置の指定があればその点）に出し、
+    /// 下に入り切らなければ上へ返し、右に入り切らなければ左へ寄せて、窓の外へはみ出させない。</summary>
     private sealed class MenuAdorner : Adorner
     {
         private readonly UIElement _child;
+        private readonly Point? _at;
 
-        public MenuAdorner(UIElement owner, UIElement child) : base(owner)
+        public MenuAdorner(UIElement owner, UIElement child, Point? at) : base(owner)
         {
             _child = child;
+            _at = at;
             AddVisualChild(child);
         }
 
@@ -193,17 +199,21 @@ public class MenuButton : Control, IPopupLayer
 
         protected override Size ArrangeOverride(Size finalSize)
         {
-            var size = _child.DesiredSize;
-            var y = finalSize.Height + Gap;
+            var width = Math.Max(_at is null ? finalSize.Width : 0, _child.DesiredSize.Width);
+            var height = _child.DesiredSize.Height;
+            var x = _at?.X ?? 0;
+            var y = _at?.Y ?? finalSize.Height + Gap;
 
             if (VisualTreeHelper.GetParent(this) is UIElement layer)
             {
-                var top = AdornedElement.TranslatePoint(new Point(0, 0), layer).Y;
-                if (top + y + size.Height > layer.RenderSize.Height && top - size.Height - Gap >= 0)
-                    y = -size.Height - Gap;
+                var origin = AdornedElement.TranslatePoint(new Point(0, 0), layer);
+                var flipped = _at is { } p ? p.Y - height : -height - Gap;
+                if (origin.Y + y + height > layer.RenderSize.Height && origin.Y + flipped >= 0) y = flipped;
+                var overflow = origin.X + x + width - layer.RenderSize.Width;
+                if (overflow > 0) x = Math.Max(x - overflow, -origin.X);
             }
 
-            _child.Arrange(new Rect(new Point(0, y), new Size(Math.Max(finalSize.Width, size.Width), size.Height)));
+            _child.Arrange(new Rect(new Point(x, y), new Size(width, height)));
             return finalSize;
         }
     }

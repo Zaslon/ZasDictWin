@@ -169,7 +169,7 @@ public partial class App : Application
                     shown?.Close();
                     break;
                 case HostCommand.FlashStatus flash:
-                    Shell?.FlashStatus(flash.Failure);
+                    Shell?.FlashStatus(flash.Semantic);
                     break;
             }
         }

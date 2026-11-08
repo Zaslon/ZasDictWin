@@ -104,7 +104,7 @@ public class AppMediatorFlowTests
         Assert.Contains(h.Services.Logged, l => l.Contains("更新履歴の追記"));
         // 未保存の印が消えて見過ごされるので、ステータスだけでなくダイアログでも知らせる。
         Assert.Equal((ShellPhase.Modal, Strings.Main_ChangelogAppendFailedTitle), (h.M.Shell, h.Confirm!.Title));
-        Assert.Contains(new HostCommand.FlashStatus(true), h.HostCommands);
+        Assert.Contains(new HostCommand.FlashStatus(StatusSemantic.Error), h.HostCommands);
 
         h.Send(IntentKind.ConfirmChoiceSelected, 0);
         h.Services.AppendFails = false;
@@ -471,7 +471,24 @@ public class AppMediatorFlowTests
     }
 
     [Fact]
-    public void DeleteExample_AsksFirst()
+    public void DeleteWord_AsksFirst()
+    {
+        var h = new MediatorHarness();
+        var a = W(1, "a");
+        OpenWithExamples(h, new[] { a });
+
+        h.Send(IntentKind.DeleteWordRequested, a);
+        Assert.NotNull(h.Confirm);
+        h.Send(IntentKind.ConfirmChoiceSelected, 1);   // やめる
+        Assert.Contains(a, h.State.AllWords);
+
+        h.Send(IntentKind.DeleteWordRequested, a);
+        h.Send(IntentKind.ConfirmChoiceSelected, 0);
+        Assert.DoesNotContain(a, h.State.AllWords);
+    }
+
+    [Fact]
+    public void DeleteExample_AsksFirst_AndCanBeUndone()
     {
         var h = new MediatorHarness();
         var example = Ex(1, "s");
@@ -484,9 +501,13 @@ public class AppMediatorFlowTests
         Assert.NotNull(h.Open<ExampleEditViewModel>());
 
         h.Send(IntentKind.DeleteExampleRequested);
+        Assert.NotNull(h.Confirm);
         h.Send(IntentKind.ConfirmChoiceSelected, 0);
         Assert.Empty(doc.Examples);
         Assert.Null(h.Open<ExampleEditViewModel>());
+
+        h.Send(IntentKind.UndoRequested);
+        Assert.Single(h.State.Document!.Examples);
     }
 
     [Fact]
@@ -1284,12 +1305,14 @@ public class AppMediatorFlowTests
         Assert.DoesNotContain("InvalidOperationException", h.Confirm.Message);
     }
 
+    // 成功・情報は強調しない（ZasDesignSystem implementation/common.md「ステータスバー」：Interruption 0・1 は強調しない）。
     [Fact]
-    public void StatusChange_Flashes()
+    public void SuccessStatus_IsShownWithoutFlashing()
     {
         var h = new MediatorHarness();
         h.HostCommands.Clear();
         h.OpenDictionary(W(1, "a"));
-        Assert.Contains(h.HostCommands, c => c is HostCommand.FlashStatus);
+        Assert.Equal(StatusSemantic.Success, h.State.StatusSemantic);
+        Assert.DoesNotContain(h.HostCommands, c => c is HostCommand.FlashStatus);
     }
 }

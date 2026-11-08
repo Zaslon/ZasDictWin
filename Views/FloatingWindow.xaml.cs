@@ -149,6 +149,7 @@ public partial class FloatingWindow : Window, IUiHost
         // MDL2 Assets: ChromeMaximize (E922) / ChromeRestore (E923)
         MaximizeRestoreButton.Content = maximized ? "" : "";
         MaximizeRestoreButton.ToolTip = maximized ? Strings.Common_Restore : Strings.Common_Maximize;
+        System.Windows.Automation.AutomationProperties.SetName(MaximizeRestoreButton, (string)MaximizeRestoreButton.ToolTip);
     }
 
     protected override void OnClosing(CancelEventArgs e)

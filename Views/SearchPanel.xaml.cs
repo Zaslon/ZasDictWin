@@ -102,7 +102,7 @@ public partial class SearchPanel : UserControl
     private void Row_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
     {
         if (sender is not DependencyObject root) return;
-        if (FindDescendant<MenuButton>(root) is { } menu) menu.Open();
+        if (FindDescendant<MenuButton>(root) is { } menu) menu.Open(e.GetPosition(menu));
         e.Handled = true;
     }
 

@@ -38,7 +38,7 @@ public sealed partial class AppMediator
         _state.IsGitHubSynced = false;
         ClearUndoHistory();
         ReloadLegends();
-        SetStatus(Strings.Main_NewDictionaryCreated);
+        SetSuccess(Strings.Main_NewDictionaryCreated);
         RaiseDocumentChanged();
     }
 
@@ -79,7 +79,7 @@ public sealed partial class AppMediator
             vm.Reload(ReadChangelogRows(csv), csv);
         ReloadLegends();
 
-        SetStatus(string.Format(Strings.Main_LoadedStatus, Path.GetFileName(path)));
+        SetSuccess(string.Format(Strings.Main_LoadedStatus, Path.GetFileName(path)));
         RaiseDocumentChanged();
     }
 
@@ -105,7 +105,7 @@ public sealed partial class AppMediator
         Settings.LastDictionaryPath = path;
         _services.SaveSettings();
         _state.IsDirty = false;
-        SetStatus(string.Format(Strings.Main_SavedStatus, Path.GetFileName(path)));
+        SetSuccess(string.Format(Strings.Main_SavedStatus, Path.GetFileName(path)));
         // 保存の知らせより後に追記する。追記に失敗したときの知らせを「保存しました」で上書きしないため。
         FlushChangelog();
         RaiseDocumentChanged();
@@ -355,6 +355,8 @@ public sealed partial class AppMediator
         if (copy is not null) EditWord(copy);
     }
 
+    /// <summary>削除の前に確認する。「元に戻す」は画面を閉じると消え、自動保存でファイルはすぐ上書きされるため、
+    /// 取り消せない操作として扱う（ZasDesignSystem rules.md「操作を取り消せるようにする」）。</summary>
     private void ConfirmDeleteWord(Word? w)
     {
         if (w is null) return;
@@ -363,9 +365,9 @@ public sealed partial class AppMediator
             (Strings.Common_Cancel, false, null));
     }
 
-    private void DeleteWord(Word w)
+    private void DeleteWord(Word? w)
     {
-        if (_doc is null) return;
+        if (_doc is null || w is null) return;
         Undoable(() => string.Format(Strings.Undo_DeleteWord, w.Form), () =>
         {
             RelationService.RemoveReferences(_doc.Words, w);
@@ -396,7 +398,7 @@ public sealed partial class AppMediator
     {
         _state.IsDirty = true;
         _state.IsGitHubSynced = false;
-        SetStatus(status);
+        SetSuccess(status);
         // 自動保存はモードに関係なく機能する（GitHubモードでもローカルファイルへの保存は通常どおり）。
         // コミットはこの保存結果を対象にするだけで、保存自体はコミットボタンの役割ではない。
         if (Settings.AutoSave && _doc?.Path is not null) Save(false);
@@ -407,7 +409,7 @@ public sealed partial class AppMediator
     /// <summary>例文の一覧を開く。閉じて開き直したときも同じ絞り込みで始まる。</summary>
     private void ShowExamples()
     {
-        if (_doc is null) { SetStatus(Strings.Main_OpenDictionaryPrompt); return; }
+        if (_doc is null) { SetWarning(Strings.Main_OpenDictionaryPrompt); return; }
         ShowOverlay(new ExamplesViewModel(_doc, _exampleQuery));
     }
 
@@ -449,18 +451,19 @@ public sealed partial class AppMediator
         });
     }
 
+    /// <summary>単語の削除と同じ理由で確認する。確認は編集画面とは別の層に出るので、
+    /// キャンセルしたときは畳むだけで書きかけの入力はそのまま残る。</summary>
     private void ConfirmDeleteExample(ExampleEditViewModel vm)
     {
         if (vm.Source is not { } example) return;
-        // 確認は編集画面とは別の層に出るので、キャンセルしたときは畳むだけで書きかけの入力はそのまま残る。
         Confirm(Strings.Example_DeleteConfirmTitle, string.Format(Strings.Example_DeleteConfirmMessage, example.SentencePreview),
-            (Strings.Common_DeleteAction, true, () => DeleteExample(vm, example)),
+            (Strings.Common_DeleteAction, true, () => DeleteExample(vm)),
             (Strings.Common_Cancel, false, null));
     }
 
-    private void DeleteExample(ExampleEditViewModel vm, Example example)
+    private void DeleteExample(ExampleEditViewModel vm)
     {
-        if (_doc is null) return;
+        if (_doc is null || vm.Source is not { } example) return;
         Undoable(() => Strings.Undo_DeleteExample, () =>
         {
             _doc.Examples.Remove(example);
@@ -616,7 +619,7 @@ public sealed partial class AppMediator
         if (!_services.FileExists(csv)) { SetFailure(Strings.Changelog_NothingToExportStatus); return; }
         if (_services.PickSavePath(Strings.Changelog_ExportDialogTitle, "CSV (*.csv)|*.csv", Path.GetFileName(csv)) is not { } to) return;
         _services.CopyFile(csv, to);
-        SetStatus(string.Format(Strings.Changelog_ExportedStatus, to));
+        SetSuccess(string.Format(Strings.Changelog_ExportedStatus, to));
     }
 
     /// <summary>CSV を選び直す。戻り値は選び直せたか（成功したときだけ画面を作り直す）。</summary>
@@ -625,7 +628,7 @@ public sealed partial class AppMediator
         if (_services.PickOpenPath(Strings.Changelog_RelinkDialogTitle, Strings.Changelog_CsvFilter) is not { } path) return false;
         Settings.ChangelogPath = path;
         _services.SaveSettings();
-        SetStatus(string.Format(Strings.Changelog_RelinkedStatus, Path.GetFileName(path)));
+        SetSuccess(string.Format(Strings.Changelog_RelinkedStatus, Path.GetFileName(path)));
         return true;
     }
 
@@ -741,14 +744,14 @@ public sealed partial class AppMediator
             else if (csv is { NotFound: false })
             {
                 // 辞書自体は読み込めたので続行する。履歴だけ最初のコミットで新規作成させる。
-                SetStatus(string.Format(Strings.GitHub_ChangelogLoadFailedStatus, csv.Message));
+                SetWarning(string.Format(Strings.GitHub_ChangelogLoadFailedStatus, csv.Message));
                 csvSynced = false;
             }
 
             LoadDictionary(localPath);
             // LoadDictionary が一旦 false に戻すので、その後で確定させる。
             if (csvSynced) _state.IsGitHubSynced = true;
-            SetStatus(string.Format(Strings.GitHub_LoadedStatus, target.Owner, target.Repo, target.Branch));
+            SetSuccess(string.Format(Strings.GitHub_LoadedStatus, target.Owner, target.Repo, target.Branch));
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
@@ -760,7 +763,7 @@ public sealed partial class AppMediator
     private void ShowCommitDialog()
     {
         if (!_services.TryGetGitHubTarget(out var target, out var error)) { SetFailure(error); return; }
-        if (_doc is null) { SetStatus(Strings.Main_OpenDictionaryPrompt); return; }
+        if (_doc is null) { SetWarning(Strings.Main_OpenDictionaryPrompt); return; }
 
         var forms = _pendingChanges.Select(e => e.Form).Distinct().ToList();
         var summary = _pendingChanges.Count == 0
@@ -822,7 +825,7 @@ public sealed partial class AppMediator
                     return;
                 }
                 _state.IsGitHubSynced = true;
-                SetStatus(Strings.GitHub_Committed);
+                SetSuccess(Strings.GitHub_Committed);
             });
         }
         catch (IOException ex)

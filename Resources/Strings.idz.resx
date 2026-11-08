@@ -66,7 +66,6 @@
   <!-- Common -->
   <data name="Common_Cancel" xml:space="preserve"><value>Padoze</value></data>
   <data name="Common_Close" xml:space="preserve"><value>Gise</value></data>
-  <data name="Common_Save" xml:space="preserve"><value>Asdere</value></data>
   <data name="Common_Delete" xml:space="preserve"><value>Satide</value></data>
   <data name="Common_DeleteAction" xml:space="preserve"><value>Satide</value></data>
   <data name="Common_Edit" xml:space="preserve"><value>Coskome</value></data>
@@ -180,7 +179,7 @@
   <data name="ExampleEdit_SourcePlaceholder" xml:space="preserve"><value>出典を選ぶ</value></data>
   <data name="ExampleEdit_FetchButton" xml:space="preserve"><value>照会</value></data>
   <data name="ExampleEdit_FetchHint" xml:space="preserve"><value>照会すると訳と補足が上書きされます。</value></data>
-  <data name="Label_ApiKeyPlaceholder" xml:space="preserve"><value>APIキー</value></data>
+  <data name="Label_ApiKey" xml:space="preserve"><value>APIキー</value></data>
   <data name="ExampleEdit_SaveKeyButton" xml:space="preserve"><value>キーを保存</value></data>
   <data name="ExampleEdit_ValidationSentence" xml:space="preserve"><value>「文」は必須です。</value></data>
 
@@ -370,7 +369,6 @@
   <data name="Main_NoSavePathStatus" xml:space="preserve"><value>保存先が決まっていません。</value></data>
   <data name="Main_NewWordButton" xml:space="preserve"><value>+ Kai</value></data>
   <data name="Main_ExamplesButtonTooltip" xml:space="preserve"><value>辞書の例文（examples）を一覧・編集します</value></data>
-  <data name="Main_UnsavedTooltip" xml:space="preserve"><value>未保存の変更があります</value></data>
 
   <data name="Word_AddedStatus" xml:space="preserve"><value>"{0}"を追加しました。</value></data>
   <data name="Word_UpdatedStatus" xml:space="preserve"><value>"{0}"を更新しました。</value></data>
