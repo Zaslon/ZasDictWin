@@ -217,12 +217,12 @@
         <Setter Property="MinHeight" Value="28" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource RowHover}" />
+                <Setter Property="Background" Value="{DynamicResource RowHover}" />
                 <Setter Property="Foreground" Value="{StaticResource ButtonTextHover}" />
                 <Setter Property="BorderBrush" Value="Transparent" />
             </Trigger>
             <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{StaticResource RowHover}" />
+                <Setter Property="Background" Value="{DynamicResource RowHover}" />
                 <Setter Property="Foreground" Value="{StaticResource ButtonTextActive}" />
                 <Setter Property="BorderBrush" Value="Transparent" />
             </Trigger>
@@ -576,7 +576,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />
@@ -657,7 +657,7 @@
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="bd" Property="TextElement.Foreground" Value="{StaticResource Text}" />
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
                             <Setter TargetName="ul" Property="Opacity" Value="0.4" />
                         </Trigger>
                         <Trigger Property="IsSelected" Value="True">
@@ -757,7 +757,20 @@
     </Style>
 
     <!-- オーバーレイ本体。影は使わず、枠と面の差だけで窓から浮いて見せる -->
+    <!-- Panel で塗る器は、中の部品が DynamicResource で引く RowHover を、段階 1 の面の上の値に差し替える。
+         面と同じ色になってホバーが見えなくなるのを防ぐ（tokens.md の color-hover-background）。 -->
+    <!-- ビューの中で Panel（HeaderFill）を敷く Border に付ける。 -->
+    <Style x:Key="PanelSurface" TargetType="Border">
+        <Style.Resources>
+            <SolidColorBrush x:Key="RowHover" Color="{StaticResource RowHoverOnPanelColor}" />
+        </Style.Resources>
+        <Setter Property="Background" Value="{StaticResource Panel}" />
+    </Style>
+
     <Style x:Key="Card" TargetType="Border">
+        <Style.Resources>
+            <SolidColorBrush x:Key="RowHover" Color="{StaticResource RowHoverOnPanelColor}" />
+        </Style.Resources>
         <Setter Property="Background" Value="{StaticResource Panel}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -768,6 +781,9 @@
     <!-- オーバーレイの外枠。必ず枠（DockGroupPanel）いっぱいに敷かれ、境目の線も枠の側が描くので、
          ここは面の色だけを持つ。 -->
     <Style x:Key="OverlayCard" TargetType="Border">
+        <Style.Resources>
+            <SolidColorBrush x:Key="RowHover" Color="{StaticResource RowHoverOnPanelColor}" />
+        </Style.Resources>
         <Setter Property="Background" Value="{StaticResource Panel}" />
         <Setter Property="Padding" Value="0" />
     </Style>
@@ -811,7 +827,7 @@
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource Text}" />
-                                        <Setter Property="Background" Value="{StaticResource RowHover}" />
+                                        <Setter Property="Background" Value="{DynamicResource RowHover}" />
                                     </Trigger>
                                     <Trigger Property="IsSelected" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -870,7 +886,7 @@
             <!-- hover は表のタブより前に書く。後に書くと表のタブに触れたときに面が上書きされ、
                  中身との地続きが切れる。 -->
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource RowHover}" />
+                <Setter Property="Background" Value="{DynamicResource RowHover}" />
                 <Setter Property="TextElement.Foreground" Value="{StaticResource Text}" />
             </Trigger>
             <DataTrigger Binding="{Binding IsActive}" Value="True">
@@ -1008,6 +1024,9 @@
 
     <!-- 検索条件のような、面として固める小さな区切り -->
     <Style x:Key="FilterCard" TargetType="Border">
+        <Style.Resources>
+            <SolidColorBrush x:Key="RowHover" Color="{StaticResource RowHoverOnPanelColor}" />
+        </Style.Resources>
         <Setter Property="Background" Value="{StaticResource Panel}" />
         <Setter Property="BorderBrush" Value="{StaticResource Divider}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -1110,6 +1129,9 @@
     <!-- 開いた一覧の器。影を使わない方針なので、下地（Panel）より一段明るい面と、Line より明るい枠で
          せり出して見せる。枠をアクセント色にすると、中の選択行（AccentDim）と色がぶつかる。 -->
     <Style x:Key="DropDownPanel" TargetType="Border">
+        <Style.Resources>
+            <SolidColorBrush x:Key="RowHover" Color="{StaticResource RowHoverOnPanelColor}" />
+        </Style.Resources>
         <Setter Property="Background" Value="{StaticResource HeaderFill}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -1154,11 +1176,11 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
                         </Trigger>
                         <!-- 開いている間は hover の面を残し、どのボタンから一覧が出ているかを示す -->
                         <Trigger Property="IsOpen" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
@@ -1192,11 +1214,11 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
                             <Setter TargetName="txt" Property="Foreground" Value="{StaticResource Text}" />
                         </Trigger>
                         <Trigger Property="IsOpen" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
                             <Setter TargetName="txt" Property="Foreground" Value="{StaticResource Text}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
@@ -1280,7 +1302,7 @@
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
                         </Trigger>
                         <Trigger Property="IsOpen" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />

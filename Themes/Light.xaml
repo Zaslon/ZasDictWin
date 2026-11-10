@@ -7,11 +7,11 @@
     <Color x:Key="PanelColor">#F2F2F2</Color>
     <Color x:Key="RaisedColor">#FFFFFF</Color>
     <Color x:Key="LineColor">#7F7F7F</Color>
-    <Color x:Key="AccentColor">#573DBE</Color>
-    <Color x:Key="AccentFillColor">#4321A3</Color>
+    <Color x:Key="AccentColor">#2E49C1</Color>
+    <Color x:Key="AccentFillColor">#1C2EA6</Color>
     <Color x:Key="DangerColor">#CE0000</Color>
     <Color x:Key="ChromeColor">#F2F2F2</Color>
-    <Color x:Key="StatusInfoColor">#E0E1FF</Color>
+    <Color x:Key="StatusInfoColor">#C8F8FF</Color>
     <Color x:Key="StatusSuccessColor">#C2E5D1</Color>
     <Color x:Key="StatusWarningColor">#FFF0B3</Color>
     <Color x:Key="StatusErrorColor">#FFDADA</Color>
@@ -31,25 +31,25 @@
 
     <SolidColorBrush x:Key="Field" Color="#FFFFFF" />
     <SolidColorBrush x:Key="InputBorder" Color="#767676" />
-    <!-- 面（PanelColor）が DADS のホバー色 gray-50 と同じ値なので、一段濃い gray-100 にしないと面の上で見えない -->
     <SolidColorBrush x:Key="RowHover" Color="#E6E6E6" />
-    <SolidColorBrush x:Key="AccentDim" Color="#E0E1FF" />
-    <SolidColorBrush x:Key="DropFill" Color="#C9C9FF" Opacity="0.6" />
+    <Color x:Key="RowHoverOnPanelColor">#E6E6E6</Color>
+    <SolidColorBrush x:Key="AccentDim" Color="#D8E3FF" />
+    <SolidColorBrush x:Key="DropFill" Color="#B9CDFF" Opacity="0.6" />
     <SolidColorBrush x:Key="JoinFill" Color="#FFDADA" Opacity="0.7" />
     <SolidColorBrush x:Key="ThumbBrush" Color="#767676" />
     <SolidColorBrush x:Key="ThumbHover" Color="#4D4D4D" />
     <SolidColorBrush x:Key="ScrollTrack" Color="#E6E6E6" />
 
-    <SolidColorBrush x:Key="ButtonText" Color="#4321A3" />
-    <SolidColorBrush x:Key="ButtonBorder" Color="#4321A3" />
-    <SolidColorBrush x:Key="ButtonHover" Color="#C9C9FF" />
-    <SolidColorBrush x:Key="ButtonActive" Color="#B3B0FF" />
-    <SolidColorBrush x:Key="ButtonTextHover" Color="#380C91" />
-    <SolidColorBrush x:Key="ButtonTextActive" Color="#1A024E" />
+    <SolidColorBrush x:Key="ButtonText" Color="#1C2EA6" />
+    <SolidColorBrush x:Key="ButtonBorder" Color="#1C2EA6" />
+    <SolidColorBrush x:Key="ButtonHover" Color="#B9CDFF" />
+    <SolidColorBrush x:Key="ButtonActive" Color="#9AB6FF" />
+    <SolidColorBrush x:Key="ButtonTextHover" Color="#141D94" />
+    <SolidColorBrush x:Key="ButtonTextActive" Color="#060A50" />
 
     <SolidColorBrush x:Key="AccentFill" Color="{StaticResource AccentFillColor}" />
-    <SolidColorBrush x:Key="AccentFillHover" Color="#380C91" />
-    <SolidColorBrush x:Key="AccentFillActive" Color="#1A024E" />
+    <SolidColorBrush x:Key="AccentFillHover" Color="#141D94" />
+    <SolidColorBrush x:Key="AccentFillActive" Color="#060A50" />
     <SolidColorBrush x:Key="DangerFill" Color="#CE0000" />
     <SolidColorBrush x:Key="DangerFillHover" Color="#A90000" />
     <SolidColorBrush x:Key="DangerFillActive" Color="#620000" />
@@ -62,7 +62,7 @@
     <SolidColorBrush x:Key="FooterFill" Color="{StaticResource ChromeColor}" />
     <SolidColorBrush x:Key="StatusText" Color="#000000" />
 
-    <SolidColorBrush x:Key="NotifyInfo" Color="#666666" />
+    <SolidColorBrush x:Key="NotifyInfo" Color="#006F83" />
     <SolidColorBrush x:Key="NotifySuccess" Color="#115A36" />
     <SolidColorBrush x:Key="NotifyWarning" Color="#806300" />
     <SolidColorBrush x:Key="NotifyError" Color="#CE0000" />

@@ -9,12 +9,12 @@
     <Color x:Key="PanelColor">#212121</Color>        <!-- color-surface -->
     <Color x:Key="RaisedColor">#181818</Color>       <!-- color-button -->
     <Color x:Key="LineColor">#767676</Color>         <!-- color-border -->
-    <Color x:Key="AccentColor">#B3B0FF</Color>       <!-- color-accent -->
-    <Color x:Key="AccentFillColor">#6A56D7</Color>   <!-- color-accent-fill -->
+    <Color x:Key="AccentColor">#9AB6FF</Color>       <!-- color-accent -->
+    <Color x:Key="AccentFillColor">#4061DB</Color>   <!-- color-accent-fill -->
     <Color x:Key="DangerColor">#FF9696</Color>       <!-- color-error-text -->
     <Color x:Key="ChromeColor">#212121</Color>       <!-- color-statusbar-background -->
     <!-- ステータスバーを Semantic ごとに強調する色（color-statusbar-*）。MainWindow.FlashStatus が引く。 -->
-    <Color x:Key="StatusInfoColor">#380C91</Color>
+    <Color x:Key="StatusInfoColor">#004C59</Color>
     <Color x:Key="StatusSuccessColor">#08351F</Color>
     <Color x:Key="StatusWarningColor">#604B00</Color>
     <Color x:Key="StatusErrorColor">#850000</Color>
@@ -37,11 +37,14 @@
 
     <SolidColorBrush x:Key="Field" Color="#181818" />               <!-- color-input-background -->
     <SolidColorBrush x:Key="InputBorder" Color="#7F7F7F" />         <!-- color-input-border -->
-    <!-- 行・タブ・枠の無いボタンのホバー。ダークは DADS に定義が無いため、段階 2 の面（bg-dark-2）を使う -->
-    <SolidColorBrush x:Key="RowHover" Color="#2A2A2A" />
-    <SolidColorBrush x:Key="AccentDim" Color="#380C91" />           <!-- color-selected-background -->
+    <!-- color-hover-background。置いた面の一段上の階調で、RowHover は段階 0（Ink）、RowHoverOnPanelColor は段階 1（Panel）の上の値。
+         Panel で塗る器（Theme.xaml の PanelSurface、Card 等）が Style.Resources で RowHover をこの色に差し替え、
+         中の部品は DynamicResource で RowHover を引く。 -->
+    <SolidColorBrush x:Key="RowHover" Color="#212121" />            <!-- bg-dark-1 -->
+    <Color x:Key="RowHoverOnPanelColor">#2A2A2A</Color>             <!-- bg-dark-2 -->
+    <SolidColorBrush x:Key="AccentDim" Color="#141D94" />           <!-- color-selected-background -->
     <!-- color-drop-target。下の中身を透かして「どの枠に入るか」を見せるため半透明で重ねる -->
-    <SolidColorBrush x:Key="DropFill" Color="#4321A3" Opacity="0.6" />
+    <SolidColorBrush x:Key="DropFill" Color="#1C2EA6" Opacity="0.6" />
     <!-- 結合で消える側の面。タブは残る枠へ移るが、枠そのものは無くなるので失敗の強調色で塗り分ける -->
     <SolidColorBrush x:Key="JoinFill" Color="#850000" Opacity="0.6" />
     <SolidColorBrush x:Key="ThumbBrush" Color="#999999" />          <!-- color-scrollbar-thumb -->
@@ -49,17 +52,17 @@
     <SolidColorBrush x:Key="ScrollTrack" Color="#333333" />         <!-- color-scrollbar-track -->
 
     <!-- 枠のボタン（color-button-*） -->
-    <SolidColorBrush x:Key="ButtonText" Color="#B3B0FF" />
-    <SolidColorBrush x:Key="ButtonBorder" Color="#B3B0FF" />
-    <SolidColorBrush x:Key="ButtonHover" Color="#4321A3" />
-    <SolidColorBrush x:Key="ButtonActive" Color="#4A2DAD" />
-    <SolidColorBrush x:Key="ButtonTextHover" Color="#C9C9FF" />
-    <SolidColorBrush x:Key="ButtonTextActive" Color="#E0E1FF" />
+    <SolidColorBrush x:Key="ButtonText" Color="#9AB6FF" />
+    <SolidColorBrush x:Key="ButtonBorder" Color="#9AB6FF" />
+    <SolidColorBrush x:Key="ButtonHover" Color="#1C2EA6" />
+    <SolidColorBrush x:Key="ButtonActive" Color="#2238B0" />
+    <SolidColorBrush x:Key="ButtonTextHover" Color="#B9CDFF" />
+    <SolidColorBrush x:Key="ButtonTextActive" Color="#D8E3FF" />
 
     <!-- 塗りのボタン。面はすべて単色。グラデーションは縁に明暗の段が出て、隣り合う面との境目が二重に見える。 -->
     <SolidColorBrush x:Key="AccentFill" Color="{StaticResource AccentFillColor}" />
-    <SolidColorBrush x:Key="AccentFillHover" Color="#573DBE" />     <!-- color-accent-fill-hover -->
-    <SolidColorBrush x:Key="AccentFillActive" Color="#4A2DAD" />    <!-- color-accent-fill-active -->
+    <SolidColorBrush x:Key="AccentFillHover" Color="#2E49C1" />     <!-- color-accent-fill-hover -->
+    <SolidColorBrush x:Key="AccentFillActive" Color="#2238B0" />    <!-- color-accent-fill-active -->
     <SolidColorBrush x:Key="DangerFill" Color="#EC0000" />          <!-- color-destructive -->
     <SolidColorBrush x:Key="DangerFillHover" Color="#A90000" />     <!-- color-destructive-hover -->
     <SolidColorBrush x:Key="DangerFillActive" Color="#850000" />    <!-- color-destructive-active -->
@@ -74,7 +77,7 @@
     <SolidColorBrush x:Key="StatusText" Color="#FFFFFF" />          <!-- color-statusbar-text -->
 
     <!-- ノティフィケーションアイコン（color-notification-*） -->
-    <SolidColorBrush x:Key="NotifyInfo" Color="#B3B3B3" />
+    <SolidColorBrush x:Key="NotifyInfo" Color="#79E2F2" />
     <SolidColorBrush x:Key="NotifySuccess" Color="#71C598" />
     <SolidColorBrush x:Key="NotifyWarning" Color="#FFD43D" />
     <SolidColorBrush x:Key="NotifyError" Color="#FF9696" />

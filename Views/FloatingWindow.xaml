@@ -31,7 +31,7 @@
     <!-- UI 倍率。本体の窓（MainWindow.xaml）と同じく中身の根に掛ける。 -->
     <DockPanel LayoutTransform="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScaleTransform}">
         <!-- 標準の枠が無いので、このヘッダの余白自体が窓のドラッグ・つまみを兼ねる（本体と同じ理由）。 -->
-        <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
+        <Border DockPanel.Dock="Top" Style="{StaticResource PanelSurface}" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
                 BorderThickness="0,0,0,1" Padding="10,5"
                 MouseLeftButtonDown="Header_MouseLeftButtonDown">
             <DockPanel>

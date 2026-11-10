@@ -64,7 +64,7 @@
             <!-- 標準の枠が無いので、上端のタイトル行自体がウィンドウのドラッグ・つまみを兼ねる（Header_MouseLeftButtonDown）。
                  ボタンは ButtonBase 側が MouseLeftButtonDown を Handled 済みにするため、ここまでは伝播せず、
                  ボタンの無い余白だけがドラッグ領域として働く。 -->
-            <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}"
+            <Border DockPanel.Dock="Top" Style="{StaticResource PanelSurface}" Background="{StaticResource HeaderFill}"
                     Padding="12,4,12,0"
                     MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <DockPanel>
@@ -109,7 +109,7 @@
                  標準の Menu は一覧を Popup（別 HWND）に描き、OBS のウィンドウキャプチャに映らないため、
                  一覧を窓の中に描く v:MenuButton を並べる。Alt か F10 で移り（MainWindow.xaml.cs）、Tab の移動先には入らない。
                  項目の構成と有効・無効は Mediator が組む。右側のボタンはメニューにもある操作の近道。 -->
-            <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
+            <Border DockPanel.Dock="Top" Style="{StaticResource PanelSurface}" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
                     BorderThickness="0,0,0,1" Padding="8,2,12,4"
                     MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <DockPanel>

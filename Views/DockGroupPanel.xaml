@@ -12,7 +12,7 @@
     <Grid x:Name="Host">
         <!-- 外枠は持たない。隣の枠との境目は DockSplitPanel のつまみが 1px の線で描くので、ここでも
              枠を描くと境目の線が二重・三重に重なる。 -->
-        <Border Background="{StaticResource Panel}">
+        <Border Style="{StaticResource PanelSurface}">
             <DockPanel>
                 <!-- タブ列。1 枚でも出す（掴んで別の枠へ運ぶ取っ手を兼ねるため）。
                      まだタブの無い枠には並べるものが無いので出さない。

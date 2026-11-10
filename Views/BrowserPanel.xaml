@@ -8,7 +8,7 @@
              xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <!-- 枠線と面は枠（DockGroupPanel）が描くので、ここは中身だけを持つ -->
-    <Border Background="{StaticResource Panel}">
+    <Border Style="{StaticResource PanelSurface}">
         <DockPanel>
 
             <!-- ツールバー。戻る／進むは履歴がないときに押せないことを明示する（打っても効かないよりマシ） -->

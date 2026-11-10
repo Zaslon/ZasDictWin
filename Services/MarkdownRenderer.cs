@@ -74,7 +74,7 @@ public static class Markdown
                     {
                         FontFamily = CodeFont,
                         FontSize = S(13, scale),
-                        Background = Res("Raised", 0x2E2E2E),
+                        Background = Res("Raised", 0x181818),
                         BorderBrush = Res("Line", 0x767676),
                         BorderThickness = new Thickness(S(1, scale)),
                         Padding = new Thickness(S(10, scale), S(6, scale), S(10, scale), S(6, scale)),
@@ -255,7 +255,7 @@ public static class Markdown
                     yield return new Run(c.Value)
                     {
                         FontFamily = CodeFont,
-                        Background = Res("Raised", 0x2E2E2E),
+                        Background = Res("Raised", 0x181818),
                     };
                     break;
                 case MdStrong s:
@@ -272,7 +272,7 @@ public static class Markdown
                 }
                 case MdLink l:
                 {
-                    var link = new Hyperlink { Foreground = Res("Accent", 0xB3B0FF) };
+                    var link = new Hyperlink { Foreground = Res("Accent", 0x9AB6FF) };
                     if (TryUri(l.Url, out var uri)) link.NavigateUri = uri;
                     link.RequestNavigate += OnRequestNavigate;
                     WrapInline(link, l.Children, scale);

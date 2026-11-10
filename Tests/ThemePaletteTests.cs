@@ -68,6 +68,41 @@ public class ThemePaletteTests
         }
     });
 
+    // ホバーの色は置いた面で変わる。Panel で塗る器の Style.Resources が、中の部品の DynamicResource の引き先を差し替える。
+    // ダークは面ごとに値が違うため、ダークで確かめる（ライトは同じ値で、差し替えが効かなくても気づけない）。
+    [Theory]
+    [InlineData("PanelSurface")]
+    [InlineData("Card")]
+    [InlineData("OverlayCard")]
+    [InlineData("FilterCard")]
+    [InlineData("DropDownPanel")]
+    public void HoverOnPanel_UsesTheStageOneValue(string surfaceStyle) => AppThread.Run(() =>
+    {
+        var app = Application.Current;
+        var saved = app.Resources.MergedDictionaries.ToList();
+        try
+        {
+            app.Resources.MergedDictionaries.Clear();
+            ThemePalette.Load(app, AppTheme.Dark);
+            var onInk = ((SolidColorBrush)app.FindResource("RowHover")).Color;
+            var onPanel = (Color)app.FindResource("RowHoverOnPanelColor");
+            Assert.NotEqual(onInk, onPanel);
+
+            var inside = new Button { Style = (Style)app.FindResource("GhostButton") };
+            var surface = new Border { Style = (Style)app.FindResource(surfaceStyle), Child = inside };
+            var outside = new Button { Style = (Style)app.FindResource("GhostButton") };
+            _ = new StackPanel { Children = { surface, outside } };
+
+            Assert.Equal(onPanel, ((SolidColorBrush)inside.FindResource("RowHover")).Color);
+            Assert.Equal(onInk, ((SolidColorBrush)outside.FindResource("RowHover")).Color);
+        }
+        finally
+        {
+            app.Resources.MergedDictionaries.Clear();
+            foreach (var d in saved) app.Resources.MergedDictionaries.Add(d);
+        }
+    });
+
     private static Color BrushOf(Style style, DependencyProperty property)
         => ((SolidColorBrush)style.Setters.OfType<Setter>().Single(s => s.Property == property).Value).Color;
 

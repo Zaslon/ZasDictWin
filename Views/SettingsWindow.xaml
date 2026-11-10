@@ -46,7 +46,7 @@
     <!-- UI 倍率。本体の窓（MainWindow.xaml）と同じく中身の根に掛ける。 -->
     <Grid LayoutTransform="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScaleTransform}">
     <DockPanel>
-        <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
+        <Border DockPanel.Dock="Top" Style="{StaticResource PanelSurface}" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
                 BorderThickness="0,0,0,1" Padding="16,10"
                 MouseLeftButtonDown="Header_MouseLeftButtonDown">
             <DockPanel>
