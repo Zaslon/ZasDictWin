@@ -46,9 +46,8 @@ public abstract record HostCommand
     public sealed record OpenSettings(SettingsViewModel State) : HostCommand;
     public sealed record ToggleStream(bool Open) : HostCommand;
     public sealed record ToggleCount(bool Open) : HostCommand;
-    /// <summary>AspectRatio が null なら比率固定を解除する。Width / Height が NaN なら大きさは変えない。
-    /// Maximize は起動時の復元で最大化するときだけ真。</summary>
-    public sealed record ApplyShellSize(double Width, double Height, double? AspectRatio, bool Maximize = false) : HostCommand;
+    /// <summary>Width / Height が NaN なら大きさは変えない。Maximize は起動時の復元で最大化するときだけ真。</summary>
+    public sealed record ApplyShellSize(double Width, double Height, bool Maximize = false) : HostCommand;
     public sealed record ShowDragGhost(string Title, Point AtDip) : HostCommand;
     public sealed record HideDragGhost : HostCommand;
     /// <summary>AdornerDecorator の一覧が開いた／閉じた。WebView2 は airspace で手前に出るため隠す。</summary>

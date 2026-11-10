@@ -16,7 +16,7 @@
             <Border DockPanel.Dock="Top" Padding="24,18" BorderBrush="{StaticResource Divider}" BorderThickness="0,0,0,1"
 >
                 <TextBlock v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold"
-                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
+                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
             </Border>
 
             <Border DockPanel.Dock="Bottom" Padding="24,14" BorderBrush="{StaticResource Divider}" BorderThickness="0,1,0,0">
@@ -32,7 +32,7 @@
                     <TextBlock Grid.Column="0" v:LocalizedText.Text="{Binding ValidationMessage}" Foreground="{StaticResource Danger}"
                                VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,12,0"
                                Visibility="{Binding ValidationMessage, Converter={StaticResource NullVis}}"
-                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
                     <Button Grid.Column="1" v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="WordEditCancelled" />
                     <Button Grid.Column="2" v:LocalizedText.Content="{x:Static res:Strings.Common_Register}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="WordCommitted" Margin="0" />
                 </Grid>
@@ -49,7 +49,7 @@
                     <TextBlock v:LocalizedText.Text="{x:Static res:Strings.WordEdit_FormLabel}" Style="{StaticResource Label}" />
                     <TextBox x:Name="FormBox" Text="{Binding Form, UpdateSourceTrigger=PropertyChanged}"
                              FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=FieldFamily}"
-                             FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}" />
+                             FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
 
                     <!-- 発音記号は「内容」欄の「発音記号」が単一の保存先（専用の発音欄は設けない）。 -->
 
@@ -74,7 +74,7 @@
                                             <Border Grid.Column="0" v:RowDrag.IsGrip="True" Background="Transparent"
                                                     Padding="2,0,8,0" ToolTip="{x:Static res:Strings.WordEdit_DragTooltip}">
                                                 <TextBlock Text="≡" Foreground="{StaticResource Muted}" VerticalAlignment="Center"
-                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}" />
+                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h3}" />
                                             </Border>
                                             <TextBox Grid.Column="1" Text="{Binding FormsText, UpdateSourceTrigger=PropertyChanged}"
                                                      Margin="0,0,6,0" />
@@ -192,7 +192,7 @@
                                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
                                                 <TextBlock Text="{Binding TranslationSummary}" Foreground="{StaticResource Muted}"
                                                            FontFamily="{x:Static res:Strings.ContentFont}"
-                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
+                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}"
                                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="520" />
                                             </StackPanel>
                                         </Button>

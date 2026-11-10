@@ -1,0 +1,61 @@
+<UserControl x:Class="ZasDictWin.Views.Overlays.DisplaySettingsOverlay"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="clr-namespace:ZasDictWin.Views"
+             xmlns:r="clr-namespace:ZasDictWin.Root"
+             xmlns:vm="clr-namespace:ZasDictWin.ViewModels"
+             xmlns:res="clr-namespace:ZasDictWin.Resources">
+
+    <!-- 表示の設定（ZasDesignSystem rules.md「表示の設定を備える」）。選んだ時点で反映するので［適用］は持たない。
+         確認ダイアログの層に重ねるので、配信にも映り、本体の見え方を確かめながら選べる。
+         倍率を最大にしても閉じるボタンが押せるよう、本文だけをスクロールさせる。 -->
+    <Border Style="{StaticResource Card}" MaxWidth="560" Margin="40,28"
+            VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
+        <DockPanel>
+            <!-- 開いたときのフォーカスは見出しに置く（DisplaySettingsOverlay.xaml.cs）。 -->
+            <TextBlock x:Name="Heading" DockPanel.Dock="Top" v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold"
+                       Focusable="True" KeyboardNavigation.IsTabStop="False" FocusVisualStyle="{x:Null}"
+                       AutomationProperties.HeadingLevel="Level1"
+                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
+
+            <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button v:LocalizedText.Content="{x:Static res:Strings.Common_Close}" r:IntentTrigger.OnClick="ModalDismissRequested" Margin="0" />
+            </StackPanel>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="0,8,0,0">
+                    <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Display_Note}" Style="{StaticResource Label}" />
+
+                    <TextBlock x:Name="UiScaleHeading" v:LocalizedText.Text="{x:Static res:Strings.Display_UiScaleLabel}" Style="{StaticResource FieldLabel}" Margin="0,16,0,5" />
+                    <v:DropDown ItemsSource="{Binding UiScaleOptions}" DisplayMemberPath="Label" SelectedItem="{Binding SelectedUiScale}"
+                                HorizontalAlignment="Left" MinWidth="160"
+                                AutomationProperties.LabeledBy="{Binding ElementName=UiScaleHeading}" />
+                    <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Display_UiScaleNote}" Style="{StaticResource Label}" Margin="0,4,0,0" />
+
+                    <TextBlock x:Name="FontSizeHeading" v:LocalizedText.Text="{x:Static res:Strings.Display_FontSizeLabel}" Style="{StaticResource FieldLabel}" Margin="0,16,0,5" />
+                    <v:DropDown ItemsSource="{Binding FontSizeOptions}" DisplayMemberPath="Label" SelectedItem="{Binding SelectedFontSize}"
+                                HorizontalAlignment="Left" MinWidth="160"
+                                AutomationProperties.LabeledBy="{Binding ElementName=FontSizeHeading}" />
+                    <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Display_FontSizeNote}" Style="{StaticResource Label}" Margin="0,4,0,0" />
+
+                    <TextBlock x:Name="FontHeading" v:LocalizedText.Text="{x:Static res:Strings.Display_FontLabel}" Style="{StaticResource FieldLabel}" Margin="0,16,0,5" />
+                    <v:DropDown ItemsSource="{Binding FontOptions}" DisplayMemberPath="Label" SelectedItem="{Binding SelectedFont}"
+                                AutomationProperties.LabeledBy="{Binding ElementName=FontHeading}" />
+
+                    <!-- 密度は 2 つから選ぶので、状態を選択肢の言葉で示すラジオグループにする。 -->
+                    <v:HeadedRow Margin="0,16,0,0" HorizontalAlignment="Left">
+                        <TextBlock x:Name="DensityHeading" v:LocalizedText.Text="{x:Static res:Strings.Display_DensityLabel}" Style="{StaticResource RadioGroupHeading}" />
+                        <Border Style="{StaticResource RadioGroupFrame}">
+                            <UniformGrid Rows="1" v:RadioGroup.IsGroup="True" AutomationProperties.LabeledBy="{Binding ElementName=DensityHeading}">
+                                <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Display_DensityStandard}"
+                                             IsChecked="{Binding IsStandardDensity, Mode=TwoWay}" />
+                                <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Display_DensityCompact}"
+                                             IsChecked="{Binding IsCompactDensity, Mode=TwoWay}" />
+                            </UniformGrid>
+                        </Border>
+                    </v:HeadedRow>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>

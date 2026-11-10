@@ -16,7 +16,7 @@
                     <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Common_Close}" Style="{StaticResource GhostButton}"
                             r:IntentTrigger.OnClick="TabCloseRequested" r:IntentTrigger.Payload="{Binding}" Margin="0" />
                     <TextBlock v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
-                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
                 </DockPanel>
             </Border>
 
@@ -57,11 +57,11 @@
                                                    FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
                                         <TextBlock Text="{Binding TranslationPreview}" Foreground="{StaticResource Muted}"
                                                    Margin="0,2,0,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
                                         <TextBlock Text="{Binding TagSummary}" Foreground="{StaticResource Accent}"
                                                    Margin="0,2,0,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                                                    Visibility="{Binding Tags.Count, Converter={StaticResource CountVis}}"
-                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
                                     </StackPanel>
                                 </Button>
                             </DataTemplate>

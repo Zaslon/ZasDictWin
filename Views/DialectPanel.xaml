@@ -11,7 +11,7 @@
         <StackPanel>
             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Dialect_InputLabel}" Style="{StaticResource Label}" />
             <TextBox Text="{Binding Input, UpdateSourceTrigger=PropertyChanged, Delay=120}"
-                     FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}" />
+                     FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
 
             <Grid Margin="0,18,0,0">
                 <!-- 方言名は文字サイズ倍率に合わせて伸びるので、固定幅にすると折り返す -->
@@ -29,22 +29,22 @@
                 <TextBlock Grid.Row="0" Grid.Column="0" v:LocalizedText.Text="{x:Static res:Strings.Dialect_SekoreLabel}"
                            Foreground="{StaticResource Muted}" Margin="0,0,16,10" TextWrapping="NoWrap" VerticalAlignment="Center" />
                 <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Sekore, Mode=OneWay}" IsReadOnly="True"
-                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}" Margin="0,0,0,10" />
+                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" Margin="0,0,0,10" />
 
                 <TextBlock Grid.Row="1" Grid.Column="0" v:LocalizedText.Text="{x:Static res:Strings.Dialect_TitauiniLabel}"
                            Foreground="{StaticResource Muted}" Margin="0,0,16,10" TextWrapping="NoWrap" VerticalAlignment="Center" />
                 <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding Titauini, Mode=OneWay}" IsReadOnly="True"
-                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}" Margin="0,0,0,10" />
+                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" Margin="0,0,0,10" />
 
                 <TextBlock Grid.Row="2" Grid.Column="0" v:LocalizedText.Text="{x:Static res:Strings.Dialect_KaikoLabel}"
                            Foreground="{StaticResource Muted}" Margin="0,0,16,10" TextWrapping="NoWrap" VerticalAlignment="Center" />
                 <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding Kaiko, Mode=OneWay}" IsReadOnly="True"
-                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}" Margin="0,0,0,10" />
+                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" Margin="0,0,0,10" />
 
                 <TextBlock Grid.Row="3" Grid.Column="0" v:LocalizedText.Text="{x:Static res:Strings.Dialect_ArzafireLabel}"
                            Foreground="{StaticResource Muted}" Margin="0,0,16,0" TextWrapping="NoWrap" VerticalAlignment="Center" />
                 <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding Arzafire, Mode=OneWay}" IsReadOnly="True"
-                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}" />
+                         FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
             </Grid>
 
             <CheckBox Margin="0,16,0,0" IsChecked="{Binding FaithfulTitauini}"

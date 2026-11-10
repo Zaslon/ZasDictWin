@@ -66,7 +66,4 @@
     <SolidColorBrush x:Key="NotifySuccess" Color="#115A36" />
     <SolidColorBrush x:Key="NotifyWarning" Color="#806300" />
     <SolidColorBrush x:Key="NotifyError" Color="#CE0000" />
-
-    <SolidColorBrush x:Key="FocusInner" Color="#FFD43D" />
-    <SolidColorBrush x:Key="FocusOuter" Color="#000000" />
 </ResourceDictionary>

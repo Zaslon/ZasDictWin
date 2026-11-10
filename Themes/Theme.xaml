@@ -12,6 +12,8 @@
     <v:StringToBrushConverter x:Key="StringBrush" />
     <v:ScaleFontSizeConverter x:Key="ScaleFont" />
     <v:ScaleThicknessConverter x:Key="ScaleThickness" />
+    <v:ScaleLineHeightConverter x:Key="ScaleLineHeight" />
+    <v:ScaleMinSizeConverter x:Key="ScaleMinSize" />
     <v:SplitMarginConverter x:Key="SplitMargin" />
     <v:PlainTextConverter x:Key="PlainText" />
 
@@ -23,17 +25,17 @@
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
-    <!-- キーボードで選んだ要素のフォーカス表示（tokens.md「フォーカス表示」）。要素のすぐ外に黄 2、その外に黒 4。
-         どの背景でもどちらかの線が見える。FocusVisualStyle は AdornerLayer に描かれるので、要素の寸法は変わらない。
-         操作要素の Style ではこれを FocusVisualStyle に指定する（既定の点線は細く、背景によっては見えない）。 -->
+    <!-- キーボードで選んだ要素のフォーカス表示（ZasDesignSystem implementation/wpf.md「フォーカス表示」）。
+         color-accent、太さ 2 の枠を要素から 2 離して描く。FocusVisualStyle は Tab や矢印キーで移ったときだけ描かれ、
+         クリックで選んだときは出ない。テンプレートの IsFocused / IsKeyboardFocused のトリガーで描くと、
+         クリックでも出てしまうので、操作要素の Style ではこれを FocusVisualStyle に指定する。
+         AdornerLayer に描かれるので、要素の寸法は変わらない。 -->
     <Style x:Key="FocusRing">
         <Setter Property="Control.Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Border Margin="-6" BorderBrush="{StaticResource FocusOuter}" BorderThickness="4" CornerRadius="12"
-                            SnapsToDevicePixels="True">
-                        <Border BorderBrush="{StaticResource FocusInner}" BorderThickness="2" CornerRadius="9" />
-                    </Border>
+                    <Border Margin="-4" BorderBrush="{StaticResource Accent}" BorderThickness="2" CornerRadius="10"
+                            SnapsToDevicePixels="True" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -51,7 +53,10 @@
          横スクロールを封じているために末尾が切れて読めなくなる。 -->
     <Style x:Key="Label" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
+        <!-- 複数行にわたる案内文なので text-body の行高を当てる。BlockLineHeight でないと、書体の行の高さより小さくできない。 -->
+        <Setter Property="LineHeight" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleLineHeight}, ConverterParameter=body}" />
+        <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Margin" Value="0,0,0,4" />
     </Style>
@@ -60,7 +65,7 @@
          値より小さく薄くなり、名前のほうが埋もれる。本文と同じ大きさ＋通常の文字色で前に出す。 -->
     <Style x:Key="FieldLabel" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Margin" Value="0,0,0,5" />
@@ -81,7 +86,7 @@
          分け、かたまりの区切りはカード枠に担わせる。 -->
     <Style x:Key="SectionHeading" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=15}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h3}" />
         <Setter Property="FontWeight" Value="SemiBold" />
         <Setter Property="TextWrapping" Value="Wrap" />
         <Setter Property="Margin" Value="0,0,0,8" />
@@ -90,7 +95,9 @@
     <!-- 表示するものがないことを伝える案内 -->
     <Style x:Key="EmptyState" TargetType="TextBlock">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
+        <Setter Property="LineHeight" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleLineHeight}, ConverterParameter=body}" />
+        <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
         <!-- Stretch にしておかないと要素が内容幅で自動サイズになり、折り返さずにはみ出す -->
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="TextAlignment" Value="Center" />
@@ -275,7 +282,7 @@
         <Setter Property="Padding" Value="0" />
         <Setter Property="Margin" Value="0,0,4,0" />
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
                 <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -315,49 +322,9 @@
         </Style.Triggers>
     </Style>
 
-    <!-- 検索条件の切り替え。選んだ状態は面（color-selected-background）とアクセント枠に加えて
-         太字でも示す（色だけに頼らない）。全面をアクセント色で塗ると 8 個並んだときに主張が強すぎる。
-         角は radius-chip。長丸にすると文字数の少ない項目（「訳語」「名詞」など）がほぼ真円に見えて、
-         隣のボタンや入力欄と形が揃わない。 -->
-    <Style x:Key="Chip" TargetType="ToggleButton">
-        <Setter Property="Foreground" Value="{StaticResource Muted}" />
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Padding" Value="9,4" />
-        <Setter Property="Margin" Value="0,0,5,0" />
-        <Setter Property="MinHeight" Value="28" />
-        <Setter Property="Cursor" Value="Hand" />
-        <Setter Property="SnapsToDevicePixels" Value="True" />
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="ToggleButton">
-                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}"
-                            BorderBrush="{StaticResource Line}" BorderThickness="1">
-                        <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center" />
-                    </Border>
-                    <ControlTemplate.Triggers>
-                        <!-- ホバーは選択より前に書く。後に書くと選んだチップに触れたときに選択の面が消える -->
-                        <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
-                            <Setter Property="Foreground" Value="{StaticResource Text}" />
-                        </Trigger>
-                        <Trigger Property="IsChecked" Value="True">
-                            <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
-                            <Setter Property="Foreground" Value="{StaticResource Text}" />
-                            <Setter Property="FontWeight" Value="SemiBold" />
-                        </Trigger>
-                        <Trigger Property="IsEnabled" Value="False">
-                            <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Disabled}" />
-                        </Trigger>
-                    </ControlTemplate.Triggers>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
-    </Style>
-
-    <!-- 入力欄。v:Placeholder.Text を付けると、空のときだけ薄い案内文字が出る -->
+    <!-- 入力欄。v:Placeholder.Text を付けると、空のときだけ薄い案内文字が出る。
+         フォーカス表示は FocusVisualStyle ではなく枠で示す（ZasDesignSystem implementation/wpf.md「フォーカス表示」の入力欄の例外）。
+         入力先を示すため、クリックで選んだときも同じにする。 -->
     <Style TargetType="TextBox">
         <Setter Property="Foreground" Value="{StaticResource Text}" />
         <Setter Property="CaretBrush" Value="{StaticResource Accent}" />
@@ -365,7 +332,8 @@
         <Setter Property="BorderBrush" Value="{StaticResource InputBorder}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="18,12" />
-        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="Validation.ErrorTemplate" Value="{x:Null}" />
         <Setter Property="SelectionBrush" Value="{StaticResource Accent}" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <!-- 単一行の入力欄は中身を縦中央に置く。高さを明示した欄でも余白が上下に割れるようにするため。
@@ -383,6 +351,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
+                    <Grid>
                     <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
@@ -397,13 +366,18 @@
                                  （URL 欄の en、綴り欄の Heksa、英数字だけの欄の Consolas）は継承させない。 -->
                             <TextBlock x:Name="ph"
                                        v:LocalizedText.Text="{Binding Path=(v:Placeholder.Text), RelativeSource={RelativeSource TemplatedParent}}"
-                                       FontFamily="{x:Static res:Strings.UIFont}"
+                                       FontFamily="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiFont}"
                                        Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                                        Foreground="{StaticResource Muted}"
                                        TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                                        IsHitTestVisible="False" Visibility="Collapsed" />
                         </Grid>
                     </Border>
+                    <!-- フォーカス中・エラー中の太さ 2 の枠。bd の枠を 1 から 2 に太くすると中の文字が 1 ずれるので、
+                         太くせずに同じ角丸の枠を上に重ねる（重ねた枠の内側 1 は余白に掛かるだけで、文字は動かない）。 -->
+                    <Border x:Name="ring" CornerRadius="8" BorderThickness="2" IsHitTestVisible="False"
+                            BorderBrush="{StaticResource Accent}" Visibility="Collapsed" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="Text" Value="">
                             <Setter TargetName="ph" Property="Visibility" Value="Visible" />
@@ -412,7 +386,12 @@
                             <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Text}" />
                         </Trigger>
                         <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
+                            <Setter TargetName="ring" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <!-- エラーはフォーカスより後に書く。両方が成り立つときは後のトリガーが勝ち、枠はエラーの色のまま太さだけ 2 になる。 -->
+                        <Trigger Property="Validation.HasError" Value="True">
+                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Danger}" />
+                            <Setter TargetName="ring" Property="BorderBrush" Value="{StaticResource Danger}" />
                         </Trigger>
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="bd" Property="Background" Value="{StaticResource Disabled}" />
@@ -530,8 +509,12 @@
         </Setter>
     </Style>
 
-    <!-- ツールチップは既定が白背景なので、ダークテーマに合わせたカードに差し替える -->
+    <!-- ツールチップは既定が白背景なので、ダークテーマに合わせたカードに差し替える。
+         別の視覚ツリーなので窓の根に掛けた UI 倍率が届かず、ここで同じ倍率を掛ける。 -->
     <Style TargetType="ToolTip">
+        <Setter Property="LayoutTransform" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScaleTransform}" />
+        <Setter Property="FontFamily" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiFont}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=small}" />
         <Setter Property="Foreground" Value="{StaticResource Text}" />
         <Setter Property="Background" Value="{StaticResource Raised}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
@@ -992,7 +975,7 @@
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="TextAlignment" Value="Center" />
         <Setter Property="TextWrapping" Value="Wrap" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
     </Style>
 
     <!-- 単語詳細の節。囲みを積み重ねるとカードの縁ばかりが目に付き、本文より枠が強く出るため、
@@ -1008,11 +991,11 @@
          本文＝継承の 14 と、この 13 の 2 つだけに揃えてある。欄ごとに FontSize を直書きすると
          訳語欄と内容欄のように大きさがずれるので、必ずこの style を経由させること。 -->
     <Style x:Key="DetailLabel" TargetType="TextBlock" BasedOn="{StaticResource {x:Type TextBlock}}">
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
     </Style>
 
     <Style x:Key="DetailLabelText" TargetType="{x:Type v:SelectableText}" BasedOn="{StaticResource {x:Type v:SelectableText}}">
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
     </Style>
 
     <!-- 詳細面に残す数少ない見出し（行の添え字だけでは何の節か読めないもの）。
@@ -1049,6 +1032,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:DropDown}">
+                    <Grid>
                     <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
@@ -1082,6 +1066,9 @@
                                   Fill="{StaticResource Muted}" Margin="6,0,10,0" VerticalAlignment="Center" />
                         </Grid>
                     </Border>
+                    <Border x:Name="ring" CornerRadius="8" BorderThickness="2" IsHitTestVisible="False"
+                            BorderBrush="{StaticResource Accent}" Visibility="Collapsed" />
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="HasSelection" Value="False">
                             <Setter TargetName="ph" Property="Visibility" Value="Visible" />
@@ -1096,9 +1083,14 @@
                             <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
                             <Setter TargetName="arrow" Property="Fill" Value="{StaticResource Text}" />
                         </Trigger>
-                        <Trigger Property="IsKeyboardFocused" Value="True">
-                            <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
-                        </Trigger>
+                        <!-- 打ち込める形は入力欄なので、入力欄と同じく枠でフォーカスを示す。選ぶだけの形は FocusVisualStyle に任せる。 -->
+                        <MultiTrigger>
+                            <MultiTrigger.Conditions>
+                                <Condition Property="IsEditable" Value="True" />
+                                <Condition Property="IsKeyboardFocusWithin" Value="True" />
+                            </MultiTrigger.Conditions>
+                            <Setter TargetName="ring" Property="Visibility" Value="Visible" />
+                        </MultiTrigger>
                         <Trigger Property="IsOpen" Value="True">
                             <Setter TargetName="bd" Property="BorderBrush" Value="{StaticResource Accent}" />
                             <Setter TargetName="arrow" Property="Fill" Value="{StaticResource Text}" />
@@ -1234,21 +1226,171 @@
     </Style>
 
     <!-- 項目 1 つぶん。保存など IsPrimary の項目だけ、文字色と太さで強調する
-         （並びの中で見失わないように。面で塗ると 1 行だけ囲みが復活して浮く）。 -->
+         （並びの中で見失わないように。面で塗ると 1 行だけ囲みが復活して浮く）。
+         ショートカットは項目の右端に出す（ZasDesignSystem rules.md「パソコンのソフトにはメニューバーを設ける」）。
+         GroupStart の項目の上には区切り線を引く。区切り線は項目ごと隠れるよう、ボタンと同じ入れ物に入れる。 -->
     <DataTemplate x:Key="MenuActionTemplate" DataType="{x:Type med:MenuActionSpec}">
-        <Button v:LocalizedText.Content="{Binding Header}" ToolTip="{Binding ToolTip}" IsEnabled="{Binding IsEnabled}"
-                Visibility="{Binding IsVisible, Converter={StaticResource BoolVis}}">
-            <Button.Style>
-                <Style TargetType="Button" BasedOn="{StaticResource MenuItemButton}">
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding IsPrimary}" Value="True">
-                            <Setter Property="Foreground" Value="{StaticResource Accent}" />
-                            <Setter Property="FontWeight" Value="SemiBold" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Button.Style>
-        </Button>
+        <StackPanel Visibility="{Binding IsVisible, Converter={StaticResource BoolVis}}">
+            <Border Height="1" Margin="6,4" Background="{StaticResource Divider}"
+                    Visibility="{Binding GroupStart, Converter={StaticResource BoolVis}}" />
+            <Button ToolTip="{Binding ToolTip}" IsEnabled="{Binding IsEnabled}"
+                    AutomationProperties.AcceleratorKey="{Binding Shortcut}">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource MenuItemButton}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsPrimary}" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource Accent}" />
+                                <Setter Property="FontWeight" Value="SemiBold" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ToolTip}" Value="">
+                                <Setter Property="ToolTip" Value="{x:Null}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+                <DockPanel>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding Shortcut}" Margin="24,0,0,0"
+                               Foreground="{StaticResource Muted}" FontWeight="Normal"
+                               TextWrapping="NoWrap" VerticalAlignment="Center" />
+                    <TextBlock v:LocalizedText.Text="{Binding Label}" Style="{x:Null}"
+                               TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                </DockPanel>
+            </Button>
+        </StackPanel>
     </DataTemplate>
+
+    <!-- メニューバーの見出し（v:MenuButton）。標準のメニューバーと同じく、枠も開閉の三角も持たない。
+         Tab の移動先に含めない（Alt か F10 で移る）。下線はリンクと紛れるので引かない。 -->
+    <Style x:Key="MenuBarButton" TargetType="{x:Type v:MenuButton}">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="10,6" />
+        <Setter Property="Margin" Value="0" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="{x:Type v:MenuButton}">
+                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}">
+                        <TextBlock v:LocalizedText.Text="{Binding Label, RelativeSource={RelativeSource TemplatedParent}}"
+                                   Foreground="{TemplateBinding Foreground}" Margin="{TemplateBinding Padding}"
+                                   VerticalAlignment="Center" TextWrapping="NoWrap" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource RowHover}" />
+                        </Trigger>
+                        <Trigger Property="IsOpen" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{StaticResource AccentDim}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- ラジオグループ（ZasDesignSystem components.md「ラジオグループ」、implementation/wpf.md「ラジオグループ」）。
+         外枠は RadioGroupFrame、中の並びに v:RadioGroup.IsGroup を付け、選択肢は RadioGroupItem の RadioButton。
+         区切り線と両端の角丸は v:RadioGroup が並びの位置から付ける（外枠の Border は子の背景を角丸で切り抜かない）。 -->
+    <Style x:Key="RadioGroupFrame" TargetType="Border">
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+    </Style>
+
+    <Style x:Key="RadioGroupItem" TargetType="RadioButton">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="Background" Value="{StaticResource Raised}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <!-- size-control-sm。文字が大きくなれば高さを伸ばす -->
+        <Setter Property="MinHeight" Value="36" />
+        <Setter Property="Padding" Value="12,4" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}" />
+        <!-- Tab では選択中の選択肢にだけ止まる。グループの中は矢印キーで移る（v:RadioGroup）。 -->
+        <Setter Property="IsTabStop" Value="False" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="RadioButton">
+                    <!-- 選択中の印（標準の丸）は描かない。印の分だけ文字が動く。 -->
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="{Binding (v:RadioGroup.ItemCornerRadius), RelativeSource={RelativeSource TemplatedParent}}">
+                        <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsChecked" Value="False" />
+                    <Condition Property="IsMouseOver" Value="True" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{StaticResource ButtonHover}" />
+                <Setter Property="Foreground" Value="{StaticResource ButtonTextHover}" />
+            </MultiTrigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsChecked" Value="False" />
+                    <Condition Property="IsPressed" Value="True" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{StaticResource ButtonActive}" />
+                <Setter Property="Foreground" Value="{StaticResource ButtonTextActive}" />
+            </MultiTrigger>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Background" Value="{StaticResource AccentFill}" />
+                <Setter Property="Foreground" Value="{StaticResource OnFill}" />
+                <Setter Property="IsTabStop" Value="True" />
+            </Trigger>
+            <Trigger Property="IsEnabled" Value="False">
+                <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
+            </Trigger>
+            <MultiTrigger>
+                <MultiTrigger.Conditions>
+                    <Condition Property="IsChecked" Value="True" />
+                    <Condition Property="IsEnabled" Value="False" />
+                </MultiTrigger.Conditions>
+                <Setter Property="Background" Value="{StaticResource Disabled}" />
+                <Setter Property="Foreground" Value="{StaticResource OnDisabled}" />
+            </MultiTrigger>
+            <!-- 高コントラストでは選択中を図と地の反転で示す。 -->
+            <MultiDataTrigger>
+                <MultiDataTrigger.Conditions>
+                    <Condition Binding="{Binding Source={x:Static SystemParameters.HighContrast}}" Value="True" />
+                    <Condition Binding="{Binding IsChecked, RelativeSource={RelativeSource Self}}" Value="True" />
+                </MultiDataTrigger.Conditions>
+                <Setter Property="Background" Value="{x:Static SystemColors.HighlightBrush}" />
+                <Setter Property="Foreground" Value="{x:Static SystemColors.HighlightTextBrush}" />
+            </MultiDataTrigger>
+            <!-- フォーカスの枠が隣の選択肢に隠れないよう前面に出す。 -->
+            <Trigger Property="IsKeyboardFocused" Value="True">
+                <Setter Property="Panel.ZIndex" Value="1" />
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
+    <!-- 縦一列のラジオグループの選択肢。文字は左に寄せる。 -->
+    <Style x:Key="RadioGroupItemVertical" TargetType="RadioButton" BasedOn="{StaticResource RadioGroupItem}">
+        <Setter Property="HorizontalContentAlignment" Value="Left" />
+    </Style>
+
+    <!-- ラジオグループの見出し。横一列では左に置く。 -->
+    <Style x:Key="RadioGroupHeading" TargetType="TextBlock">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+    </Style>
 
 </ResourceDictionary>

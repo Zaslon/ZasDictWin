@@ -81,7 +81,7 @@
                      落とすだけ）。行ごと en のフォントに寄せ、URL が読めることを優先する。 -->
                 <TextBlock t:EllipsisMiddle.Source="{Binding Status}" Foreground="{StaticResource Muted}"
                            FontFamily="{x:Static res:Strings.EnFont}"
-                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
+                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}"
                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
             </Border>
 

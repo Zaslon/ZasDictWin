@@ -95,12 +95,10 @@ public sealed class SettingsViewModel : OverlayViewModel
 
         Language = settings.Language;
         SortOrder = settings.SortOrder;
-        FontScale = settings.FontScale;
         AutoSave = settings.AutoSave;
         _theme = settings.Theme;
         WindowWidth = settings.WindowWidth;
         WindowHeight = settings.WindowHeight;
-        WindowAspectLocked = settings.WindowAspectLocked;
         HeksaEnabled = settings.HeksaEnabled;
         _heksaFontSource = settings.HeksaFontSource;
         _heksaFontPath = settings.HeksaFontPath ?? "";
@@ -147,7 +145,7 @@ public sealed class SettingsViewModel : OverlayViewModel
 
     private string Snapshot() => JsonSerializer.Serialize(new object?[]
     {
-        Language, SortOrder, FontScale, AutoSave, Theme, WindowWidth, WindowHeight, WindowAspectLocked,
+        Language, SortOrder, AutoSave, Theme, WindowWidth, WindowHeight,
         HeksaEnabled, HeksaFontSource, HeksaFontPath, HeksaFontName, ReciprocalText, Punctuations, IgnoredPattern,
         StreamBackground, StreamFontScale, StreamTopmost, StreamShowTranslations, StreamShowContents,
         BrowserVisible, BrowserStartUrl,
@@ -189,7 +187,6 @@ public sealed class SettingsViewModel : OverlayViewModel
     }
 
     public string SortOrder { get; set; }
-    public double FontScale { get; set; }
     public bool AutoSave { get; set; }
 
     private AppTheme _theme;
@@ -198,7 +195,6 @@ public sealed class SettingsViewModel : OverlayViewModel
 
     public double WindowWidth { get; set; }
     public double WindowHeight { get; set; }
-    public bool WindowAspectLocked { get; set; }
 
     private bool _heksaEnabled;
     public bool HeksaEnabled

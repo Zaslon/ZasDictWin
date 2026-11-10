@@ -21,10 +21,7 @@ namespace ZasDictWin.Views;
 /// </summary>
 public static class EtymologyText
 {
-    /// <summary>本文の行送り。scale=1.0 のときの px 値で、文字サイズと同じ倍率で伸び縮みさせる。</summary>
-    private const string LineHeightAtScaleOne = "22";
-
-    private static readonly ScaleFontSizeConverter ScaleLineHeight = new();
+    private static readonly ScaleLineHeightConverter ScaleLineHeight = new();
 
     public static readonly DependencyProperty ContentProperty =
         DependencyProperty.RegisterAttached("Content", typeof(ContentItem), typeof(EtymologyText),
@@ -67,7 +64,7 @@ public static class EtymologyText
                     {
                         Source = FontScaleState.Instance,
                         Converter = ScaleLineHeight,
-                        ConverterParameter = LineHeightAtScaleOne
+                        ConverterParameter = "body"
                     });
                 rtb.Document = document;
                 break;

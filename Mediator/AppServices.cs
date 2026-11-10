@@ -47,6 +47,9 @@ public interface IAppServices
     string? PickOpenPath(string title, string filter);
     string? PickSavePath(string title, string filter, string suggestedFileName);
 
+    /// <summary>既定のブラウザで開く（ヘルプ → 使い方）。</summary>
+    void OpenExternal(string url);
+
     bool TryGetGitHubTarget(out GitHubTarget target, out string error);
     /// <summary>GitHub モードで読み書きするローカルのファイル。</summary>
     string GitHubWorkingCopyPath(GitHubTarget target, string? docPath);
@@ -128,6 +131,18 @@ public sealed class AppServices : IAppServices
 
     public FontFamily? LoadHeksaFont(HeksaFontSource source, string? path, string? name)
         => HeadwordFontState.Load(source, path, name);
+
+    public void OpenExternal(string url)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (Exception ex) when (ex is System.ComponentModel.Win32Exception or InvalidOperationException)
+        {
+            ErrorLog.Write("ブラウザの起動", ex);
+        }
+    }
 
     public string? PickOpenPath(string title, string filter)
     {

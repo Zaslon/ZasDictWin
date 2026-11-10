@@ -112,8 +112,7 @@ public sealed partial class AppMediator
 
         // 標準の枠が無いので OS は大きさを覚えてくれない。前回閉じたときの大きさをここで復元する。
         var s = Settings;
-        Queue(new HostCommand.ApplyShellSize(s.WindowWidth, s.WindowHeight,
-            s.WindowAspectLocked ? s.WindowWidth / s.WindowHeight : null, s.WindowMaximized));
+        Queue(new HostCommand.ApplyShellSize(s.WindowWidth, s.WindowHeight, s.WindowMaximized));
         _starting = false;
     });
 
@@ -763,6 +762,16 @@ public sealed partial class AppMediator
             case AppCommand.ShowSettings:
                 ShowSettings();
                 break;
+            case AppCommand.ShowDisplaySettings:
+                ShowDisplaySettings();
+                break;
+            case AppCommand.ShowUsage:
+                _services.OpenExternal(Const.UsageUrl);
+                break;
+            case AppCommand.ShowAbout:
+                Confirm(Strings.Menu_About, string.Format(Strings.About_Message, _state.VersionLabel),
+                    (Strings.Common_Close, false, null));
+                break;
             case AppCommand.ShowExamples:
                 ShowExamples();
                 break;
@@ -833,23 +842,52 @@ public sealed partial class AppMediator
 
     // ---- 文字サイズ -----------------------------------------------------------------
 
-    /// <summary>Ctrl＋ホイールひと目盛りぶん文字サイズを増減する。動かす値は設定画面の倍率そのもの
-    /// なので、上下限も設定の適用と揃えてある。設定の再適用（ApplySettings）は通さない。
+    /// <summary>Ctrl＋ホイール・Ctrl＋＋／－で、文字の大きさを選択肢 1 つぶん動かす。動かす値は表示の設定の
+    /// 「文字の大きさ」そのもの。設定の再適用（ApplySettings）は通さない。
     /// あちらは Heksa フォントをファイルから読み直すため、ホイールの連打で毎回走らせるには重い。</summary>
     private void ZoomFont(int steps)
     {
-        var scale = Math.Clamp(Math.Round(Settings.FontScale + steps * 0.1, 1), MinFontScale, MaxFontScale);
+        var scale = TextStyles.StepScale(Settings.FontScale, Settings.Density, steps);
         if (Math.Abs(scale - Settings.FontScale) < 0.001) return;
 
         Settings.FontScale = scale;
         _services.SaveSettings();
-        FontScaleState.Instance.Scale = scale;
-        _state.RaiseSettingsChanged();
-        SetStatus(string.Format(Strings.Main_FontScaleStatus, $"{scale * 100:0}"));
+        ApplyDisplayState();
+        if (_state.ModalOverlay is DisplaySettingsViewModel open) open.SyncFontScale(scale);
+        SetStatus(string.Format(Strings.Main_FontScaleStatus, TextStyles.NearestBody(scale, Settings.Density)));
     }
 
-    private const double MinFontScale = 0.6;
-    private const double MaxFontScale = 3.0;
+    // ---- 表示の設定 -------------------------------------------------------------------
+
+    /// <summary>表示の設定は確認ダイアログの層に重ねる（配信に映る・本体を見ながら選べる）。
+    /// 選んだ時点で反映するので［適用］は持たず、閉じる・Esc で畳むだけ。</summary>
+    private void ShowDisplaySettings()
+    {
+        var vm = new DisplaySettingsViewModel(Settings);
+        vm.Changed += () => ApplyDisplaySettings(vm);
+        ShowModal(vm);
+    }
+
+    private void ApplyDisplaySettings(DisplaySettingsViewModel vm)
+    {
+        Settings.UiScale = Math.Clamp(vm.UiScale, TextStyles.MinScale, TextStyles.MaxScale);
+        Settings.FontScale = Math.Clamp(vm.FontScale, TextStyles.MinScale, TextStyles.MaxScale);
+        Settings.Density = vm.Density;
+        Settings.UiFontFamily = vm.FontFamilyName;
+        _services.SaveSettings();
+        ApplyDisplayState();
+    }
+
+    /// <summary>表示の設定を共有の状態（FontScaleState）へ写す。旧版の settings.json は倍率の範囲が広いので、ここで丸める。</summary>
+    private void ApplyDisplayState()
+    {
+        var display = FontScaleState.Instance;
+        display.Density = Settings.Density;
+        display.Scale = Math.Clamp(Settings.FontScale, TextStyles.MinScale, TextStyles.MaxScale);
+        display.UiScale = Math.Clamp(Settings.UiScale, TextStyles.MinScale, TextStyles.MaxScale);
+        display.UiFont = UiFonts.Compose(Settings.UiFontFamily, Strings.Meta_UIFontFamily);
+        _state.RaiseSettingsChanged();
+    }
 
     // ---- 窓 -----------------------------------------------------------------------
 
@@ -1003,12 +1041,11 @@ public sealed partial class AppMediator
         var s = Settings;
         s.Language = form.Language;
         s.SortOrder = string.IsNullOrWhiteSpace(form.SortOrder) ? TextProcessor.DefaultSortOrder : form.SortOrder;
-        s.FontScale = Math.Clamp(form.FontScale, MinFontScale, MaxFontScale);
+
         s.AutoSave = form.AutoSave;
         s.Theme = form.Theme;
         s.WindowWidth = Math.Max(form.WindowWidth, MinWindowWidth);
         s.WindowHeight = Math.Max(form.WindowHeight, MinWindowHeight);
-        s.WindowAspectLocked = form.WindowAspectLocked;
         s.HeksaEnabled = form.HeksaEnabled;
         s.HeksaFontSource = form.HeksaFontSource;
         s.HeksaFontPath = string.IsNullOrWhiteSpace(form.HeksaFontPath) ? null : form.HeksaFontPath;
@@ -1071,12 +1108,10 @@ public sealed partial class AppMediator
         RebuildIndex();
         // 配信用ウィンドウは設定から背景色などを読むので張り直させる。本体の窓は、最大化中は
         // Width/Height を上書きすると元に戻したときの大きさが狂うため、通常時だけ大きさを反映する。
-        // 固定する比率は既存の窓の実寸ではなく、設定欄に入っている幅・高さから決め直す。
         Queue(new HostCommand.RefreshStreamHosts());
         var normal = _shellWindowState == WindowState.Normal;
         Queue(new HostCommand.ApplyShellSize(
-            normal ? s.WindowWidth : double.NaN, normal ? s.WindowHeight : double.NaN,
-            s.WindowAspectLocked ? s.WindowWidth / s.WindowHeight : null));
+            normal ? s.WindowWidth : double.NaN, normal ? s.WindowHeight : double.NaN));
         if (docChanged) MarkDirty(Strings.Settings_AppliedStatus);
         else SetSuccess(Strings.Settings_AppliedStatus);
         CloseSettings(hostId);
@@ -1084,36 +1119,83 @@ public sealed partial class AppMediator
 
     // ---- メニュー -------------------------------------------------------------------
 
-    /// <summary>バーが手狭なので、開く・新規辞書・上書き保存・名前を付けて保存は階層メニューにまとめてある。</summary>
-    public IReadOnlyList<MenuActionSpec> BuildFileMenu() => new[]
+    // メニューバーの並びと中身は ZasDesignSystem rules.md「パソコンのソフトにはメニューバーを設ける」に従う
+    // （ファイル・編集・表示・ソフト固有［ツール・ウィンドウ］・設定・ヘルプ）。
+    // 選ぶとさらに入力を求める項目（ファイルダイアログ・エディタ・コミットメッセージ）にだけ Ellipsis を付ける。
+
+    public IReadOnlyList<MenuActionSpec> BuildFileMenu()
     {
-        new MenuActionSpec(Strings.Menu_Open, "Ctrl+O", IntentKind.OpenDictionaryRequested, null, CanExecute(AppCommand.Open), false, true),
-        new MenuActionSpec(Strings.Menu_NewDictionary, "", IntentKind.NewDictionaryRequested, null, CanExecute(AppCommand.NewDictionary), false, true),
-        new MenuActionSpec(Strings.Menu_Save, "Ctrl+S", IntentKind.SaveRequested, null, CanExecute(AppCommand.Save), true, true),
-        new MenuActionSpec(Strings.Menu_SaveAs, "Ctrl+Shift+S", IntentKind.SaveAsRequested, null, CanExecute(AppCommand.SaveAs), false, true),
+        var github = Settings.Mode == EditMode.GitHub;
+        return new[]
+        {
+            new MenuActionSpec(Strings.Menu_Open, "", IntentKind.OpenDictionaryRequested, null, CanExecute(AppCommand.Open), false, true,
+                Shortcut: "Ctrl+O", AccessKey: 'O', Ellipsis: true),
+            new MenuActionSpec(Strings.Menu_NewDictionary, "", IntentKind.NewDictionaryRequested, null, CanExecute(AppCommand.NewDictionary), false, true,
+                AccessKey: 'N'),
+            new MenuActionSpec(Strings.Menu_Save, "", IntentKind.SaveRequested, null, CanExecute(AppCommand.Save), true, true,
+                Shortcut: "Ctrl+S", AccessKey: 'S'),
+            new MenuActionSpec(Strings.Menu_SaveAs, "", IntentKind.SaveAsRequested, null, CanExecute(AppCommand.SaveAs), false, true,
+                Shortcut: "Ctrl+Shift+S", AccessKey: 'A', Ellipsis: true),
+            new MenuActionSpec(Strings.GitHub_LoadButton, "", IntentKind.GitHubLoadRequested, null, CanExecute(AppCommand.GitHubLoad), false, github,
+                AccessKey: 'L', GroupStart: true),
+            new MenuActionSpec(Strings.GitHub_CommitButton, "", IntentKind.GitHubCommitRequested, null, CanExecute(AppCommand.GitHubCommit), false, github,
+                AccessKey: 'C', Ellipsis: true),
+            // 終了は本体の × と同じ入口（未保存の確認を通る）。窓の大きさは WindowBoundsChanged で控えてある。
+            new MenuActionSpec(Strings.Menu_Exit, "", IntentKind.WindowCloseRequested, null, true, false, true,
+                Shortcut: "Alt+F4", AccessKey: 'X', GroupStart: true),
+        };
+    }
+
+    public IReadOnlyList<MenuActionSpec> BuildViewMenu() => new[]
+    {
+        new MenuActionSpec(Strings.Display_Title, "", IntentKind.OpenScreenRequested, AppCommand.ShowDisplaySettings,
+            CanExecute(AppCommand.ShowDisplaySettings), false, true, AccessKey: 'D', Ellipsis: true),
+        // Ctrl＋ホイールは画面上に手掛かりが無いので、同じ操作をここにも置く。
+        new MenuActionSpec(Strings.Menu_ZoomIn, "", IntentKind.ZoomFontRequested, 1, true, false, true,
+            Shortcut: "Ctrl++", AccessKey: 'I'),
+        new MenuActionSpec(Strings.Menu_ZoomOut, "", IntentKind.ZoomFontRequested, -1, true, false, true,
+            Shortcut: "Ctrl+-", AccessKey: 'O'),
+        new MenuActionSpec(Strings.Browser_Title, "", IntentKind.OpenScreenRequested, AppCommand.ShowBrowser,
+            CanExecute(AppCommand.ShowBrowser), false, true, AccessKey: 'B', GroupStart: true),
     };
 
     /// <summary>統計・凡例・更新履歴・方言変換・IPA→綴りは、常設のタブ枠を割かないよう独立ウィンドウで開く。
     /// すでに開いていれば作り直さず、そのタブを表に出すだけ（項目はグレーアウトさせない）。</summary>
     public IReadOnlyList<MenuActionSpec> BuildToolsMenu() => new[]
     {
-        Tool(Strings.Dialect_Title, AppCommand.ShowDialectTool),
-        Tool(Strings.Ipa_Title, AppCommand.ShowIpaTool),
-        Tool(Strings.Stats_Title, AppCommand.ShowStats),
-        Tool(Strings.Legend_Title, AppCommand.ShowLegend),
-        Tool(Strings.Changelog_Title, AppCommand.ShowChangelog),
+        new MenuActionSpec(Strings.Examples_Title, "", IntentKind.ShowExamplesRequested, null, CanExecute(AppCommand.ShowExamples), false, true,
+            AccessKey: 'E'),
+        Tool(Strings.Dialect_Title, AppCommand.ShowDialectTool, 'D'),
+        Tool(Strings.Ipa_Title, AppCommand.ShowIpaTool, 'I'),
+        Tool(Strings.Stats_Title, AppCommand.ShowStats, 'S'),
+        Tool(Strings.Legend_Title, AppCommand.ShowLegend, 'L'),
+        Tool(Strings.Changelog_Title, AppCommand.ShowChangelog, 'H'),
     };
 
-    private MenuActionSpec Tool(string header, AppCommand command)
-        => new(header, "", IntentKind.OpenScreenRequested, command, CanExecute(command), false, true);
+    private MenuActionSpec Tool(string header, AppCommand command, char accessKey)
+        => new(header, "", IntentKind.OpenScreenRequested, command, CanExecute(command), false, true, AccessKey: accessKey);
 
     /// <summary>配信用の独立ウィンドウ。開いているものは「閉じる」に変えて出す。</summary>
     public IReadOnlyList<MenuActionSpec> BuildWindowMenu() => new[]
     {
         new MenuActionSpec(_streamOpen ? Strings.Window_StreamMenuClose : Strings.Window_StreamMenuOpen,
-            Strings.Window_StreamMenuTooltip, IntentKind.StreamWindowToggleRequested, null, true, false, true),
+            Strings.Window_StreamMenuTooltip, IntentKind.StreamWindowToggleRequested, null, true, false, true, AccessKey: 'W'),
         new MenuActionSpec(_countOpen ? Strings.Window_CountMenuClose : Strings.Window_CountMenuOpen,
-            Strings.Window_CountMenuTooltip, IntentKind.CountWindowToggleRequested, null, true, false, true),
+            Strings.Window_CountMenuTooltip, IntentKind.CountWindowToggleRequested, null, true, false, true, AccessKey: 'C'),
+    };
+
+    public IReadOnlyList<MenuActionSpec> BuildSettingsMenu() => new[]
+    {
+        new MenuActionSpec(Strings.Settings_Title, "", IntentKind.SettingsRequested, null, CanExecute(AppCommand.ShowSettings), false, true,
+            AccessKey: 'S', Ellipsis: true),
+    };
+
+    public IReadOnlyList<MenuActionSpec> BuildHelpMenu() => new[]
+    {
+        new MenuActionSpec(Strings.Menu_Usage, "", IntentKind.OpenScreenRequested, AppCommand.ShowUsage, CanExecute(AppCommand.ShowUsage), false, true,
+            AccessKey: 'U'),
+        new MenuActionSpec(Strings.Menu_About, "", IntentKind.OpenScreenRequested, AppCommand.ShowAbout, CanExecute(AppCommand.ShowAbout), false, true,
+            AccessKey: 'A'),
     };
 
     /// <summary>一覧の行の ⋯。その行の単語に効く編集・複製・削除。</summary>
@@ -1132,7 +1214,13 @@ public sealed partial class AppMediator
 /// <summary>
 /// メニュー 1 項目の描画パラメータ。押されたら Intent が上がるだけで Command は持たない。
 /// プロパティ名は Themes/Theme.xaml の MenuActionTemplate が参照する名前と揃えてある。
+/// <see cref="Shortcut"/> は項目の右端に出す表示だけで、キーの割り当ては MainWindow が持つ。
 /// </summary>
 public sealed record MenuActionSpec(
     string Header, string ToolTip, IntentKind Intent, object? Payload,
-    bool IsEnabled, bool IsPrimary, bool IsVisible);
+    bool IsEnabled, bool IsPrimary, bool IsVisible,
+    string Shortcut = "", char AccessKey = '\0', bool Ellipsis = false, bool GroupStart = false)
+{
+    /// <summary>「開く(O)…」のように、アクセスキーと「…」を付けた見出し。</summary>
+    public string Label => Header + (AccessKey != '\0' ? $"({AccessKey})" : "") + (Ellipsis ? "…" : "");
+}

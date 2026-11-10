@@ -173,8 +173,6 @@ public sealed class MainViewModel : ViewModelBase
     /// airspace（WebView2 が WPF 描画より手前に出る）を避けるため強制的に false にする。</summary>
     public bool IsBrowserShown => Browser.IsOpen && ModalOverlay is null;
 
-    public double BaseFontSize => 14 * Settings.FontScale;
-    public double HeadwordFontSize => 30 * Settings.FontScale;
 
     // ---- ボタンの有効・無効（ShellPresenter が Mediator の裁定を写す）----------------
 
@@ -215,6 +213,14 @@ public sealed class MainViewModel : ViewModelBase
     public IReadOnlyList<MenuActionSpec> ToolsMenuItems { get => _toolsMenuItems; internal set => Set(ref _toolsMenuItems, value); }
     public IReadOnlyList<MenuActionSpec> WindowMenuItems { get => _windowMenuItems; internal set => Set(ref _windowMenuItems, value); }
 
+    private IReadOnlyList<MenuActionSpec> _viewMenuItems = Array.Empty<MenuActionSpec>();
+    private IReadOnlyList<MenuActionSpec> _settingsMenuItems = Array.Empty<MenuActionSpec>();
+    private IReadOnlyList<MenuActionSpec> _helpMenuItems = Array.Empty<MenuActionSpec>();
+
+    public IReadOnlyList<MenuActionSpec> ViewMenuItems { get => _viewMenuItems; internal set => Set(ref _viewMenuItems, value); }
+    public IReadOnlyList<MenuActionSpec> SettingsMenuItems { get => _settingsMenuItems; internal set => Set(ref _settingsMenuItems, value); }
+    public IReadOnlyList<MenuActionSpec> HelpMenuItems { get => _helpMenuItems; internal set => Set(ref _helpMenuItems, value); }
+
     /// <summary>検索欄 ⇄ 結果一覧のフォーカス移動の指示。フォーカスは WPF の API でしか動かせないので、
     /// 検索パネル（View）がこれを受けて実行する。</summary>
     public event Action<FocusTarget>? FocusRequested;
@@ -240,8 +246,6 @@ public sealed class MainViewModel : ViewModelBase
     /// <summary>設定（文字サイズ倍率・編集モード）から決まる表示を出し直す。</summary>
     internal void RaiseSettingsChanged()
     {
-        Raise(nameof(BaseFontSize));
-        Raise(nameof(HeadwordFontSize));
         Raise(nameof(IsGitHubMode));
     }
 }

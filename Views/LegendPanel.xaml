@@ -41,7 +41,7 @@
                      VerticalContentAlignment="Top"
                      VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                      FontFamily="{x:Static res:Strings.ContentFont}"
-                     FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                     FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
         </DockPanel>
     </Grid>
 </UserControl>

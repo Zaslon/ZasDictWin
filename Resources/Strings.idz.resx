@@ -239,7 +239,6 @@
   <data name="Settings_WindowHeading" xml:space="preserve"><value>S'ensand:</value></data>
   <data name="Settings_WidthLabel" xml:space="preserve"><value>Tevato</value></data>
   <data name="Settings_HeightLabel" xml:space="preserve"><value>Tai</value></data>
-  <data name="Settings_AspectLockCheckbox" xml:space="preserve"><value>縦横比を固定する（端をつまんだリサイズを比率固定にします）</value></data>
   <data name="Settings_HeksaHeading" xml:space="preserve"><value>Funeruzemanseresk Id'erin</value></data>
   <data name="Settings_HeksaAnnotation" xml:space="preserve"><value>（Heksa）</value></data>
   <data name="Settings_HeksaEnableCheckbox" xml:space="preserve"><value>Heksau cegire</value></data>
@@ -352,7 +351,7 @@
   <data name="Main_CountLabel" xml:space="preserve"><value>Kai: {0} / {1}</value></data>
   <data name="Main_WordCountLabel" xml:space="preserve"><value>Kai:{0}</value></data>
   <data name="Main_VersionLabel" xml:space="preserve"><value>beia:{0}</value></data>
-  <data name="Main_FontScaleStatus" xml:space="preserve"><value>Tebak kain {0} %</value></data>
+  <data name="Main_FontScaleStatus" xml:space="preserve"><value>Tebak kain {0}px</value></data>
   <data name="Main_NewDictionaryCreated" xml:space="preserve"><value>空の辞書を作成しました。保存時にファイル名を指定します。</value></data>
   <data name="Main_OpenDialogTitle" xml:space="preserve"><value>OTM-JSON 辞書を開く</value></data>
   <data name="Main_OtmFilter" xml:space="preserve"><value>OTM-JSON (*.json)|*.json|すべてのファイル (*.*)|*.*</value></data>

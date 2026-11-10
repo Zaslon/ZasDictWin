@@ -59,7 +59,7 @@
                     <!-- 本文は v:SelectableText（読み取り専用の TextBox）で置く。TextBlock の文字は
                          マウスで選べず、辞書の中身を他所へ写せないため。見出し・小見出しはそのまま。 -->
                     <v:SelectableText Text="{Binding DisplayForm, Mode=OneWay}"
-                                      FontSize="{Binding DataContext.HeadwordFontSize, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                      FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h1}"
                                       FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
 
                     <ItemsControl ItemsSource="{Binding Tags}" Margin="0,8,0,2">
@@ -108,7 +108,7 @@
                             Visibility="{Binding Variations.Count, Converter={StaticResource CountVis}}">
                         <StackPanel>
                             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Label_Variations}" Style="{StaticResource DetailSectionHeading}"
-                                       FontFamily="{x:Static res:Strings.UIFont}" />
+                                       FontFamily="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiFont}" />
                             <ItemsControl ItemsSource="{Binding Variations}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:Variation}">
@@ -177,7 +177,7 @@
                             Visibility="{Binding DataContext.RelatedExamples.Count, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource CountVis}}">
                         <StackPanel>
                             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Detail_RelatedExamples}" Style="{StaticResource DetailSectionHeading}"
-                                       FontFamily="{x:Static res:Strings.UIFont}" />
+                                       FontFamily="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiFont}" />
                             <ItemsControl ItemsSource="{Binding DataContext.RelatedExamples, RelativeSource={RelativeSource AncestorType=UserControl}}">
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:Example}">

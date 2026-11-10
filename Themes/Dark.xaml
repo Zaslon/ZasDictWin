@@ -78,8 +78,4 @@
     <SolidColorBrush x:Key="NotifySuccess" Color="#71C598" />
     <SolidColorBrush x:Key="NotifyWarning" Color="#FFD43D" />
     <SolidColorBrush x:Key="NotifyError" Color="#FF9696" />
-
-    <!-- フォーカス表示（color-focus-*）。テーマによらず同じ値 -->
-    <SolidColorBrush x:Key="FocusInner" Color="#FFD43D" />
-    <SolidColorBrush x:Key="FocusOuter" Color="#000000" />
 </ResourceDictionary>

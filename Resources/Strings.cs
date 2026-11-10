@@ -294,7 +294,6 @@ public static class Strings
     public static string Settings_WindowHeading => Get();
     public static string Settings_WidthLabel => Get();
     public static string Settings_HeightLabel => Get();
-    public static string Settings_AspectLockCheckbox => Get();
     public static string Settings_HeksaHeading => Get();
     public static string Settings_HeksaAnnotation => Get();
     public static string Settings_HeksaEnableCheckbox => Get();
@@ -477,4 +476,34 @@ public static class Strings
 
     public static string Error_Title => Get();
     public static string Error_Message => Get();
+
+    // ---- メニューバー・表示の設定 ----
+    public static string Menu_View => Get();
+    public static string Menu_Help => Get();
+    public static string Menu_Exit => Get();
+    public static string Menu_EditWord => Get();
+    public static string Menu_DuplicateWord => Get();
+    public static string Menu_DeleteWord => Get();
+    public static string Menu_Search => Get();
+    public static string Menu_ZoomIn => Get();
+    public static string Menu_ZoomOut => Get();
+    public static string Menu_Usage => Get();
+    public static string Menu_About => Get();
+    public static string About_Message => Get();
+    public static string Display_Title => Get();
+    public static string Display_Note => Get();
+    public static string Display_UiScaleLabel => Get();
+    public static string Display_UiScaleNote => Get();
+    public static string Display_FontSizeLabel => Get();
+    public static string Display_FontSizeNote => Get();
+    public static string Display_FontLabel => Get();
+    public static string Display_FontDefault => Get();
+    public static string Display_DensityLabel => Get();
+    public static string Display_DensityStandard => Get();
+    public static string Display_DensityCompact => Get();
+    public static string Search_ModeLabel => Get();
+    public static string Search_ScopeLabel => Get();
+    public static string Menu_Bar => Get();
+    public static string Settings_HeksaSourceLabel => Get();
+    public static string Settings_DisplayMovedNote => Get();
 }

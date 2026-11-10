@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using ZasDictWin.Mediator;
@@ -15,7 +13,7 @@ namespace ZasDictWin.Views;
 
 /// <summary>
 /// 本体の窓。Root の子（IUiHost）として登録され、入力はすべて Intent にして根へ上げる。
-/// ここに残るのは窓の枠の操作（移動・最大化・端をつまんだリサイズの比率固定）と、
+/// ここに残るのは窓の枠の操作（移動・最大化）と、
 /// WPF の API でしか行えない描画（ステータスを光らせる）だけ。
 /// </summary>
 public partial class MainWindow : Window, IUiHost
@@ -28,23 +26,24 @@ public partial class MainWindow : Window, IUiHost
     /// <summary>自分の OnClosing から閉じたい合図を上げている最中か。</summary>
     private bool _requestingClose;
 
-    // 縦横比固定モードの間だけ値を持つ（幅 / 高さ）。null なら WndProc は何もしない。
-    // 比率は設定を適用した瞬間の幅・高さから決まり、以後は端をつまんだリサイズがこれを崩さない。
-    private double? _aspectRatio;
-
     public MainWindow(MainViewModel vm)
     {
         InitializeComponent();
         _vm = vm;
         DataContext = vm;
         PreviewKeyDown += OnPreviewKeyDown;
+        PreviewKeyUp += OnPreviewKeyUp;
+        PreviewMouseDown += (_, _) => _altAlone = false;
         KeyDown += OnShortcutKeyDown;
         PreviewMouseWheel += OnPreviewMouseWheel;
         StateChanged += (_, _) =>
         {
             UpdateMaximizeRestoreIcon();
             this.RaiseIntent(IntentKind.WindowStateChanged, WindowState);
+            RaiseBounds();
         };
+        // メニューバーの［終了］は × と違って窓の大きさを渡さないので、大きさは変わるたびに控えさせておく。
+        SizeChanged += (_, _) => RaiseBounds();
         // 独立ウィンドウは本体を Owner に持つので、本体に HWND ができてから開かせる。
         Loaded += (_, _) => this.RaiseIntent(IntentKind.WindowActivated);
         UpdateMaximizeRestoreIcon();
@@ -84,13 +83,12 @@ public partial class MainWindow : Window, IUiHost
 
     // ---- 根から受ける描画の指示 ------------------------------------------------------
 
-    /// <summary>窓の大きさと比率固定。幅・高さが NaN なら大きさは変えない（最大化中に上書きすると
+    /// <summary>窓の大きさ。幅・高さが NaN なら大きさは変えない（最大化中に上書きすると
     /// 元に戻したときの大きさが狂うため、裁定側が NaN で渡してくる）。</summary>
-    public void ApplyShellSize(double width, double height, double? aspectRatio, bool maximize)
+    public void ApplyShellSize(double width, double height, bool maximize)
     {
         if (!double.IsNaN(width)) Width = width;
         if (!double.IsNaN(height)) Height = height;
-        _aspectRatio = aspectRatio;
         if (maximize) WindowState = WindowState.Maximized;
     }
 
@@ -110,72 +108,85 @@ public partial class MainWindow : Window, IUiHost
         ((Storyboard)Resources[key]).Begin(StatusFlashBorder);
     }
 
-    // WindowChrome 導入前から ResizeBorderThickness だけ残して端をつまむリサイズを効かせている
-    // （MainWindow.xaml 参照）ため、比率固定も WM_SIZING を横取りする形でしか実現できない
-    // （WPF の Width/Height バインディングでは、ドラッグ中のリアルタイムな矯正に間に合わない）。
-    protected override void OnSourceInitialized(EventArgs e)
-    {
-        base.OnSourceInitialized(e);
-        if (PresentationSource.FromVisual(this) is HwndSource source) source.AddHook(WndProc);
-    }
-
-    private const int WM_SIZING = 0x0214;
-    // WM_SIZING の wParam（どの辺・角をつまんでいるか）。
-    private const int WMSZ_LEFT = 1, WMSZ_RIGHT = 2, WMSZ_TOP = 3, WMSZ_TOPLEFT = 4,
-        WMSZ_TOPRIGHT = 5, WMSZ_BOTTOM = 6, WMSZ_BOTTOMLEFT = 7, WMSZ_BOTTOMRIGHT = 8;
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct RECT { public int Left, Top, Right, Bottom; }
-
-    /// <summary>
-    /// 縦横比固定モードのときだけ、つまんだ辺・角に応じて動いた側の一辺を比率どおりに矯正する。
-    /// RECT はスクリーン座標（物理ピクセル）だが、比率は幅と高さの比なので DPI 換算は要らない。
-    /// </summary>
-    private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-    {
-        if (msg != WM_SIZING || _aspectRatio is not { } ratio) return IntPtr.Zero;
-
-        var rect = Marshal.PtrToStructure<RECT>(lParam);
-        var width = rect.Right - rect.Left;
-        var height = rect.Bottom - rect.Top;
-
-        switch (wParam.ToInt32())
-        {
-            // 左右の辺：幅にあわせて高さを決め、下端を動かす。
-            case WMSZ_LEFT or WMSZ_RIGHT:
-                rect.Bottom = rect.Top + (int)Math.Round(width / ratio);
-                break;
-            // 上下の辺：高さにあわせて幅を決め、右端を動かす。
-            case WMSZ_TOP or WMSZ_BOTTOM:
-                rect.Right = rect.Left + (int)Math.Round(height * ratio);
-                break;
-            // 角：左端が動く角は幅を高さから、それ以外は高さを幅から決める。
-            case WMSZ_TOPLEFT:
-                rect.Left = rect.Right - (int)Math.Round(height * ratio);
-                break;
-            case WMSZ_BOTTOMLEFT:
-                rect.Bottom = rect.Top + (int)Math.Round(width / ratio);
-                break;
-            case WMSZ_TOPRIGHT:
-                rect.Top = rect.Bottom - (int)Math.Round(width / ratio);
-                break;
-            case WMSZ_BOTTOMRIGHT:
-                rect.Bottom = rect.Top + (int)Math.Round(width / ratio);
-                break;
-        }
-
-        Marshal.StructureToPtr(rect, lParam, true);
-        handled = true;
-        return IntPtr.Zero;
-    }
-
     // ---- 入力 → Intent -----------------------------------------------------------
+
+    private void RaiseBounds()
+    {
+        if (!IsLoaded) return;
+        var bounds = WindowState == WindowState.Normal
+            ? new WindowBounds(Width, Height, false)
+            : new WindowBounds(RestoreBounds.Width, RestoreBounds.Height, WindowState == WindowState.Maximized);
+        this.RaiseIntent(IntentKind.WindowBoundsChanged, bounds);
+    }
+
+    // ---- メニューバー ---------------------------------------------------------------
+
+    /// <summary>Alt を単独で押して離したか。間に他のキーやクリックが入ったら、Alt＋文字などの組み合わせとみなす。</summary>
+    private bool _altAlone;
+
+    private bool MenuBarFocused => MenuBar.IsKeyboardFocusWithin;
+
+    private IEnumerable<MenuButton> MenuBarItems => MenuBar.Children.OfType<MenuButton>().Where(m => m.IsVisible && m.IsEnabled);
+
+    /// <summary>Alt か F10 でメニューバーへ移る。メニューバーにいるときは、移る前の要素へ戻る
+    /// （ZasDesignSystem rules.md「パソコンのソフトにはメニューバーを設ける」）。</summary>
+    private void ToggleMenuBar()
+    {
+        if (MenuBarFocused) MenuButton.LeaveMenuBar();
+        else MenuBarItems.FirstOrDefault()?.Focus();
+    }
+
+    private void OnPreviewKeyUp(object sender, KeyEventArgs e)
+    {
+        if (e.Key == Key.System && e.SystemKey is Key.LeftAlt or Key.RightAlt && _altAlone)
+        {
+            _altAlone = false;
+            ToggleMenuBar();
+            e.Handled = true;
+        }
+    }
 
     // Esc の行き先（一覧 → ドラッグ → 確認ダイアログ → 最後に触ったタブ）は根が決める。
     // ここは Preview（＝ウィンドウが最初に見る段）なので、Esc が子の画面に食われる前に拾える。
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
+        var key = e.Key == Key.System ? e.SystemKey : e.Key;
+        if (e.Key == Key.System && key is Key.LeftAlt or Key.RightAlt)
+        {
+            _altAlone = !e.IsRepeat || _altAlone;
+            return;
+        }
+        _altAlone = false;
+
+        // F10 はシステムキーとして届く。Shift＋F10（右クリックの代わり）は別の操作なので拾わない。
+        if (key == Key.F10 && Keyboard.Modifiers == ModifierKeys.None)
+        {
+            ToggleMenuBar();
+            e.Handled = true;
+            return;
+        }
+
+        // Alt＋アクセスキーで、そのメニューを開く。Alt＋F4 などの OS の組み合わせは文字キーではないので当たらない。
+        if (e.Key == Key.System && Keyboard.Modifiers == ModifierKeys.Alt && key is >= Key.A and <= Key.Z)
+        {
+            var letter = ((char)('A' + (key - Key.A))).ToString();
+            if (MenuBarItems.FirstOrDefault(m => string.Equals(m.AccessKey, letter, StringComparison.OrdinalIgnoreCase)) is { } menu)
+            {
+                menu.Focus();
+                menu.OpenWithKeyboard();
+                e.Handled = true;
+            }
+            return;
+        }
+
         if (e.Key != Key.Escape) return;
+        // メニューバーの見出しにいて一覧が開いていなければ、メニューバーを出るだけにする（タブを閉じない）。
+        if (MenuBarFocused && !MenuBarItems.Any(m => m.IsOpen))
+        {
+            MenuButton.LeaveMenuBar();
+            e.Handled = true;
+            return;
+        }
         this.RaiseIntent(IntentKind.CancelRequested);
         e.Handled = true;
     }
@@ -197,16 +208,26 @@ public partial class MainWindow : Window, IUiHost
                 Key.D => IntentKind.DuplicateWordRequested,
                 Key.Z => IntentKind.UndoRequested,
                 Key.Y => IntentKind.RedoRequested,
+                Key.F => IntentKind.FocusQueryBoxRequested,
+                Key.OemPlus or Key.Add or Key.OemMinus or Key.Subtract => IntentKind.ZoomFontRequested,
                 _ => null,
             },
             ModifierKeys.Control | ModifierKeys.Shift => key switch
             {
                 Key.S => IntentKind.SaveAsRequested,
                 Key.Z => IntentKind.RedoRequested,
+                // 日本語配列の「＋」は Shift＋「;」で打つので、Shift 付きでも拡大として受ける。
+                Key.OemPlus => IntentKind.ZoomFontRequested,
                 _ => null,
             },
             _ => null,
         };
+        if (kind == IntentKind.ZoomFontRequested)
+        {
+            this.RaiseIntent(IntentKind.ZoomFontRequested, key is Key.OemMinus or Key.Subtract ? -1 : 1);
+            e.Handled = true;
+            return;
+        }
         // 入力欄の中では、取り消しは入力欄自身の打ち間違いの取り消しに任せる。入力欄に戻せる履歴が
         // 無いときもキーはここまで届くが、辞書を戻すと打っている本人には何が戻ったか分からない。
         if (kind is IntentKind.UndoRequested or IntentKind.RedoRequested && Keyboard.FocusedElement is TextBoxBase { IsReadOnly: false }) return;

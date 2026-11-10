@@ -9,10 +9,10 @@
         <StackPanel>
             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Ipa_Title}" Style="{StaticResource Label}" />
             <TextBox Text="{Binding IpaInput, UpdateSourceTrigger=PropertyChanged, Delay=120}"
-                     FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}" />
+                     FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Ipa_SpellingLabel}" Style="{StaticResource Label}" Margin="0,16,0,4" />
             <TextBox Text="{Binding IpaSpelling, Mode=OneWay}" IsReadOnly="True"
-                     FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}" />
+                     FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
             <TextBlock Style="{StaticResource Label}" Margin="0,10,0,0"
                        v:LocalizedText.Text="{x:Static res:Strings.Ipa_CandidateHint}" />
         </StackPanel>

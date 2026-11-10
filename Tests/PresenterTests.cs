@@ -145,12 +145,12 @@ public class PresenterTests
         {
             var first = legend.Document;
             Assert.NotNull(first);
-            Assert.Equal(FontScaleState.Instance.Scale, legend.DocumentScale);
+            Assert.Equal(FontScaleState.Instance.Size("body") / 14, legend.DocumentScale);
 
             h.Send(IntentKind.ZoomFontRequested, 1);
 
             Assert.NotSame(first, legend.Document);
-            Assert.Equal(FontScaleState.Instance.Scale, legend.DocumentScale);
+            Assert.Equal(FontScaleState.Instance.Size("body") / 14, legend.DocumentScale);
         }
         finally
         {

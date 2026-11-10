@@ -26,6 +26,7 @@ public enum AppCommand
     NewWord, EditWord, DuplicateWord, DeleteWord,
     ShowBrowser, ShowSettings, ShowExamples, EditExample,
     ShowDialectTool, ShowIpaTool, ShowStats, ShowLegend, ShowChangelog,
+    ShowDisplaySettings, ShowUsage, ShowAbout,
 }
 
 /// <summary>ボタンの有効・無効を決める材料。View も Presenter もここを組み立てない（Mediator だけ）。</summary>

@@ -72,7 +72,51 @@ public sealed class FontScaleState : ViewModelBase
     public static FontScaleState Instance { get; } = new();
 
     private double _scale = 1.0;
+    private Density _density = Density.Standard;
+    private double _uiScale = 1.0;
+    private FontFamily? _uiFont;
+
+    /// <summary>font-scale。XAML の文字の大きさはこれにバインドし、ScaleFontSizeConverter が
+    /// 密度（<see cref="Density"/>）も合わせて引く。</summary>
     public double Scale { get => _scale; set => Set(ref _scale, value); }
+
+    /// <summary>密度を変えたら <see cref="Scale"/> の変更も通知する。文字の大きさのバインドは Scale だけを
+    /// 見ているため、通知しないと密度の切り替えが画面に届かない。</summary>
+    public Density Density
+    {
+        get => _density;
+        set
+        {
+            if (!Set(ref _density, value)) return;
+            Raise(nameof(Scale));
+        }
+    }
+
+    /// <summary>ui-scale。各ウィンドウの根の要素に LayoutTransform として掛ける。</summary>
+    public double UiScale
+    {
+        get => _uiScale;
+        set
+        {
+            if (!Set(ref _uiScale, value)) return;
+            Raise(nameof(UiScaleTransform));
+        }
+    }
+
+    public ScaleTransform UiScaleTransform => new(_uiScale, _uiScale);
+
+    /// <summary>font-sans。未設定なら表示言語の既定の書体（Strings.UIFont）。</summary>
+    public FontFamily UiFont
+    {
+        get => _uiFont ?? Resources.Strings.UIFont;
+        set => Set(ref _uiFont, value);
+    }
+
+    /// <summary>文字スタイルのトークンの大きさ（倍率込み）。</summary>
+    public double Size(string token) => TextStyles.Size(token, _density) * _scale;
+
+    /// <summary>文字スタイルのトークンの行高（DIP。倍率込み）。</summary>
+    public double LineHeight(string token) => Size(token) * TextStyles.LineHeight(token, _density);
 }
 
 /// <summary>

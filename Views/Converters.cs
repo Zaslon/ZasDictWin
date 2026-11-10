@@ -58,17 +58,58 @@ public sealed class CountToVisibilityConverter : IValueConverter
 }
 
 /// <summary>
-/// ConverterParameter に書いた基準サイズ（scale=1.0 のときの px 値）に、バインドされた
-/// 文字サイズ倍率を掛けて FontSize を返す。DataContext に依存せず {x:Static
-/// vm:FontScaleState.Instance} 経由で使うことを想定している。
+/// 文字の大きさ。ConverterParameter が文字スタイルのトークン名（"body"・"h2" など）なら、
+/// 密度の表の大きさに font-scale を掛ける。数値なら、その px（アイコン・入力欄の幅など、
+/// 密度で変えない寸法）に font-scale だけを掛ける。
+/// {Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale} にバインドして使う。
+/// 密度は FontScaleState から直に読む（密度を変えると Scale の変更も通知されるので、ここが呼び直される）。
 /// </summary>
 public sealed class ScaleFontSizeConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         var scale = value is double d ? d : 1.0;
-        var baseSize = parameter is string s && double.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var b) ? b : 12.0;
+        var p = parameter as string ?? "";
+        if (TextStyles.IsToken(p)) return TextStyles.Size(p, FontScaleState.Instance.Density) * scale;
+        var baseSize = double.TryParse(p, NumberStyles.Float, CultureInfo.InvariantCulture, out var b) ? b : 12.0;
         return baseSize * scale;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
+
+/// <summary>
+/// 文字スタイルのトークンの行高（DIP）。TextBlock.LineHeight には倍率ではなく大きさ × 行高を渡し、
+/// LineStackingStrategy="BlockLineHeight" と組にする（ZasDesignSystem implementation/wpf.md「表示の設定」）。
+/// </summary>
+public sealed class ScaleLineHeightConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var scale = value is double d ? d : 1.0;
+        var token = parameter as string ?? "body";
+        if (!TextStyles.IsToken(token)) token = "body";
+        var density = FontScaleState.Instance.Density;
+        return TextStyles.Size(token, density) * TextStyles.LineHeight(token, density) * scale;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+        => Binding.DoNothing;
+}
+
+/// <summary>ウィンドウの最小の大きさに UI 倍率を掛ける。ConverterParameter は倍率 1 のときの値。
+/// 作業領域を超えると窓が画面に収まらないので、作業領域で頭打ちにする。</summary>
+public sealed class ScaleMinSizeConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var scale = value is double d ? d : 1.0;
+        var p = parameter as string ?? "0";
+        var horizontal = p.StartsWith('w');
+        var baseSize = double.TryParse(p.TrimStart('w', 'h'), NumberStyles.Float, CultureInfo.InvariantCulture, out var b) ? b : 0;
+        var limit = horizontal ? SystemParameters.WorkArea.Width : SystemParameters.WorkArea.Height;
+        return Math.Min(baseSize * scale, limit);
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)

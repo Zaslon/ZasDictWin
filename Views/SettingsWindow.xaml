@@ -7,11 +7,13 @@
         xmlns:res="clr-namespace:ZasDictWin.Resources"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="{Binding Title, Converter={StaticResource PlainText}, StringFormat={}ZasDict {0}}"
-        Width="820" Height="760" MinWidth="560" MinHeight="440"
+        Width="820" Height="760"
+        MinWidth="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScale, Converter={StaticResource ScaleMinSize}, ConverterParameter=w560}"
+        MinHeight="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScale, Converter={StaticResource ScaleMinSize}, ConverterParameter=h440}"
         Background="{StaticResource Ink}"
         BorderBrush="{StaticResource Line}" BorderThickness="1"
-        FontFamily="{x:Static res:Strings.UIFont}"
-        FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
+        FontFamily="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiFont}"
+        FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}"
         TextOptions.TextFormattingMode="Ideal"
         UseLayoutRounding="True"
         WindowStartupLocation="CenterOwner"
@@ -41,7 +43,8 @@
         </Style>
     </Window.Resources>
 
-    <Grid>
+    <!-- UI 倍率。本体の窓（MainWindow.xaml）と同じく中身の根に掛ける。 -->
+    <Grid LayoutTransform="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScaleTransform}">
     <DockPanel>
         <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
                 BorderThickness="0,0,0,1" Padding="16,10"
@@ -51,7 +54,7 @@
                         Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="{x:Static res:Strings.Common_Close}"
                         AutomationProperties.Name="{x:Static res:Strings.Common_Close}" Margin="0" />
                 <TextBlock v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
-                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=15}" />
+                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h3}" />
             </DockPanel>
         </Border>
 
@@ -86,20 +89,24 @@
                                     Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=200}" />
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_LanguageNote}" Style="{StaticResource Label}" Margin="0,4,0,0" />
 
-                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_ThemeLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
-                        <WrapPanel>
-                            <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ThemeSystem}" r:IntentTrigger.OnClick="SettingsThemeSelected" r:IntentTrigger.Payload="System"
-                                          IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=System}" />
-                            <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ThemeLight}" r:IntentTrigger.OnClick="SettingsThemeSelected" r:IntentTrigger.Payload="Light"
-                                          IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Light}" />
-                            <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ThemeDark}" r:IntentTrigger.OnClick="SettingsThemeSelected" r:IntentTrigger.Payload="Dark"
-                                          IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Dark}" />
-                        </WrapPanel>
+                        <!-- 状態を選択肢の言葉で示すラジオグループ（ZasDesignSystem components.md「ラジオグループ」）。 -->
+                        <v:HeadedRow Margin="0,18,0,0" HorizontalAlignment="Left">
+                            <TextBlock x:Name="ThemeHeading" v:LocalizedText.Text="{x:Static res:Strings.Settings_ThemeLabel}" Style="{StaticResource RadioGroupHeading}" />
+                            <Border Style="{StaticResource RadioGroupFrame}">
+                                <UniformGrid Rows="1" v:RadioGroup.IsGroup="True" AutomationProperties.LabeledBy="{Binding ElementName=ThemeHeading}">
+                                    <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ThemeSystem}" r:IntentTrigger.OnClick="SettingsThemeSelected" r:IntentTrigger.Payload="System"
+                                                 IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=System}" />
+                                    <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ThemeLight}" r:IntentTrigger.OnClick="SettingsThemeSelected" r:IntentTrigger.Payload="Light"
+                                                 IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Light}" />
+                                    <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ThemeDark}" r:IntentTrigger.OnClick="SettingsThemeSelected" r:IntentTrigger.Payload="Dark"
+                                                 IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Dark}" />
+                                </UniformGrid>
+                            </Border>
+                        </v:HeadedRow>
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_LanguageNote}" Style="{StaticResource Label}" Margin="0,4,0,0" />
 
-                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_FontScaleLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,0" />
-                        <TextBox Text="{Binding FontScale}" HorizontalAlignment="Left"
-                                 Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=120}" />
+                        <!-- UI 倍率・文字の大きさ・書体・密度は 表示 → 表示の設定 に置く（選んだ時点で反映する設定なので、［適用］の画面と分ける）。 -->
+                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_DisplayMovedNote}" Style="{StaticResource Label}" Margin="0,18,0,0" />
 
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_SortOrderLabel}" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
                         <TextBox Text="{Binding SortOrder}" />
@@ -119,10 +126,6 @@
                                          Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=100}" />
                             </StackPanel>
                         </StackPanel>
-                        <!-- 最大化には作用しない（画面いっぱいに広げる操作まで比率で縛ると使いづらいため）。
-                             端をつまんで縮める・広げる操作だけを、ここで決めた幅・高さの比率に矯正する。 -->
-                        <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_AspectLockCheckbox}"
-                                  IsChecked="{Binding WindowAspectLocked}" Margin="0,10,0,0" />
 
                         <TextBlock Style="{StaticResource SectionHeading}" Margin="0,22,0,8">
                             <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaHeading}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaAnnotation}" />
@@ -130,12 +133,17 @@
                         <CheckBox v:LocalizedText.Content="{x:Static res:Strings.Settings_HeksaEnableCheckbox}" IsChecked="{Binding HeksaEnabled}" />
                         <TextBlock Style="{StaticResource Label}" Margin="0,2,0,0"
                                    v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaDescription}" />
-                        <WrapPanel Margin="0,8,0,0">
-                            <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Settings_HeksaSourceFile}" r:IntentTrigger.OnClick="SettingsHeksaSourceSelected" r:IntentTrigger.Payload="File"
-                                          IsChecked="{Binding HeksaFontSource, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=File}" />
-                            <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Settings_HeksaSourceInstalled}" r:IntentTrigger.OnClick="SettingsHeksaSourceSelected" r:IntentTrigger.Payload="Installed"
-                                          IsChecked="{Binding HeksaFontSource, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Installed}" />
-                        </WrapPanel>
+                        <v:HeadedRow Margin="0,8,0,0" HorizontalAlignment="Left">
+                            <TextBlock x:Name="HeksaSourceHeading" v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaSourceLabel}" Style="{StaticResource RadioGroupHeading}" />
+                            <Border Style="{StaticResource RadioGroupFrame}">
+                                <UniformGrid Rows="1" v:RadioGroup.IsGroup="True" AutomationProperties.LabeledBy="{Binding ElementName=HeksaSourceHeading}">
+                                    <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Settings_HeksaSourceFile}" r:IntentTrigger.OnClick="SettingsHeksaSourceSelected" r:IntentTrigger.Payload="File"
+                                                 IsChecked="{Binding HeksaFontSource, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=File}" />
+                                    <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Settings_HeksaSourceInstalled}" r:IntentTrigger.OnClick="SettingsHeksaSourceSelected" r:IntentTrigger.Payload="Installed"
+                                                 IsChecked="{Binding HeksaFontSource, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Installed}" />
+                                </UniformGrid>
+                            </Border>
+                        </v:HeadedRow>
                         <DockPanel Margin="0,8,0,0" Visibility="{Binding IsHeksaFromFile, Converter={StaticResource BoolVis}}">
                             <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Settings_PickFileButton}" r:IntentTrigger.OnClick="PickHeksaFontRequested" Margin="8,0,0,0" />
                             <TextBox Text="{Binding HeksaFontPath, UpdateSourceTrigger=PropertyChanged}" />
@@ -147,11 +155,11 @@
                                     Visibility="{Binding IsHeksaFromFile, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaMissingWarning}"
                                    Foreground="{StaticResource Danger}" Margin="0,8,0,0"
-                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
+                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}"
                                    Visibility="{Binding IsFontMissing, Converter={StaticResource BoolVis}}" />
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaSampleLabel}" Margin="0,8,0,0"
                                    FontFamily="{Binding PreviewFontFamily}"
-                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=20}"
+                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}"
                                    Visibility="{Binding HasPreviewFont, Converter={StaticResource BoolVis}}" />
 
                         <DockPanel Margin="0,16,0,6">
@@ -241,13 +249,17 @@
                         <TextBlock Style="{StaticResource Label}" Margin="0,8,0,0"
                                    v:LocalizedText.Text="{x:Static res:Strings.Settings_CurrentFileNote}" />
 
-                        <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_EditModeHeading}" Style="{StaticResource SectionHeading}" Margin="0,22,0,8" />
-                        <WrapPanel>
-                            <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ModeLocal}" r:IntentTrigger.OnClick="SettingsModeSelected" r:IntentTrigger.Payload="Local"
-                                          IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Local}" />
-                            <ToggleButton Style="{StaticResource Chip}" Content="GitHub" r:IntentTrigger.OnClick="SettingsModeSelected" r:IntentTrigger.Payload="GitHub"
-                                          IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=GitHub}" />
-                        </WrapPanel>
+                        <v:HeadedRow Margin="0,22,0,0" HorizontalAlignment="Left">
+                            <TextBlock x:Name="ModeHeading" v:LocalizedText.Text="{x:Static res:Strings.Settings_EditModeHeading}" Style="{StaticResource RadioGroupHeading}" />
+                            <Border Style="{StaticResource RadioGroupFrame}">
+                                <UniformGrid Rows="1" v:RadioGroup.IsGroup="True" AutomationProperties.LabeledBy="{Binding ElementName=ModeHeading}">
+                                    <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ModeLocal}" r:IntentTrigger.OnClick="SettingsModeSelected" r:IntentTrigger.Payload="Local"
+                                                 IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Local}" />
+                                    <RadioButton Style="{StaticResource RadioGroupItem}" Content="GitHub" r:IntentTrigger.OnClick="SettingsModeSelected" r:IntentTrigger.Payload="GitHub"
+                                                 IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=GitHub}" />
+                                </UniformGrid>
+                            </Border>
+                        </v:HeadedRow>
                         <TextBlock Style="{StaticResource Label}" Margin="0,8,0,0"
                                    v:LocalizedText.Text="{x:Static res:Strings.Settings_GitHubModeNote}" />
 

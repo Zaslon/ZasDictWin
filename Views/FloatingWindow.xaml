@@ -6,11 +6,12 @@
         xmlns:res="clr-namespace:ZasDictWin.Resources"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="{Binding Title, Converter={StaticResource PlainText}, StringFormat={}ZasDict {0}}"
-        MinWidth="260" MinHeight="200"
+        MinWidth="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScale, Converter={StaticResource ScaleMinSize}, ConverterParameter=w260}"
+        MinHeight="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScale, Converter={StaticResource ScaleMinSize}, ConverterParameter=h200}"
         Background="{StaticResource Ink}"
         BorderBrush="{StaticResource Line}" BorderThickness="1"
-        FontFamily="{x:Static res:Strings.UIFont}"
-        FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
+        FontFamily="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiFont}"
+        FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}"
         TextOptions.TextFormattingMode="Ideal"
         UseLayoutRounding="True"
         WindowStyle="None" ResizeMode="CanResize">
@@ -27,7 +28,8 @@
          枠を割れるし、タブを掴んで本体へ運び戻すこともできる。
          枠の面は DockGroupPanel、枠同士の境目は DockSplitPanel が描くため、ここは窓の外周の線と
          題・最小化・最大化・終了と大きさだけを受け持つ。 -->
-    <DockPanel>
+    <!-- UI 倍率。本体の窓（MainWindow.xaml）と同じく中身の根に掛ける。 -->
+    <DockPanel LayoutTransform="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScaleTransform}">
         <!-- 標準の枠が無いので、このヘッダの余白自体が窓のドラッグ・つまみを兼ねる（本体と同じ理由）。 -->
         <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
                 BorderThickness="0,0,0,1" Padding="10,5"
@@ -46,7 +48,7 @@
                 </StackPanel>
                 <TextBlock v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
-                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
             </DockPanel>
         </Border>
 

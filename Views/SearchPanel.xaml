@@ -34,27 +34,40 @@
             <!-- 条件はカードにまとめる。見出しラベルはチップと同じ行に置き、
                  「ラベル1行＋チップ1行」の縦積みをやめて一覧の表示件数を稼ぐ。 -->
             <Border Style="{StaticResource FilterCard}" Margin="0,10,0,0">
+                <!-- 検索方法と検索対象は、どちらも 1 つを選ぶラジオグループ（ZasDesignSystem components.md「ラジオグループ」）。
+                     見出しは左に置き、2 つのグループの選択肢の左端を揃える（見出しは同じ字数）。
+                     Tab ではグループごとに 1 回だけ止まり、中は矢印キーで選ぶ。 -->
                 <StackPanel>
-                    <WrapPanel>
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeForward}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Forward"
-                                      IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Forward}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModePartial}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Partial"
-                                      IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Partial}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeBackward}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Backward"
-                                      IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Backward}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeExact}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Exact"
-                                      IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Exact}" />
-                    </WrapPanel>
-                    <WrapPanel Margin="0,7,0,0">
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeForm}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="Form"
-                                      IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Form}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Label_Translation}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="Translation"
-                                      IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Translation}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeBoth}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="Both"
-                                      IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Both}" />
-                        <ToggleButton Style="{StaticResource Chip}" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeFullText}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="FullText"
-                                      IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=FullText}" />
-                    </WrapPanel>
+                    <v:HeadedRow>
+                        <TextBlock x:Name="ModeHeading" v:LocalizedText.Text="{x:Static res:Strings.Search_ModeLabel}" Style="{StaticResource RadioGroupHeading}" />
+                        <Border Style="{StaticResource RadioGroupFrame}">
+                            <UniformGrid Rows="1" v:RadioGroup.IsGroup="True" AutomationProperties.LabeledBy="{Binding ElementName=ModeHeading}">
+                                <RadioButton Style="{StaticResource RadioGroupItem}" Padding="6,4" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeForward}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Forward"
+                                             IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Forward}" />
+                                <RadioButton Style="{StaticResource RadioGroupItem}" Padding="6,4" v:LocalizedText.Content="{x:Static res:Strings.Search_ModePartial}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Partial"
+                                             IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Partial}" />
+                                <RadioButton Style="{StaticResource RadioGroupItem}" Padding="6,4" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeBackward}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Backward"
+                                             IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Backward}" />
+                                <RadioButton Style="{StaticResource RadioGroupItem}" Padding="6,4" v:LocalizedText.Content="{x:Static res:Strings.Search_ModeExact}" r:IntentTrigger.OnClick="SearchModeChanged" r:IntentTrigger.Payload="Exact"
+                                             IsChecked="{Binding SearchMode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Exact}" />
+                            </UniformGrid>
+                        </Border>
+                    </v:HeadedRow>
+                    <v:HeadedRow Margin="0,7,0,0">
+                        <TextBlock x:Name="ScopeHeading" v:LocalizedText.Text="{x:Static res:Strings.Search_ScopeLabel}" Style="{StaticResource RadioGroupHeading}" />
+                        <Border Style="{StaticResource RadioGroupFrame}">
+                            <UniformGrid Rows="1" v:RadioGroup.IsGroup="True" AutomationProperties.LabeledBy="{Binding ElementName=ScopeHeading}">
+                                <RadioButton Style="{StaticResource RadioGroupItem}" Padding="6,4" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeForm}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="Form"
+                                             IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Form}" />
+                                <RadioButton Style="{StaticResource RadioGroupItem}" Padding="6,4" v:LocalizedText.Content="{x:Static res:Strings.Label_Translation}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="Translation"
+                                             IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Translation}" />
+                                <RadioButton Style="{StaticResource RadioGroupItem}" Padding="6,4" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeBoth}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="Both"
+                                             IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Both}" />
+                                <RadioButton Style="{StaticResource RadioGroupItem}" Padding="6,4" v:LocalizedText.Content="{x:Static res:Strings.Search_ScopeFullText}" r:IntentTrigger.OnClick="SearchScopeChanged" r:IntentTrigger.Payload="FullText"
+                                             IsChecked="{Binding SearchScope, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=FullText}" />
+                            </UniformGrid>
+                        </Border>
+                    </v:HeadedRow>
                 </StackPanel>
             </Border>
         </StackPanel>
@@ -92,11 +105,11 @@
                                      折り返しが優先されて TextTrimming が働かず、行の高さも一定にならない
                                      （MaxHeight で切ると文字サイズ倍率を上げたときに字が縦に欠ける） -->
                                 <TextBlock Text="{Binding DisplayForm}"
-                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}"
+                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h3}"
                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}"
                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="{Binding TranslationSummary}" Foreground="{StaticResource Muted}"
-                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
+                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}"
                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                             <!-- 中身（編集・複製・削除）は開く直前に Opening で詰める。

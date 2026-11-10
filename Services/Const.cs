@@ -20,6 +20,9 @@ public static class Const
 
     /// <summary>出典が自分の辞書であることを表すカタログ名。ZpDIC の照会対象ではない。</summary>
     public const string ExampleCatalogSelf = "自作";
+
+    /// <summary>ヘルプ → 使い方 で開く文書。</summary>
+    public const string UsageUrl = "https://github.com/Zaslon/ZasDictWin/blob/main/docs/usage.md";
 }
 
 /// <summary>例文の出典カタログ 1 つ。<paramref name="Api"/> が API に渡す名前。</summary>

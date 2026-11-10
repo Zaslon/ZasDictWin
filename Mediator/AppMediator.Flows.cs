@@ -190,7 +190,7 @@ public sealed partial class AppMediator
             ? _services.LoadHeksaFont(Settings.HeksaFontSource, Settings.HeksaFontPath, Settings.HeksaFontName)
             : null;
         HeadwordFontState.Instance.Family = heksa ?? HeadwordFontState.Fallback;
-        FontScaleState.Instance.Scale = Settings.FontScale;
+        ApplyDisplayState();
         _state.Browser.SyncWithSettings();   // 幅と開始 URL。表示中のページは切り替えない
 
         _state.RaiseSettingsChanged();

@@ -263,7 +263,6 @@
   <data name="Settings_WindowHeading" xml:space="preserve"><value>ウィンドウ：</value></data>
   <data name="Settings_WidthLabel" xml:space="preserve"><value>幅</value></data>
   <data name="Settings_HeightLabel" xml:space="preserve"><value>高さ</value></data>
-  <data name="Settings_AspectLockCheckbox" xml:space="preserve"><value>縦横比を固定する（端をつまんだリサイズを比率固定にします）</value></data>
   <data name="Settings_HeksaHeading" xml:space="preserve"><value>イジェール文字フォント</value></data>
   <data name="Settings_HeksaAnnotation" xml:space="preserve"><value>（Heksa）</value></data>
   <data name="Settings_HeksaEnableCheckbox" xml:space="preserve"><value>Heksa を有効にする</value></data>
@@ -388,7 +387,7 @@
   <data name="Main_UnsavedLabel" xml:space="preserve"><value>未保存</value></data>
   <data name="Main_WordCountLabel" xml:space="preserve"><value>{0}語</value></data>
   <data name="Main_VersionLabel" xml:space="preserve"><value>v{0}</value></data>
-  <data name="Main_FontScaleStatus" xml:space="preserve"><value>文字サイズ {0} %</value></data>
+  <data name="Main_FontScaleStatus" xml:space="preserve"><value>文字の大きさ {0}px</value></data>
   <data name="Main_NewDictionaryCreated" xml:space="preserve"><value>空の辞書を作成しました。保存時にファイル名を指定します。</value></data>
   <data name="Main_OpenDialogTitle" xml:space="preserve"><value>OTM-JSON 辞書を開く</value></data>
   <data name="Main_OtmFilter" xml:space="preserve"><value>OTM-JSON (*.json)|*.json|すべてのファイル (*.*)|*.*</value></data>
@@ -461,4 +460,32 @@
 {0}
 
 詳しい記録: {1}</value></data>
+  <data name="Menu_View" xml:space="preserve"><value>表示</value></data>
+  <data name="Menu_Help" xml:space="preserve"><value>ヘルプ</value></data>
+  <data name="Menu_Exit" xml:space="preserve"><value>終了</value></data>
+  <data name="Menu_EditWord" xml:space="preserve"><value>単語を編集</value></data>
+  <data name="Menu_DuplicateWord" xml:space="preserve"><value>単語を複製</value></data>
+  <data name="Menu_DeleteWord" xml:space="preserve"><value>単語を削除</value></data>
+  <data name="Menu_Search" xml:space="preserve"><value>検索</value></data>
+  <data name="Menu_ZoomIn" xml:space="preserve"><value>文字を大きくする</value></data>
+  <data name="Menu_ZoomOut" xml:space="preserve"><value>文字を小さくする</value></data>
+  <data name="Menu_Usage" xml:space="preserve"><value>使い方</value></data>
+  <data name="Menu_About" xml:space="preserve"><value>バージョン情報</value></data>
+  <data name="About_Message" xml:space="preserve"><value>ZasDict for Windows {0}</value></data>
+  <data name="Display_Title" xml:space="preserve"><value>表示の設定</value></data>
+  <data name="Display_Note" xml:space="preserve"><value>選んだ時点で反映し、次回の起動時にも引き継ぎます。</value></data>
+  <data name="Display_UiScaleLabel" xml:space="preserve"><value>UI の倍率</value></data>
+  <data name="Display_UiScaleNote" xml:space="preserve"><value>文字、余白、ボタンをまとめて拡大します。</value></data>
+  <data name="Display_FontSizeLabel" xml:space="preserve"><value>文字の大きさ</value></data>
+  <data name="Display_FontSizeNote" xml:space="preserve"><value>本文の大きさで示します。文字だけを拡大します。</value></data>
+  <data name="Display_FontLabel" xml:space="preserve"><value>書体</value></data>
+  <data name="Display_FontDefault" xml:space="preserve"><value>既定（{0}）</value></data>
+  <data name="Display_DensityLabel" xml:space="preserve"><value>密度</value></data>
+  <data name="Display_DensityStandard" xml:space="preserve"><value>標準</value></data>
+  <data name="Display_DensityCompact" xml:space="preserve"><value>詰める</value></data>
+  <data name="Search_ModeLabel" xml:space="preserve"><value>方法</value></data>
+  <data name="Search_ScopeLabel" xml:space="preserve"><value>対象</value></data>
+  <data name="Menu_Bar" xml:space="preserve"><value>メニューバー</value></data>
+  <data name="Settings_HeksaSourceLabel" xml:space="preserve"><value>取り先</value></data>
+  <data name="Settings_DisplayMovedNote" xml:space="preserve"><value>UI の倍率・文字の大きさ・書体・密度は、メニューバーの［表示］→［表示の設定…］で変えられます。</value></data>
 </root>

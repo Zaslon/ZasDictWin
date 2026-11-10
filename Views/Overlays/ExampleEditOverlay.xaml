@@ -16,7 +16,7 @@
                     <TextBlock DockPanel.Dock="Right" v:LocalizedText.Text="{Binding IdLabel}" Style="{StaticResource Label}"
                                Margin="12,0,0,0" VerticalAlignment="Center" TextWrapping="NoWrap" />
                     <TextBlock v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
-                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
                 </DockPanel>
             </Border>
 
@@ -50,7 +50,7 @@
                              AcceptsReturn="True" TextWrapping="Wrap" MinLines="2" MaxLines="6"
                              VerticalScrollBarVisibility="Auto"
                              FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=FieldFamily}"
-                             FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}" />
+                             FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
 
                     <TextBlock v:LocalizedText.Text="{x:Static res:Strings.ExampleEdit_TranslationLabel}" Style="{StaticResource Label}" Margin="0,14,0,4" />
                     <TextBox Text="{Binding TranslationText, UpdateSourceTrigger=PropertyChanged}"
@@ -110,7 +110,7 @@
                                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
                                                 <TextBlock Text="{Binding TranslationSummary}" Foreground="{StaticResource Muted}"
                                                            FontFamily="{x:Static res:Strings.ContentFont}"
-                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
+                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}"
                                                            TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" MaxWidth="520" />
                                             </StackPanel>
                                         </Button>

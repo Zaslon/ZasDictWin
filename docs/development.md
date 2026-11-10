@@ -65,9 +65,16 @@ UI 要素は配信に映らない。これを避けるため次の構成を取�
     ホイールは中の `ScrollViewer` が食うので親へ流し直す
   - `Views/DropDown.cs`: プルダウン。一覧を `Popup` ではなくウィンドウ最上段の `AdornerDecorator` に描く。
     `IsEditable` で一覧に無い値も打てる（単語エディタの関係名）
-  - `Views/MenuButton.cs`: 階層メニュー。一覧は DropDown と同じく `AdornerDecorator` に描く。項目は
-    `MenuActionSpec`（見出しと上げる Intent だけの入れ物）で、並びと有効・無効は `Mediator/AppMediator.cs` が組む
-  - 検索モード・検索対象は `Themes/Theme.xaml` の `Chip` スタイルのトグル
+  - `Views/MenuButton.cs`: メニューバーの見出しと、一覧の行の ⋯。一覧は DropDown と同じく `AdornerDecorator` に描く。
+    項目は `MenuActionSpec`（見出し・アクセスキー・ショートカットの表示と、上げる Intent だけの入れ物）で、
+    並びと有効・無効は `Mediator/AppMediator.cs` が組む。標準の `Menu` は一覧が `Popup` になるので使わない。
+    メニューバーのキー操作（Alt・F10・Alt+文字・左右の矢印・Esc で元の要素へ戻る）は `MenuButton` と
+    `Views/MainWindow.xaml.cs` が持つ。項目の右端のショートカットは表示だけで、キーの割り当ては `MainWindow.OnShortcutKeyDown`
+  - `Views/RadioGroup.cs`・`Views/HeadedRow.cs`: ラジオグループ（ZasDesignSystem components.md「ラジオグループ」）。
+    検索方法・検索対象・配色・編集モード・Heksa の取り先・密度に使う。Tab では選択中の選択肢にだけ止まり、
+    矢印キーでフォーカスと選択を同時に移す
+  - 表示の設定（`ViewModels/DisplaySettingsViewModel.cs`・`Views/Overlays/DisplaySettingsOverlay.xaml`）は
+    選んだ時点で反映するので、［適用］で反映する設定ウィンドウとは分け、確認ダイアログの層に重ねる
 - 標準の枠は消してある（`WindowStyle="None"` ＋ `WindowChrome`）。移動・最大化・最小化・閉じるは自前。
   ウィンドウの大きさは `settings.json` に覚える
 - 単語ウィンドウ・単語数ウィンドウ・持ち出したタブの独立ウィンドウは意図的に別 HWND
@@ -93,10 +100,23 @@ UI 要素は配信に映らない。これを避けるため次の構成を取�
   画質が落ちる。奥行きは面の明暗と枠線で表現する
 - hover / pressed は背景を塗り替えずヴェール（`HoverVeil` / `PressedVeil`。ダークは白・黒、ライトは黒）を重ね、
   Primary などの塗りを潰さない
-- 角の丸みはカード `12` / ボタン・入力欄 `8` / chip・タグ・バッジ `6` の 3 段。長丸（`CornerRadius="999"`）は
-  使わない（短い chip がほぼ真円になり、隣の部品と形が揃わない）
-- ヘッダは幅 1280px で 1 行に収める。コードビハインドから文字列を代入するボタン（最大化・元に戻すなど）が
-  あるので `Content` はプレーンテキストのままにする
+- 角の丸みはカード `12` / ボタン・入力欄 `8` / タグ・バッジ `6` の 3 段。長丸（`CornerRadius="999"`）は
+  使わない（短いタグがほぼ真円になり、隣の部品と形が揃わない）
+- ボタンのホバー・押下で文字に下線を引かない（Windows の標準のボタンには付かず、リンクと紛れる）
+- 上端はタイトル行（辞書名・未保存の印・最小化／最大化／閉じる）とメニューバー（メニューと近道のボタン）の 2 段。
+  コードビハインドから文字列を代入するボタン（最大化・元に戻すなど）があるので `Content` はプレーンテキストのままにする
+- 文字の大きさは `{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}`
+  のように、ConverterParameter に文字スタイルのトークン名（`display` `h1` `h2` `h3` `body` `dense` `oneline` `mono` `small`）を書く。
+  密度ごとの大きさは `Services/DisplayScale.cs` の `TextStyles` が持ち、密度を変えると `Scale` の変更も通知されるので再計算される。
+  数値を書くとその px に文字の大きさの倍率だけを掛ける（入力欄の幅・アイコンなど、密度で変えない寸法に使う）。14px 未満の文字は作らない
+- UI 倍率は各ウィンドウの中身の根に `LayoutTransform` で掛ける（`FontScaleState.UiScaleTransform`）。別の視覚ツリーになる
+  `ToolTip`・ドラッグ中の影の窓には、それぞれ同じ倍率を掛けている。新しく別の窓や Popup を足すときも掛けること。
+  窓の `MinWidth` / `MinHeight` にも倍率を掛ける（`ScaleMinSize`）
+- 書体は `FontScaleState.UiFont`（選んだ書体の後ろに表示言語の既定の書体を並べたもの）。窓の `FontFamily` と、
+  窓の外へ描くもの（ToolTip・案内文字・ドラッグ中の影）はこれを引く。`Strings.UIFont` を直に書かない
+- フォーカス表示は `FocusVisualStyle`（`FocusRing`：color-accent・太さ 2・要素から 2 離す）で付ける。キーボードで移ったときだけ描かれる。
+  テンプレートの `IsFocused` / `IsKeyboardFocused` のトリガーでフォーカスを描かない（クリックでも出てしまう）。例外は入力欄（`TextBox`・打ち込める `DropDown`）で、
+  クリックでも枠を color-accent・太さ 2 にする。枠を太くすると中の文字がずれるので、同じ角丸の枠を上に重ねて描く
 - 入力欄の案内文字は `v:Placeholder.Text` 添付プロパティ。TextBox テンプレートが空のときだけ表示する
 - `Views/StreamWindow.xaml`（単語ウィンドウ）と `Views/CountWindow.xaml`（単語数ウィンドウ）はテーマ適用外。
   背景色がクロマキー用の固定値になるため

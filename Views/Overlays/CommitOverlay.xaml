@@ -11,7 +11,7 @@
             VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
         <DockPanel>
             <TextBlock DockPanel.Dock="Top" v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold"
-                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
+                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
 
             <!-- 戻る側を左、進む側を右に並べる（ZasDesignSystem rules.md「ボタンは戻る側を左、進む側を右に並べる」） -->
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,18,0,0">

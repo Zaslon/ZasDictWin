@@ -30,6 +30,7 @@ public static class ScreenRegistry
         new("SettingsViewModel", false, false, false),
         new("ChoiceViewModel", false, false, false),
         new("CommitViewModel", false, false, false),
+        new("DisplaySettingsViewModel", false, false, false),
     };
 
     private static readonly Dictionary<string, ScreenRule> ByKind = Rules.ToDictionary(r => r.Kind);

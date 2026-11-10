@@ -8,11 +8,13 @@
         xmlns:res="clr-namespace:ZasDictWin.Resources"
         xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
         Title="{Binding WindowTitle, Converter={StaticResource PlainText}}"
-        Width="1280" Height="800" MinWidth="900" MinHeight="600"
+        Width="1280" Height="800"
+        MinWidth="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScale, Converter={StaticResource ScaleMinSize}, ConverterParameter=w900}"
+        MinHeight="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScale, Converter={StaticResource ScaleMinSize}, ConverterParameter=h600}"
         Background="{StaticResource Ink}"
         BorderBrush="{StaticResource Line}" BorderThickness="1"
-        FontFamily="{x:Static res:Strings.UIFont}"
-        FontSize="{Binding BaseFontSize}"
+        FontFamily="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiFont}"
+        FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}"
         TextOptions.TextFormattingMode="Ideal"
         UseLayoutRounding="True"
         WindowStyle="None" ResizeMode="CanResize">
@@ -53,37 +55,19 @@
                              CornerRadius="0" UseAeroCaptionButtons="False" />
     </shell:WindowChrome.WindowChrome>
 
-    <Grid>
+    <!-- UI 倍率は中身の根に LayoutTransform で掛ける（RenderTransform ではレイアウトが倍率を知らず、窓からはみ出す）。
+         一覧（DropDown / MenuButton）とフォーカス表示は窓の AdornerLayer に描かれるが、AdornerLayer は
+         飾る要素までの変換を引き継ぐので、同じ倍率で描かれる。 -->
+    <Grid LayoutTransform="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScaleTransform}">
         <DockPanel x:Name="Root">
 
-            <!-- 標準の枠が無いので、このヘッダ自体がウィンドウのドラッグ・つまみを兼ねる（Header_MouseLeftButtonDown）。
+            <!-- 標準の枠が無いので、上端のタイトル行自体がウィンドウのドラッグ・つまみを兼ねる（Header_MouseLeftButtonDown）。
                  ボタンは ButtonBase 側が MouseLeftButtonDown を Handled 済みにするため、ここまでは伝播せず、
                  ボタンの無い余白だけがドラッグ領域として働く。 -->
-            <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
-                    BorderThickness="0,0,0,1" Padding="12,7"
+            <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}"
+                    Padding="12,4,12,0"
                     MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <DockPanel>
-                    <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
-                        <!-- アプリの顔。辞書名が長くなるので小さく据える -->
-                        <Border Width="24" Height="24" CornerRadius="5" Background="{StaticResource AccentFill}"
-                                Margin="0,0,9,0" VerticalAlignment="Center">
-                            <TextBlock Text="Z" FontSize="13" FontWeight="Bold" Foreground="{StaticResource OnFill}"
-                                       HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="NoWrap" />
-                        </Border>
-                        <TextBlock v:LocalizedText.Text="{Binding DictionaryName}" FontWeight="SemiBold"
-                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=15}"
-                                   VerticalAlignment="Center" Margin="0,0,8,0" />
-                        <!-- 未保存の印。点の色や形だけでは意味が伝わらず、ツールチップは配信に映らないため、
-                             文言を添えて常に示す（ZasDesignSystem rules.md「未保存の変更があることを常に示す」）。 -->
-                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
-                                    Visibility="{Binding IsDirty, Converter={StaticResource BoolVis}}">
-                            <Ellipse Width="8" Height="8" Fill="{StaticResource Accent}" VerticalAlignment="Center" Margin="0,0,4,0" />
-                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Main_UnsavedLabel}" Foreground="{StaticResource Accent}"
-                                       VerticalAlignment="Center" TextWrapping="NoWrap"
-                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
-                        </StackPanel>
-                    </StackPanel>
-
                     <!-- 最小化・最大化（元に戻す）・閉じる。標準の枠が無いので自前で持つ。
                          アイコンは検索欄の虫眼鏡（SearchPanel.xaml）と同じ Segoe MDL2 Assets。 -->
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
@@ -98,18 +82,54 @@
                                 AutomationProperties.Name="{x:Static res:Strings.Common_Close}" Margin="4,0,0,0" />
                     </StackPanel>
 
-                    <WrapPanel HorizontalAlignment="Right" Orientation="Horizontal"
-TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}">
-                        <!-- 開く・新規辞書・上書き保存・名前を付けて保存。項目の構成と有効・無効は Mediator が組む。 -->
-                        <v:MenuButton x:Name="FileMenuButton" Header="{x:Static res:Strings.Menu_File}" Items="{Binding FileMenuItems}" />
-                        <!-- 元に戻す・やり直し。 -->
-                        <v:MenuButton x:Name="EditMenuButton" Header="{x:Static res:Strings.Menu_Edit}" Items="{Binding EditMenuItems}" />
-                        <!-- 統計・凡例・更新履歴・方言変換・IPA→綴りは、常設のタブ枠を食わない
-                             独立ウィンドウとしてここから開く。 -->
-                        <v:MenuButton x:Name="ToolsMenuButton" Header="{x:Static res:Strings.Menu_Tools}" Items="{Binding ToolsMenuItems}" />
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <!-- アプリの顔。辞書名が長くなるので小さく据える -->
+                        <Border Width="24" Height="24" CornerRadius="5" Background="{StaticResource AccentFill}"
+                                Margin="0,0,9,0" VerticalAlignment="Center">
+                            <TextBlock Text="Z" FontSize="13" FontWeight="Bold" Foreground="{StaticResource OnFill}"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="NoWrap" />
+                        </Border>
+                        <TextBlock v:LocalizedText.Text="{Binding DictionaryName}" FontWeight="SemiBold"
+                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h3}"
+                                   VerticalAlignment="Center" Margin="0,0,8,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
+                        <!-- 未保存の印。点の色や形だけでは意味が伝わらず、ツールチップは配信に映らないため、
+                             文言を添えて常に示す（ZasDesignSystem rules.md「未保存の変更があることを常に示す」）。 -->
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center"
+                                    Visibility="{Binding IsDirty, Converter={StaticResource BoolVis}}">
+                            <Ellipse Width="8" Height="8" Fill="{StaticResource Accent}" VerticalAlignment="Center" Margin="0,0,4,0" />
+                            <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Main_UnsavedLabel}" Foreground="{StaticResource Accent}"
+                                       VerticalAlignment="Center" TextWrapping="NoWrap"
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
+                        </StackPanel>
+                    </StackPanel>
+                </DockPanel>
+            </Border>
+
+            <!-- メニューバー（ZasDesignSystem rules.md「パソコンのソフトにはメニューバーを設ける」）。
+                 標準の Menu は一覧を Popup（別 HWND）に描き、OBS のウィンドウキャプチャに映らないため、
+                 一覧を窓の中に描く v:MenuButton を並べる。Alt か F10 で移り（MainWindow.xaml.cs）、Tab の移動先には入らない。
+                 項目の構成と有効・無効は Mediator が組む。右側のボタンはメニューにもある操作の近道。 -->
+            <Border DockPanel.Dock="Top" Background="{StaticResource HeaderFill}" BorderBrush="{StaticResource Divider}"
+                    BorderThickness="0,0,0,1" Padding="8,2,12,4"
+                    MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                <DockPanel>
+                    <StackPanel x:Name="MenuBar" DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center"
+                                v:MenuButton.IsMenuBar="True" AutomationProperties.Name="{x:Static res:Strings.Menu_Bar}"
+                                TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=oneline}">
+                        <v:MenuButton Style="{StaticResource MenuBarButton}" Header="{x:Static res:Strings.Menu_File}" AccessKey="F" Items="{Binding FileMenuItems}" />
+                        <v:MenuButton Style="{StaticResource MenuBarButton}" Header="{x:Static res:Strings.Menu_Edit}" AccessKey="E" Items="{Binding EditMenuItems}" />
+                        <v:MenuButton Style="{StaticResource MenuBarButton}" Header="{x:Static res:Strings.Menu_View}" AccessKey="V" Items="{Binding ViewMenuItems}" />
+                        <v:MenuButton Style="{StaticResource MenuBarButton}" Header="{x:Static res:Strings.Menu_Tools}" AccessKey="T" Items="{Binding ToolsMenuItems}" />
+                        <!-- 単語ウィンドウ・単語数ウィンドウは独立した HWND で、開く／閉じるを切り替える。
+                             項目名は開いているかどうかで変わる（Mediator が開閉のたびに組み直す）。 -->
+                        <v:MenuButton Style="{StaticResource MenuBarButton}" Header="{x:Static res:Strings.Menu_Window}" AccessKey="W" Items="{Binding WindowMenuItems}" />
+                        <v:MenuButton Style="{StaticResource MenuBarButton}" Header="{x:Static res:Strings.Settings_Title}" AccessKey="S" Items="{Binding SettingsMenuItems}" />
+                        <v:MenuButton Style="{StaticResource MenuBarButton}" Header="{x:Static res:Strings.Menu_Help}" AccessKey="H" Items="{Binding HelpMenuItems}" />
+                    </StackPanel>
+
+                    <WrapPanel HorizontalAlignment="Right" Orientation="Horizontal" Margin="12,0,0,0"
+                               TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=oneline}">
                         <!-- GitHubモードのときだけ現れる。設定 → GitHub でリポジトリ・トークンを登録すると使える。 -->
-                        <Border Width="1" Background="{StaticResource Divider}" Margin="6,5"
-                                Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}" />
                         <Button v:LocalizedText.Content="{x:Static res:Strings.GitHub_LoadButton}" Style="{StaticResource ToolbarButton}" r:IntentTrigger.OnClick="GitHubLoadRequested" IsEnabled="{Binding CanGitHubLoad}"
                                 Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}"
                                 ToolTip="{x:Static res:Strings.GitHub_LoadButtonTooltip}" />
@@ -117,18 +137,14 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                         <Button v:LocalizedText.Content="{x:Static res:Strings.GitHub_CommitButton}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="GitHubCommitRequested" IsEnabled="{Binding CanGitHubCommit}"
                                 Margin="4,0" Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}"
                                 ToolTip="{x:Static res:Strings.GitHub_CommitButtonTooltip}" />
-                        <Border Width="1" Background="{StaticResource Divider}" Margin="6,5" />
+                        <Border Width="1" Background="{StaticResource Divider}" Margin="6,5"
+                                Visibility="{Binding IsGitHubMode, Converter={StaticResource BoolVis}}" />
                         <Button v:LocalizedText.Content="{x:Static res:Strings.Main_NewWordButton}" Style="{StaticResource ToolbarAccentButton}" r:IntentTrigger.OnClick="NewWordRequested" IsEnabled="{Binding CanNewWord}" />
                         <Button v:LocalizedText.Content="{x:Static res:Strings.Examples_Title}" Style="{StaticResource ToolbarButton}" r:IntentTrigger.OnClick="ShowExamplesRequested" IsEnabled="{Binding CanShowExamples}"
                                 ToolTip="{x:Static res:Strings.Main_ExamplesButtonTooltip}" />
-                        <Button v:LocalizedText.Content="{x:Static res:Strings.Settings_Title}" Style="{StaticResource ToolbarButton}" r:IntentTrigger.OnClick="SettingsRequested" IsEnabled="{Binding CanShowSettings}" />
                         <Button x:Name="BrowserButton" v:LocalizedText.Content="{x:Static res:Strings.Browser_Title}" Style="{StaticResource ToolbarButton}"
                                 r:IntentTrigger.OnClick="OpenScreenRequested" r:IntentTrigger.Payload="{x:Static med:AppCommand.ShowBrowser}"
                                 IsEnabled="{Binding CanShowBrowser}" ToolTip="{x:Static res:Strings.Browser_ButtonTooltip}" />
-                        <Border Width="1" Background="{StaticResource Divider}" Margin="6,5" />
-                        <!-- 単語ウィンドウ・単語数ウィンドウは独立した HWND で、開く／閉じるを切り替える。
-                             項目名は開いているかどうかで変わる（Mediator が開閉のたびに組み直す）。 -->
-                        <v:MenuButton x:Name="WindowMenuButton" Header="{x:Static res:Strings.Menu_Window}" Items="{Binding WindowMenuItems}" />
                     </WrapPanel>
                 </DockPanel>
             </Border>
@@ -138,11 +154,11 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                 <DockPanel>
                     <TextBlock DockPanel.Dock="Right" Text="{Binding VersionLabel}" Foreground="{StaticResource Muted}"
                                Margin="12,0,0,0" VerticalAlignment="Center"
-                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
                     <Border DockPanel.Dock="Right" Background="{StaticResource Raised}" BorderBrush="{StaticResource Divider}"
                             BorderThickness="1" CornerRadius="4" Padding="10,2" Margin="12,0,0,0" VerticalAlignment="Center">
                         <TextBlock v:LocalizedText.Text="{Binding CountLabel}" Foreground="{StaticResource Muted}"
-                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                                   FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
                     </Border>
                     <!-- フッタは 1 行固定。折り返すと状況によってフッタの高さが変わり、下端の位置が動く -->
                     <!-- Padding と負の Margin を打ち消し合わせ、光る範囲だけ広げてレイアウトへの影響を消している。
@@ -188,7 +204,7 @@ TextElement.FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Pat
                                 </Canvas>
                             </Viewbox>
                             <TextBlock v:LocalizedText.Text="{Binding Status}" Foreground="{StaticResource StatusText}"
-                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}"
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}"
                                        VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                         </DockPanel>
                     </Border>

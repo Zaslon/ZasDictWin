@@ -287,7 +287,6 @@
   <data name="Settings_WindowHeading" xml:space="preserve"><value>Window:</value></data>
   <data name="Settings_WidthLabel" xml:space="preserve"><value>Width</value></data>
   <data name="Settings_HeightLabel" xml:space="preserve"><value>Height</value></data>
-  <data name="Settings_AspectLockCheckbox" xml:space="preserve"><value>Lock the aspect ratio (keeps edge-drag resizing proportional)</value></data>
   <data name="Settings_HeksaHeading" xml:space="preserve"><value>Idyerin Script Font</value></data>
   <data name="Settings_HeksaAnnotation" xml:space="preserve"><value> (Heksa)</value></data>
   <data name="Settings_HeksaEnableCheckbox" xml:space="preserve"><value>Enable Heksa</value></data>
@@ -412,7 +411,7 @@
   <data name="Main_UnsavedLabel" xml:space="preserve"><value>Unsaved</value></data>
   <data name="Main_WordCountLabel" xml:space="preserve"><value>{0} words</value></data>
   <data name="Main_VersionLabel" xml:space="preserve"><value>v{0}</value></data>
-  <data name="Main_FontScaleStatus" xml:space="preserve"><value>Font size {0}%</value></data>
+  <data name="Main_FontScaleStatus" xml:space="preserve"><value>Text size {0}px</value></data>
   <data name="Main_NewDictionaryCreated" xml:space="preserve"><value>Created an empty dictionary. You'll choose a file name when you save.</value></data>
   <data name="Main_OpenDialogTitle" xml:space="preserve"><value>Open an OTM-JSON Dictionary</value></data>
   <data name="Main_OtmFilter" xml:space="preserve"><value>OTM-JSON (*.json)|*.json|All files (*.*)|*.*</value></data>
@@ -485,4 +484,32 @@ The entries that couldn't be written are kept and will be written the next time 
 {0}
 
 Detailed log: {1}</value></data>
+  <data name="Menu_View" xml:space="preserve"><value>View</value></data>
+  <data name="Menu_Help" xml:space="preserve"><value>Help</value></data>
+  <data name="Menu_Exit" xml:space="preserve"><value>Exit</value></data>
+  <data name="Menu_EditWord" xml:space="preserve"><value>Edit word</value></data>
+  <data name="Menu_DuplicateWord" xml:space="preserve"><value>Duplicate word</value></data>
+  <data name="Menu_DeleteWord" xml:space="preserve"><value>Delete word</value></data>
+  <data name="Menu_Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Menu_ZoomIn" xml:space="preserve"><value>Larger text</value></data>
+  <data name="Menu_ZoomOut" xml:space="preserve"><value>Smaller text</value></data>
+  <data name="Menu_Usage" xml:space="preserve"><value>How to use</value></data>
+  <data name="Menu_About" xml:space="preserve"><value>About</value></data>
+  <data name="About_Message" xml:space="preserve"><value>ZasDict for Windows {0}</value></data>
+  <data name="Display_Title" xml:space="preserve"><value>Display settings</value></data>
+  <data name="Display_Note" xml:space="preserve"><value>Changes apply as soon as you choose them and are kept for the next launch.</value></data>
+  <data name="Display_UiScaleLabel" xml:space="preserve"><value>UI scale</value></data>
+  <data name="Display_UiScaleNote" xml:space="preserve"><value>Enlarges text, spacing and buttons together.</value></data>
+  <data name="Display_FontSizeLabel" xml:space="preserve"><value>Text size</value></data>
+  <data name="Display_FontSizeNote" xml:space="preserve"><value>Shown as the body text size. Enlarges text only.</value></data>
+  <data name="Display_FontLabel" xml:space="preserve"><value>Typeface</value></data>
+  <data name="Display_FontDefault" xml:space="preserve"><value>Default ({0})</value></data>
+  <data name="Display_DensityLabel" xml:space="preserve"><value>Density</value></data>
+  <data name="Display_DensityStandard" xml:space="preserve"><value>Standard</value></data>
+  <data name="Display_DensityCompact" xml:space="preserve"><value>Compact</value></data>
+  <data name="Search_ModeLabel" xml:space="preserve"><value>Match</value></data>
+  <data name="Search_ScopeLabel" xml:space="preserve"><value>Field</value></data>
+  <data name="Menu_Bar" xml:space="preserve"><value>Menu bar</value></data>
+  <data name="Settings_HeksaSourceLabel" xml:space="preserve"><value>Source</value></data>
+  <data name="Settings_DisplayMovedNote" xml:space="preserve"><value>UI scale, text size, typeface and density are in View > Display settings… on the menu bar.</value></data>
 </root>

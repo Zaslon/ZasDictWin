@@ -28,31 +28,32 @@ internal sealed class DragGhost : Window
         SizeToContent = SizeToContent.WidthAndHeight;
         Opacity = 0.9;
 
-        var scale = FontScaleState.Instance.Scale;
+        var display = FontScaleState.Instance;
         var stack = new StackPanel();
         // タブの見出しは UI 文字列（検索・設定など）なので、枠側の見出し（DockGroupPanel.xaml）と
         // 同じく [en] を解いて描く。
         var heading = new TextBlock
         {
             FontWeight = FontWeights.SemiBold,
-            FontSize = 12 * scale,
+            FontSize = display.Size("body"),
             Foreground = Brush("Text"),
         };
         LocalizedText.SetText(heading, title);
         stack.Children.Add(heading);
         var hint = new TextBlock
         {
-            FontSize = 11 * scale,
+            FontSize = display.Size("small"),
             Margin = new Thickness(0, 2, 0, 0),
             Foreground = Brush("Muted"),
         };
         LocalizedText.SetText(hint, Strings.Overlay_DropToFloatHint);
         stack.Children.Add(hint);
 
-        // 影は本体と同じ書体で出す（コードで組むので、XAML の既定は効かない）。
-        FontFamily = new FontFamily("Yu Gothic UI");
+        // 影は本体と同じ書体・UI 倍率で出す（別の窓なので、本体の根に掛けた倍率も書体も届かない）。
+        FontFamily = display.UiFont;
         Content = new Border
         {
+            LayoutTransform = display.UiScaleTransform,
             Background = Brush("Raised"),
             BorderBrush = Brush("Accent"),
             BorderThickness = new Thickness(1),

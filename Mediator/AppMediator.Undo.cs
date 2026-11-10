@@ -154,9 +154,23 @@ public sealed partial class AppMediator
 
     // ---- メニュー -------------------------------------------------------------------
 
+    /// <summary>選択中の単語に効く操作は、一覧の行の ⋯ と同じものをここにも並べる
+    /// （ZasDesignSystem rules.md「隠れた操作は近道に留める」。行の右クリックとショートカットの手掛かり）。</summary>
     public IReadOnlyList<MenuActionSpec> BuildEditMenu() => new[]
     {
-        new MenuActionSpec(Strings.Menu_Undo, "Ctrl+Z", IntentKind.UndoRequested, null, CanExecute(AppCommand.Undo), false, true),
-        new MenuActionSpec(Strings.Menu_Redo, "Ctrl+Y", IntentKind.RedoRequested, null, CanExecute(AppCommand.Redo), false, true),
+        new MenuActionSpec(Strings.Menu_Undo, "", IntentKind.UndoRequested, null, CanExecute(AppCommand.Undo), false, true,
+            Shortcut: "Ctrl+Z", AccessKey: 'U'),
+        new MenuActionSpec(Strings.Menu_Redo, "", IntentKind.RedoRequested, null, CanExecute(AppCommand.Redo), false, true,
+            Shortcut: "Ctrl+Y", AccessKey: 'R'),
+        new MenuActionSpec(Strings.Main_NewWordButton, "", IntentKind.NewWordRequested, null, CanExecute(AppCommand.NewWord), false, true,
+            Shortcut: "Ctrl+N", AccessKey: 'W', Ellipsis: true, GroupStart: true),
+        new MenuActionSpec(Strings.Menu_EditWord, "", IntentKind.EditWordRequested, null, CanExecute(AppCommand.EditWord), false, true,
+            Shortcut: "Ctrl+E", AccessKey: 'E', Ellipsis: true),
+        new MenuActionSpec(Strings.Menu_DuplicateWord, "", IntentKind.DuplicateWordRequested, null, CanExecute(AppCommand.DuplicateWord), false, true,
+            Shortcut: "Ctrl+D", AccessKey: 'D'),
+        new MenuActionSpec(Strings.Menu_DeleteWord, "", IntentKind.DeleteWordRequested, null, CanExecute(AppCommand.DeleteWord), false, true,
+            AccessKey: 'L'),
+        new MenuActionSpec(Strings.Menu_Search, "", IntentKind.FocusQueryBoxRequested, null, true, false, true,
+            Shortcut: "Ctrl+F", AccessKey: 'F', GroupStart: true),
     };
 }

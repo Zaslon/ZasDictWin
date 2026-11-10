@@ -15,12 +15,12 @@
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0">
                     <TextBlock Text="{Binding WordCount}"
-                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=34}" />
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h1}" />
                     <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Label_Headwords}" Style="{StaticResource Label}" />
                 </StackPanel>
                 <StackPanel Grid.Column="1">
                     <TextBlock Text="{Binding ExampleCount}"
-                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=34}" />
+                               FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h1}" />
                     <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Examples_Title}" Style="{StaticResource Label}" />
                 </StackPanel>
             </Grid>
@@ -50,10 +50,10 @@
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="BreakCount" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding Name}"
-                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
                             <TextBlock Grid.Column="1" Text="{Binding Count}" Foreground="{StaticResource Muted}"
                                        TextAlignment="Right" Margin="6,0,0,0"
-                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -75,10 +75,10 @@
                                 <ColumnDefinition Width="Auto" SharedSizeGroup="BreakCount" />
                             </Grid.ColumnDefinitions>
                             <TextBlock Grid.Column="0" Text="{Binding Name}"
-                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
                             <TextBlock Grid.Column="1" Text="{Binding Count}" Foreground="{StaticResource Muted}"
                                        TextAlignment="Right" Margin="6,0,0,0"
-                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=14}" />
+                                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
                         </Grid>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

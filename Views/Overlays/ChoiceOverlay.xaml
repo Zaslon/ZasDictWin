@@ -19,7 +19,7 @@
             <TextBlock x:Name="Heading" DockPanel.Dock="Top" v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold"
                        Focusable="True" KeyboardNavigation.IsTabStop="False" FocusVisualStyle="{x:Null}"
                        AutomationProperties.HeadingLevel="Level1"
-                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=19}" />
+                       FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h2}" />
 
             <ItemsControl DockPanel.Dock="Bottom" ItemsSource="{Binding Choices}" Margin="0,20,0,0">
                 <ItemsControl.ItemTemplate>

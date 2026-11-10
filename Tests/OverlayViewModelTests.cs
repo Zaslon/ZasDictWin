@@ -17,9 +17,8 @@ public class OverlayViewModelTests
     [Fact]
     public void Settings_CopiesValuesAndFormatsRelations()
     {
-        var vm = Settings(new AppSettings { GitHubBranch = " ", FontScale = 1.5, Mode = EditMode.GitHub });
+        var vm = Settings(new AppSettings { GitHubBranch = " ", Mode = EditMode.GitHub });
 
-        Assert.Equal(1.5, vm.FontScale);
         Assert.Equal("main", vm.GitHubBranch);
         Assert.True(vm.IsGitHubMode);
         Assert.Equal($"a=b{Environment.NewLine}c=c", vm.ReciprocalText);

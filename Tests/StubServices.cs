@@ -64,6 +64,9 @@ internal sealed class StubServices : IAppServices
     public void SaveRelations(Dictionary<string, string> relations) => SavedRelations = relations;
     public FontFamily? LoadHeksaFont(HeksaFontSource source, string? path, string? name) => null;
     public string? PickOpenPath(string title, string filter) => NextOpenPath;
+
+    public List<string> OpenedUrls { get; } = new();
+    public void OpenExternal(string url) => OpenedUrls.Add(url);
     public string? PickSavePath(string title, string filter, string suggestedFileName)
     {
         SuggestedFileName = suggestedFileName;

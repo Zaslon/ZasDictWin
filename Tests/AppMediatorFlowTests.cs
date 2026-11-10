@@ -1101,20 +1101,18 @@ public class AppMediatorFlowTests
     }
 
     [Fact]
-    public void Settings_ApplyWhileMaximized_KeepsSizeButLocksAspect()
+    public void Settings_ApplyWhileMaximized_KeepsSize()
     {
         var h = new MediatorHarness();
         h.Send(IntentKind.WindowStateChanged, WindowState.Maximized);
         var form = OpenSettings(h);
         form.WindowWidth = 1600;
         form.WindowHeight = 900;
-        form.WindowAspectLocked = true;
 
         h.Send(IntentKind.SettingsApplyRequested, from: h.AddHost(HostRole.Settings));
 
         var size = h.HostCommands.OfType<HostCommand.ApplyShellSize>().Last();   // 起動時の復元にも 1 つ出る
         Assert.True(double.IsNaN(size.Width) && double.IsNaN(size.Height));
-        Assert.Equal(1600.0 / 900, size.AspectRatio!.Value, 6);
     }
 
     [Fact]

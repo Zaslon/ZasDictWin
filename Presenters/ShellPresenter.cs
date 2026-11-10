@@ -56,6 +56,9 @@ public sealed class ShellPresenter
         if (!_state.EditMenuItems.SequenceEqual(m.BuildEditMenu())) _state.EditMenuItems = m.BuildEditMenu();
         if (!_state.ToolsMenuItems.SequenceEqual(m.BuildToolsMenu())) _state.ToolsMenuItems = m.BuildToolsMenu();
         if (!_state.WindowMenuItems.SequenceEqual(m.BuildWindowMenu())) _state.WindowMenuItems = m.BuildWindowMenu();
+        if (!_state.ViewMenuItems.SequenceEqual(m.BuildViewMenu())) _state.ViewMenuItems = m.BuildViewMenu();
+        if (!_state.SettingsMenuItems.SequenceEqual(m.BuildSettingsMenu())) _state.SettingsMenuItems = m.BuildSettingsMenu();
+        if (!_state.HelpMenuItems.SequenceEqual(m.BuildHelpMenu())) _state.HelpMenuItems = m.BuildHelpMenu();
     }
 
     private void OnViewCommand(HostCommand command)

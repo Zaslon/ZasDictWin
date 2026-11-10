@@ -31,11 +31,14 @@ public sealed class AppSettings
     public double WindowHeight { get; set; } = 800;
     public bool WindowMaximized { get; set; }
 
-    // true の間は WindowWidth / WindowHeight の比率を、端をつまんだ手動リサイズでも崩さない
-    // （MainWindow が WM_SIZING を横取りして矯正する。最大化には作用しない）。
-    public bool WindowAspectLocked { get; set; }
-
+    // 表示の設定（ZasDesignSystem tokens.md「表示の設定」）。どれも 表示 → 表示の設定 で選んだ時点で反映する。
+    // FontScale は font-scale（1.0〜2.0）。旧版は 0.6〜3.0 を許していたので、読み込んだ値は使う側で丸める。
     public double FontScale { get; set; } = 1.0;
+    public double UiScale { get; set; } = 1.0;
+    public Density Density { get; set; } = Density.Standard;
+    // null は表示言語の既定の書体（Strings.Meta_UIFontFamily）。
+    public string? UiFontFamily { get; set; }
+
     public bool AutoSave { get; set; }
 
     // 起動時にだけ反映する（ThemePalette）。

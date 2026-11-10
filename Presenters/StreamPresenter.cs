@@ -95,7 +95,8 @@ public sealed class StreamPresenter
     /// <summary>凡例のうち、今の文字サイズ倍率で描いていないものを描き直す。</summary>
     private void RefreshLegends()
     {
-        var scale = FontScaleState.Instance.Scale;
+        // 凡例の描画（MarkdownRenderer）は本文 14px を基準に組んである。密度と文字の大きさで決まる本文の大きさに合わせて伸ばす。
+        var scale = FontScaleState.Instance.Size("body") / 14;
         foreach (var legend in _state.Layout.Overlays.OfType<LegendViewModel>())
         {
             if (legend.DocumentScale.Equals(scale) && legend.Document is not null) continue;

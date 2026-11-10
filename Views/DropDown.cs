@@ -380,8 +380,11 @@ public class DropDown : Control, IPopupLayer
 
             if (VisualTreeHelper.GetParent(this) is UIElement layer)
             {
-                var top = AdornedElement.TranslatePoint(new Point(0, 0), layer).Y;
-                if (top + y + size.Height > layer.RenderSize.Height && top - size.Height - Gap >= 0)
+                // 一覧は飾る要素の座標で並べるが、窓の根に UI 倍率が掛かっていると層の座標とは倍率の分だけ違う。
+                var toLayer = AdornedElement.TransformToVisual(layer);
+                var top = toLayer.Transform(new Point(0, 0)).Y;
+                var scale = toLayer.TransformBounds(new Rect(0, 0, 1, 1)).Height;
+                if (top + (y + size.Height) * scale > layer.RenderSize.Height && top - (size.Height + Gap) * scale >= 0)
                     y = -size.Height - Gap;
             }
 

@@ -152,7 +152,7 @@ public partial class App : Application
             switch (command)
             {
                 case HostCommand.ApplyShellSize size:
-                    Shell?.ApplyShellSize(size.Width, size.Height, size.AspectRatio, size.Maximize);
+                    Shell?.ApplyShellSize(size.Width, size.Height, size.Maximize);
                     break;
                 case HostCommand.ShowDragGhost ghost:
                     if (_ghost is null)

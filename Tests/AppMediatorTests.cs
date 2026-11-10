@@ -328,15 +328,36 @@ public class AppMediatorTests
     }
 
     [Fact]
-    public void ZoomFont_ClampsAndSaves()
+    public void ZoomFont_StepsByBodySizeAndClamps()
     {
-        var h = new MediatorHarness(s => s.Settings.FontScale = 2.95);
-        h.Send(IntentKind.ZoomFontRequested, 1);
-        Assert.Equal(3.0, h.Services.Settings.FontScale);
-        var saves = h.Services.SettingsSaves;
-        h.Send(IntentKind.ZoomFontRequested, 1);
-        Assert.Equal(3.0, h.Services.Settings.FontScale);
-        Assert.Equal(saves, h.Services.SettingsSaves);
+        try
+        {
+            var h = new MediatorHarness(s => s.Settings.FontScale = 1.0);
+            h.Send(IntentKind.ZoomFontRequested, 1);
+            // 標準の密度では本文 16px → 18px。
+            Assert.Equal(18 / 16.0, h.Services.Settings.FontScale, 3);
+            Assert.Equal(18 / 16.0, FontScaleState.Instance.Scale, 3);
+
+            h.Send(IntentKind.ZoomFontRequested, -1);
+            var saves = h.Services.SettingsSaves;
+            h.Send(IntentKind.ZoomFontRequested, -1);
+            Assert.Equal(1.0, h.Services.Settings.FontScale);
+            Assert.Equal(saves, h.Services.SettingsSaves);
+        }
+        finally { FontScaleState.Instance.Scale = 1.0; }
+    }
+
+    [Fact]
+    public void ZoomFont_PullsLegacyScaleIntoRange()
+    {
+        try
+        {
+            // 旧版は 3.0 まで許していた。上へ動かしても font-scale の上限 2.0 に収まる。
+            var h = new MediatorHarness(s => s.Settings.FontScale = 2.95);
+            h.Send(IntentKind.ZoomFontRequested, 1);
+            Assert.Equal(2.0, h.Services.Settings.FontScale);
+        }
+        finally { FontScaleState.Instance.Scale = 1.0; }
     }
 
     // ---- 一覧（DropDown / MenuButton）と Esc -------------------------------------------
@@ -531,15 +552,21 @@ public class AppMediatorTests
     {
         var h = new MediatorHarness();
         var file = h.M.BuildFileMenu();
-        Assert.Equal(new[] { IntentKind.OpenDictionaryRequested, IntentKind.NewDictionaryRequested, IntentKind.SaveRequested, IntentKind.SaveAsRequested },
+        Assert.Equal(new[]
+            {
+                IntentKind.OpenDictionaryRequested, IntentKind.NewDictionaryRequested, IntentKind.SaveRequested, IntentKind.SaveAsRequested,
+                IntentKind.GitHubLoadRequested, IntentKind.GitHubCommitRequested, IntentKind.WindowCloseRequested,
+            },
             file.Select(i => i.Intent));
-        Assert.Equal(new[] { false, false, true, false }, file.Select(i => i.IsPrimary));
-        Assert.Equal(new[] { true, true, false, false }, file.Select(i => i.IsEnabled));
+        Assert.Equal(new[] { false, false, true, false, false, false, false }, file.Select(i => i.IsPrimary));
+        Assert.Equal(new[] { true, true, false, false, false, false, true }, file.Select(i => i.IsEnabled));
+        // GitHub の項目は GitHub モードのときだけ出す。
+        Assert.Equal(new[] { true, true, true, true, false, false, true }, file.Select(i => i.IsVisible));
 
         var tools = h.M.BuildToolsMenu();
-        Assert.Equal(new object?[] { AppCommand.ShowDialectTool, AppCommand.ShowIpaTool, AppCommand.ShowStats, AppCommand.ShowLegend, AppCommand.ShowChangelog },
+        Assert.Equal(new object?[] { null, AppCommand.ShowDialectTool, AppCommand.ShowIpaTool, AppCommand.ShowStats, AppCommand.ShowLegend, AppCommand.ShowChangelog },
             tools.Select(i => i.Payload));
-        Assert.All(tools, i => Assert.True(i.IsEnabled));
+        Assert.All(tools.Skip(1), i => Assert.True(i.IsEnabled));
 
         var window = h.M.BuildWindowMenu();
         Assert.Equal(2, window.Count);
@@ -661,7 +688,6 @@ public class AppMediatorTests
         var h = new MediatorHarness();
         h.Send(IntentKind.SettingsRequested);
         var form = Assert.IsType<HostCommand.OpenSettings>(h.HostCommands.Last()).State;
-        form.FontScale = 5;
         form.StreamFontScale = 0.5;
         form.WindowWidth = 100;
         form.WindowHeight = 100;
@@ -671,7 +697,6 @@ public class AppMediatorTests
         h.Send(IntentKind.SettingsApplyRequested, from: settingsHost);
 
         var s = h.Services.Settings;
-        Assert.Equal(3.0, s.FontScale);
         Assert.Equal(1.0, s.StreamFontScale);
         Assert.Equal(900, s.WindowWidth);
         Assert.Equal(600, s.WindowHeight);
@@ -685,12 +710,10 @@ public class AppMediatorTests
         var h = new MediatorHarness();
         h.Send(IntentKind.SettingsRequested);
         var form = Assert.IsType<HostCommand.OpenSettings>(h.HostCommands.Last()).State;
-        form.FontScale = 0.1;
         form.StreamFontScale = 9;
         form.ReciprocalText = "a=b";
         h.Send(IntentKind.SettingsApplyRequested, from: h.AddHost(HostRole.Settings));
 
-        Assert.Equal(0.6, h.Services.Settings.FontScale);
         Assert.Equal(6.0, h.Services.Settings.StreamFontScale);
         Assert.Equal("b", h.Services.SavedRelations!["a"]);
     }

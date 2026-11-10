@@ -37,6 +37,7 @@ public static class CommandGate
             // ツール類と設定は開いていても押せる（押し直すとその窓が前に出る）。
             AppCommand.ShowSettings or AppCommand.ShowDialectTool or AppCommand.ShowIpaTool
                 or AppCommand.ShowStats or AppCommand.ShowLegend or AppCommand.ShowChangelog => true,
+            AppCommand.ShowDisplaySettings or AppCommand.ShowUsage or AppCommand.ShowAbout => true,
             _ => false,
         };
     }
