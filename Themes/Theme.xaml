@@ -544,6 +544,97 @@
         </Setter>
     </Style>
 
+    <!-- 入力欄（TextBox）の右クリックで WPF が自前で開く標準メニュー（切り取り／コピー／貼り付けと IME の再変換候補）。
+         このアプリの他の一覧は AdornerLayer に描くが、これは WPF が作る ContextMenu なので Popup（別 HWND）のままで、
+         OBS のウィンドウキャプチャには映らない。
+         既定のままだと面はシステムの明るい色になる。一方、項目の文字はアプリ全体の暗黙の TextBlock スタイル
+         （Foreground=Text）を拾ってしまうので、ダーク配色では白地に白い字になって読めなくなる。それを防ぐため、
+         面も配色に合わせて塗り替える。見た目は MenuButton の一覧（DropDownPanel）と揃える。
+         別の視覚ツリーなので、窓の根に掛けた UI 倍率はここで掛け直す。
+         中身は辞書データ（再変換候補）と OS の文言なので、UI のフォント（Idyerin 表示の Heksa）は使わない。
+         WPF が作るメニューは非公開の派生型（EditorContextMenu / EditorMenuItem / ReconversionMenuItem）で、
+         型で当てる暗黙スタイルは派生型に届かない。そのためキー付きにして、Views/EditorContextMenuStyler.cs が開くときに当てる。 -->
+    <Style x:Key="EditorContextMenu" TargetType="ContextMenu">
+        <Style.Resources>
+            <SolidColorBrush x:Key="RowHover" Color="{StaticResource RowHoverOnPanelColor}" />
+        </Style.Resources>
+        <Setter Property="LayoutTransform" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiScaleTransform}" />
+        <Setter Property="FontFamily" Value="{x:Static res:Strings.ContentFont}" />
+        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="Background" Value="{StaticResource HeaderFill}" />
+        <Setter Property="BorderBrush" Value="{StaticResource Line}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="Padding" Value="4" />
+        <Setter Property="MaxWidth" Value="420" />
+        <Setter Property="HasDropShadow" Value="False" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ContextMenu">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8"
+                            Padding="{TemplateBinding Padding}">
+                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 上の ContextMenu の 1 行。行は MenuItemButton と同じく hover の面だけで示す。
+         入れ子のサブメニューは標準メニューに無いので描かない。 -->
+    <Style x:Key="EditorMenuItem" TargetType="MenuItem">
+        <Setter Property="Foreground" Value="{StaticResource Text}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Padding" Value="11,6" />
+        <Setter Property="Margin" Value="0,1" />
+        <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                        <!-- アプリ全体の暗黙の TextBlock スタイルは Foreground を Text に固定する。テンプレート内の
+                             TextBlock にも届いてしまうため、ここで Foreground を持たないスタイルに差し替える。
+                             差し替えないと、文字が MenuItem の Foreground（無効時の DisabledText）を継がない。 -->
+                        <Border.Resources>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="TextWrapping" Value="NoWrap" />
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                            </Style>
+                        </Border.Resources>
+                        <DockPanel>
+                            <TextBlock DockPanel.Dock="Right" Text="{TemplateBinding InputGestureText}" Margin="24,0,0,0"
+                                       Foreground="{StaticResource Muted}" FontWeight="Normal" VerticalAlignment="Center" />
+                            <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center" />
+                        </DockPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- 上の ContextMenu の区切り線（再変換候補と編集操作の境）。MenuActionTemplate の区切り線と同じ線。 -->
+    <Style x:Key="{x:Static MenuItem.SeparatorStyleKey}" TargetType="Separator">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Separator">
+                    <Border Height="1" Margin="6,4" Background="{StaticResource Divider}" />
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
     <!-- 一覧。角丸の行として hover / 選択を出す。
          選択行は左の細いバーで示す（背景だけより走査しやすい）。 -->
     <Style TargetType="ListBox">

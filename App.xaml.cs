@@ -28,6 +28,7 @@ public partial class App : Application
         var settings = AppSettings.Load();
         ApplyLanguage(settings.Language);
         ThemePalette.Load(this, settings.Theme);
+        EditorContextMenuStyler.Register();
 
         // 既定の MessageBox は別 HWND なので OBS に映りません。ここでは記録と継続判断だけを行い、
         // 目に見える案内は確認ダイアログの層（根の裁定）に任せます。
