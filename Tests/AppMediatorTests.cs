@@ -367,14 +367,15 @@ public class AppMediatorTests
     {
         var h = new MediatorHarness();
         h.Send(IntentKind.PopupLayerOpened);
-        Assert.Contains(new HostCommand.SetPopupLayerOpen(true), h.HostCommands);
 
         h.HostCommands.Clear();
         h.Send(IntentKind.CancelRequested);
         Assert.Equal(new HostCommand[] { new HostCommand.ClosePopupLayer() }, h.HostCommands);
 
         h.Send(IntentKind.PopupLayerClosed);
-        Assert.Contains(new HostCommand.SetPopupLayerOpen(false), h.HostCommands);
+        h.HostCommands.Clear();
+        h.Send(IntentKind.CancelRequested);
+        Assert.DoesNotContain(new HostCommand.ClosePopupLayer(), h.HostCommands);
     }
 
     [Fact]

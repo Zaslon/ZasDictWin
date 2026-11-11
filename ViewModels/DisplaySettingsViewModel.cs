@@ -9,12 +9,12 @@ namespace ZasDictWin.ViewModels;
 public sealed record DisplayOption(string Label, object? Value);
 
 /// <summary>
-/// 表示の設定（表示 → 表示の設定…）。UI 倍率・文字の大きさ・書体・密度を、選んだ時点で反映する
-/// （ZasDesignSystem rules.md「表示の設定を備える」）。設定ウィンドウは［適用］でまとめて反映する画面なので、
-/// 反映の仕方を混ぜないよう別の画面にしてある。確認ダイアログの層に重ねるので、配信にも映る。
+/// 表示の設定。設定ウィンドウの「表示」タブに出し、UI 倍率・文字の大きさ・書体・密度を選んだ時点で反映する
+/// （ZasDesignSystem rules.md「表示の設定を備える」）。設定ウィンドウの他のタブは［適用］で反映するので、
+/// 反映の仕方はタブ単位で分け、同じタブに混ぜない。
 /// 値を変えると <see cref="Changed"/> を上げ、書き戻しと反映は AppMediator が行う。
 /// </summary>
-public sealed class DisplaySettingsViewModel : OverlayViewModel
+public sealed class DisplaySettingsViewModel : ViewModelBase
 {
     private double _uiScale;
     private double _fontScale;
@@ -24,7 +24,6 @@ public sealed class DisplaySettingsViewModel : OverlayViewModel
 
     public DisplaySettingsViewModel(AppSettings settings)
     {
-        Title = Strings.Display_Title;
         _uiScale = settings.UiScale;
         _fontScale = settings.FontScale;
         _density = settings.Density;

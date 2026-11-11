@@ -66,12 +66,62 @@ public class DisplaySettingsTests : IDisposable
         Assert.Contains(nameof(FontScaleState.Scale), raised);
     }
 
-    // ---- 表示の設定の画面 ------------------------------------------------------------------
+    // ---- 表示の設定（設定ウィンドウの「表示」タブ） ------------------------------------------
 
-    private static DisplaySettingsViewModel Open(MediatorHarness h)
+    private static DisplaySettingsViewModel Open(MediatorHarness h) => OpenForm(h).Display;
+
+    private static SettingsViewModel OpenForm(MediatorHarness h)
     {
         h.Send(IntentKind.OpenScreenRequested, AppCommand.ShowDisplaySettings);
-        return Assert.IsType<DisplaySettingsViewModel>(h.State.ModalOverlay);
+        return Assert.IsType<HostCommand.OpenSettings>(h.HostCommands.Last()).State;
+    }
+
+    [Fact]
+    public void ViewMenu_OpensTheSettingsWindowOnTheDisplayTab()
+    {
+        var h = new MediatorHarness();
+        var form = OpenForm(h);
+        Assert.True(form.IsDisplayTabSelected);
+        Assert.Null(h.State.ModalOverlay);
+    }
+
+    [Fact]
+    public void SettingsMenu_OpensOnTheFirstTab()
+    {
+        var h = new MediatorHarness();
+        h.Send(IntentKind.SettingsRequested);
+        Assert.False(Assert.IsType<HostCommand.OpenSettings>(h.HostCommands.Last()).State.IsDisplayTabSelected);
+    }
+
+    [Fact]
+    public void ViewMenu_WhileSettingsAreOpen_SwitchesToTheDisplayTabWithoutReopening()
+    {
+        var h = new MediatorHarness();
+        h.Send(IntentKind.SettingsRequested);
+        var form = Assert.IsType<HostCommand.OpenSettings>(h.HostCommands.Last()).State;
+
+        h.Send(IntentKind.OpenScreenRequested, AppCommand.ShowDisplaySettings);
+
+        Assert.Single(h.HostCommands.OfType<HostCommand.OpenSettings>());
+        Assert.True(form.IsDisplayTabSelected);
+    }
+
+    [Fact]
+    public void DisplayChanges_AreNotCountedAsUnappliedSettings()
+    {
+        var h = new MediatorHarness();
+        var form = OpenForm(h);
+        form.Display.IsCompactDensity = true;
+        Assert.False(form.HasChanges);
+    }
+
+    [Fact]
+    public void ZoomingWhileOpen_MovesTheSelectedTextSize()
+    {
+        var h = new MediatorHarness();
+        var vm = Open(h);
+        h.Send(IntentKind.ZoomFontRequested, 1);
+        Assert.Equal("18px", vm.SelectedFontSize!.Label);
     }
 
     [Fact]
@@ -112,18 +162,6 @@ public class DisplaySettingsTests : IDisposable
         var vm = Open(h);
         vm.SelectedFont = new DisplayOption("default", null);
         Assert.Null(h.Services.Settings.UiFontFamily);
-    }
-
-    [Fact]
-    public void Escape_ClosesTheDisplaySettings()
-    {
-        var h = new MediatorHarness();
-        Open(h);
-        Assert.False(h.M.CanExecute(AppCommand.ShowSettings));
-
-        h.Send(IntentKind.CancelRequested);
-
-        Assert.True(h.M.CanExecute(AppCommand.ShowSettings));
     }
 
     [Fact]

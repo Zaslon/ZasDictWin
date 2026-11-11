@@ -66,9 +66,6 @@
             <DataTemplate DataType="{x:Type vm:CommitViewModel}">
                 <ov:CommitOverlay />
             </DataTemplate>
-            <DataTemplate DataType="{x:Type vm:DisplaySettingsViewModel}">
-                <ov:DisplaySettingsOverlay />
-            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

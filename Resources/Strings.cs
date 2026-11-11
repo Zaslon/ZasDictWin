@@ -283,6 +283,7 @@ public static class Strings
 
     public static string Settings_Title => Get();
     public static string Settings_TabGeneral => Get();
+    public static string Settings_TabDisplay => Get();
     public static string Settings_TabDictionary => Get();
     public static string Settings_TabStreamWindow => Get();
     public static string Settings_TabBrowser => Get();
@@ -505,5 +506,4 @@ public static class Strings
     public static string Search_ScopeLabel => Get();
     public static string Menu_Bar => Get();
     public static string Settings_HeksaSourceLabel => Get();
-    public static string Settings_DisplayMovedNote => Get();
 }

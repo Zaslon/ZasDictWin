@@ -6,7 +6,7 @@ namespace ZasDictWin.Presenters;
 
 /// <summary>
 /// 本体の窓の描画パラメータ（ボタンの有効・無効、ヘッダの階層メニュー、確認ダイアログの層、
-/// 一覧を開いている間の WebView2 の隠し、フォーカス移動の指示）を Mediator の裁定から写す。
+/// フォーカス移動の指示）を Mediator の裁定から写す。
 /// </summary>
 public sealed class ShellPresenter
 {
@@ -65,9 +65,6 @@ public sealed class ShellPresenter
     {
         switch (command)
         {
-            case HostCommand.SetPopupLayerOpen p:
-                _state.Browser.IsOverlayOpen = p.Open;
-                break;
             case HostCommand.MoveFocus f:
                 _state.RequestFocus(f.Target);
                 break;

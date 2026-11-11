@@ -16,7 +16,6 @@ public sealed class BrowserViewModel : ViewModelBase
     private readonly AppSettings _settings;
 
     private bool _isOpen;
-    private bool _isOverlayOpen;
     private string _address = "";
     private string _title = "";
     private string _status = "";
@@ -55,14 +54,6 @@ public sealed class BrowserViewModel : ViewModelBase
     {
         get => _isOpen;
         internal set => Set(ref _isOpen, value);
-    }
-
-    /// <summary>プルダウンや階層メニューの一覧が開いているか。真の間 View は WebView2 を隠す
-    /// （airspace で WebView2 が WPF 描画より手前に出るため、一覧を重ねても隠れない）。</summary>
-    public bool IsOverlayOpen
-    {
-        get => _isOverlayOpen;
-        internal set => Set(ref _isOverlayOpen, value);
     }
 
     /// <summary>アドレス欄の編集値。View のナビゲーションでも更新される。</summary>

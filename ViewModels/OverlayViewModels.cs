@@ -92,6 +92,7 @@ public sealed class SettingsViewModel : OverlayViewModel
                              IEnumerable<KeyValuePair<string, string>> relations, bool hasGitHubToken)
     {
         Title = Strings.Settings_Title;
+        Display = new DisplaySettingsViewModel(settings);
 
         Language = settings.Language;
         SortOrder = settings.SortOrder;
@@ -135,6 +136,19 @@ public sealed class SettingsViewModel : OverlayViewModel
         }
 
         _initialSnapshot = Snapshot();
+    }
+
+    /// <summary>「表示」タブの中身。選んだ時点で反映するので、<see cref="HasChanges"/> にも［適用］にも含めない
+    /// （ZasDesignSystem rules.md「設定の反映方式を混在させない」はタブ単位でそろえている）。</summary>
+    public DisplaySettingsViewModel Display { get; }
+
+    private bool _isDisplayTabSelected;
+
+    /// <summary>メニューの「表示 → 表示の設定…」から開いたときは、このタブを前に出す。</summary>
+    public bool IsDisplayTabSelected
+    {
+        get => _isDisplayTabSelected;
+        set => Set(ref _isDisplayTabSelected, value);
     }
 
     /// <summary>開いた時点の入力欄の内容。<see cref="HasChanges"/> の基準にする。</summary>

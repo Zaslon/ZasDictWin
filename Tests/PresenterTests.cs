@@ -55,17 +55,12 @@ public class PresenterTests
     }
 
     [Fact]
-    public void Shell_PopupLayerHidesBrowserAndFocusIsForwarded()
+    public void Shell_FocusIsForwarded()
     {
         var (h, root) = Setup();
         _ = new ShellPresenter(h.M, h.State, root);
         FocusTarget? focused = null;
         h.State.FocusRequested += t => focused = t;
-
-        h.Send(IntentKind.PopupLayerOpened);
-        Assert.True(h.State.Browser.IsOverlayOpen);
-        h.Send(IntentKind.PopupLayerClosed);
-        Assert.False(h.State.Browser.IsOverlayOpen);
 
         h.Send(IntentKind.FocusQueryBoxRequested);
         Assert.Equal(FocusTarget.QueryBox, focused);

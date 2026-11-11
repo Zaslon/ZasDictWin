@@ -80,9 +80,17 @@ public class ViewSmokeTests
         Build(() => new SettingsWindow(new SettingsViewModel(h.Services.Settings, null, new Dictionary<string, string>(), false)), 820, 760);
     });
 
+    // 選ばれていないタブの中身は組み立てられないので、「表示」タブを前に出した状態でも通す。
     [Fact]
-    public void DisplaySettings_BuildsAndLaysOut() => AppThread.Run(() =>
-        Build(() => new DisplaySettingsOverlay { DataContext = new DisplaySettingsViewModel(new AppSettings()) }, 900, 700));
+    public void SettingsWindow_DisplayTab_BuildsAndLaysOut() => AppThread.Run(() =>
+    {
+        var h = new MediatorHarness();
+        AppRoot.Initialize(h.M);
+        Build(() => new SettingsWindow(new SettingsViewModel(h.Services.Settings, null, new Dictionary<string, string>(), false)
+        {
+            IsDisplayTabSelected = true,
+        }), 820, 760);
+    });
 
     [Fact]
     public void SearchPanel_RadioGroupsStopOnceForTab() => AppThread.Run(() =>

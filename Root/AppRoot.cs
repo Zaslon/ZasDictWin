@@ -133,7 +133,7 @@ public sealed class AppRoot
                 popup?.Close();
                 break;
             case HostCommand.ApplyShellSize or HostCommand.ShowDragGhost or HostCommand.HideDragGhost
-                or HostCommand.SetPopupLayerOpen or HostCommand.MoveFocus or HostCommand.RefreshStreamHosts
+                or HostCommand.MoveFocus or HostCommand.RefreshStreamHosts
                 or HostCommand.FlashStatus:
                 ViewCommandIssued?.Invoke(command);
                 break;

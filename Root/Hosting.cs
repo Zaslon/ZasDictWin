@@ -50,8 +50,6 @@ public abstract record HostCommand
     public sealed record ApplyShellSize(double Width, double Height, bool Maximize = false) : HostCommand;
     public sealed record ShowDragGhost(string Title, Point AtDip) : HostCommand;
     public sealed record HideDragGhost : HostCommand;
-    /// <summary>AdornerDecorator の一覧が開いた／閉じた。WebView2 は airspace で手前に出るため隠す。</summary>
-    public sealed record SetPopupLayerOpen(bool Open) : HostCommand;
     /// <summary>開いている一覧（DropDown / MenuButton）を畳む。</summary>
     public sealed record ClosePopupLayer : HostCommand;
     /// <summary>検索欄 ⇄ 結果一覧のフォーカス移動。WPF の API 制約で View にしか実行できない。</summary>

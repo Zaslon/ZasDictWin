@@ -88,7 +88,7 @@
             <!-- WebView2 は airspace の関係で WPF 描画より手前に出るため、エラー時はコントロール自体を
                  畳んでメッセージを見せる（重ねて隠すことはできない）。 -->
             <Grid>
-                <wv2:WebView2 x:Name="Web"
+                <wv2:WebView2CompositionControl x:Name="Web"
                               Visibility="{Binding HasError, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
                 <StackPanel VerticalAlignment="Center" Margin="20"
                             Visibility="{Binding HasError, Converter={StaticResource BoolVis}}">

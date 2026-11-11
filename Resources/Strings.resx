@@ -251,7 +251,8 @@
 
   <!-- Settings -->
   <data name="Settings_Title" xml:space="preserve"><value>設定</value></data>
-  <data name="Settings_TabGeneral" xml:space="preserve"><value>表示・動作</value></data>
+  <data name="Settings_TabGeneral" xml:space="preserve"><value>一般</value></data>
+  <data name="Settings_TabDisplay" xml:space="preserve"><value>表示</value></data>
   <data name="Settings_TabDictionary" xml:space="preserve"><value>辞書依存設定</value></data>
   <data name="Settings_TabStreamWindow" xml:space="preserve"><value>単語ウィンドウ</value></data>
   <data name="Settings_TabBrowser" xml:space="preserve"><value>ブラウザ</value></data>
@@ -487,5 +488,4 @@
   <data name="Search_ScopeLabel" xml:space="preserve"><value>対象</value></data>
   <data name="Menu_Bar" xml:space="preserve"><value>メニューバー</value></data>
   <data name="Settings_HeksaSourceLabel" xml:space="preserve"><value>取り先</value></data>
-  <data name="Settings_DisplayMovedNote" xml:space="preserve"><value>UI の倍率・文字の大きさ・書体・密度は、メニューバーの［表示］→［表示の設定…］で変えられます。</value></data>
 </root>

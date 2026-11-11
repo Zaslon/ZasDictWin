@@ -1,9 +1,7 @@
-using System.ComponentModel;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.Web.WebView2.Core;
 using ZasDictWin.Resources;
@@ -14,8 +12,9 @@ using ZasDictWin.ViewModels;
 namespace ZasDictWin.Views;
 
 /// <summary>
-/// ブラウザのタブ。WebView2 は airspace のため WPF 描画より手前に出るが、
-/// メインウィンドウの子 HWND なので OBS のウィンドウキャプチャにはそのまま映る。
+/// ブラウザのタブ。子 HWND 型の WebView2 は airspace で WPF 描画より手前に出てしまい、
+/// AdornerLayer に描くプルダウンや階層メニューの一覧が隠れるため、WPF の描画に合成される
+/// WebView2CompositionControl を使う。
 /// </summary>
 public partial class BrowserPanel : UserControl
 {
@@ -35,22 +34,6 @@ public partial class BrowserPanel : UserControl
         };
     }
 
-    /// <summary>プルダウンや階層メニューを開いている間は WebView2 を隠す。airspace のせいで
-    /// 一覧を手前に重ねる通常の Z 順制御が効かず、隠す以外に取れる手が無いため。
-    /// Web.Visibility は HasError にバインドしてあるので、SetValue で直接上書きするとバインドが
-    /// 外れてしまう。SetCurrentValue で一時的に上書きし、閉じたらバインドから再評価させて戻す。</summary>
-    public void SetWebViewHidden(bool hidden)
-    {
-        if (hidden)
-        {
-            Web.SetCurrentValue(VisibilityProperty, Visibility.Hidden);
-        }
-        else
-        {
-            BindingOperations.GetBindingExpressionBase(Web, VisibilityProperty)?.UpdateTarget();
-        }
-    }
-
     private void AddressBox_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.Key != Key.Enter) return;
@@ -67,7 +50,6 @@ public partial class BrowserPanel : UserControl
             _vm.BackRequested -= OnBack;
             _vm.ForwardRequested -= OnForward;
             _vm.ReloadRequested -= OnReload;
-            _vm.PropertyChanged -= OnVmPropertyChanged;
         }
 
         _vm = DataContext as BrowserViewModel;
@@ -78,12 +60,6 @@ public partial class BrowserPanel : UserControl
         _vm.BackRequested += OnBack;
         _vm.ForwardRequested += OnForward;
         _vm.ReloadRequested += OnReload;
-        _vm.PropertyChanged += OnVmPropertyChanged;
-    }
-
-    private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName == nameof(BrowserViewModel.IsOverlayOpen) && _vm is not null) SetWebViewHidden(_vm.IsOverlayOpen);
     }
 
     private void OnInitialize()

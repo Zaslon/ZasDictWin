@@ -227,7 +227,8 @@
 
   <!-- Settings -->
   <data name="Settings_Title" xml:space="preserve"><value>Fodvanzruno</value></data>
-  <data name="Settings_TabGeneral" xml:space="preserve"><value>表示・動作</value></data>
+  <data name="Settings_TabGeneral" xml:space="preserve"><value>一般</value></data>
+  <data name="Settings_TabDisplay" xml:space="preserve"><value>表示</value></data>
   <data name="Settings_TabDictionary" xml:space="preserve"><value>辞書依存設定</value></data>
   <data name="Settings_TabStreamWindow" xml:space="preserve"><value>単語ウィンドウ</value></data>
   <data name="Settings_TabBrowser" xml:space="preserve"><value>ブラウザ</value></data>

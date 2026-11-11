@@ -251,7 +251,8 @@
 
   <!-- Settings -->
   <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
-  <data name="Settings_TabGeneral" xml:space="preserve"><value>Display &amp; Behavior</value></data>
+  <data name="Settings_TabGeneral" xml:space="preserve"><value>General</value></data>
+  <data name="Settings_TabDisplay" xml:space="preserve"><value>Display</value></data>
   <data name="Settings_TabDictionary" xml:space="preserve"><value>Dictionary-Specific Settings</value></data>
   <data name="Settings_TabStreamWindow" xml:space="preserve"><value>Word Window</value></data>
   <data name="Settings_TabBrowser" xml:space="preserve"><value>Browser</value></data>
@@ -487,5 +488,4 @@ Detailed log: {1}</value></data>
   <data name="Search_ScopeLabel" xml:space="preserve"><value>Field</value></data>
   <data name="Menu_Bar" xml:space="preserve"><value>Menu bar</value></data>
   <data name="Settings_HeksaSourceLabel" xml:space="preserve"><value>Source</value></data>
-  <data name="Settings_DisplayMovedNote" xml:space="preserve"><value>UI scale, text size, typeface and density are in View > Display settings… on the menu bar.</value></data>
 </root>

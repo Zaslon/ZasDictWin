@@ -520,10 +520,10 @@ public sealed partial class AppMediator
                 // 値選択のプルダウンと階層メニューは見た目も役割も別だが、同時に開いていると紛らわしいので
                 // どちらか一方だけにする（機能上の制約ではない）。
                 if (_popupLayers > 0) Queue(new HostCommand.ClosePopupLayer());
-                if (_popupLayers++ == 0) Queue(new HostCommand.SetPopupLayerOpen(true));
+                _popupLayers++;
                 break;
             case IntentKind.PopupLayerClosed:
-                if (_popupLayers > 0 && --_popupLayers == 0) Queue(new HostCommand.SetPopupLayerOpen(false));
+                if (_popupLayers > 0) _popupLayers--;
                 break;
             case IntentKind.RowMenuOpening:
                 break;
@@ -853,19 +853,18 @@ public sealed partial class AppMediator
         Settings.FontScale = scale;
         _services.SaveSettings();
         ApplyDisplayState();
-        if (_state.ModalOverlay is DisplaySettingsViewModel open) open.SyncFontScale(scale);
+        _settingsState?.Display.SyncFontScale(scale);
         SetStatus(string.Format(Strings.Main_FontScaleStatus, TextStyles.NearestBody(scale, Settings.Density)));
     }
 
     // ---- 表示の設定 -------------------------------------------------------------------
 
-    /// <summary>表示の設定は確認ダイアログの層に重ねる（配信に映る・本体を見ながら選べる）。
-    /// 選んだ時点で反映するので［適用］は持たず、閉じる・Esc で畳むだけ。</summary>
+    /// <summary>表示の設定は設定ウィンドウの「表示」タブにある。メニューの「表示 → 表示の設定…」は、
+    /// ZasDesignSystem rules.md「表示の設定を備える」が求める「表示」メニューからの入口として残し、そのタブを開く。</summary>
     private void ShowDisplaySettings()
     {
-        var vm = new DisplaySettingsViewModel(Settings);
-        vm.Changed += () => ApplyDisplaySettings(vm);
-        ShowModal(vm);
+        ShowSettings();
+        if (_settingsState is { } form) form.IsDisplayTabSelected = true;
     }
 
     private void ApplyDisplaySettings(DisplaySettingsViewModel vm)
@@ -993,7 +992,9 @@ public sealed partial class AppMediator
             if (_settingsHostId is { } open) Queue(new HostCommand.FocusHost(open));
             return;
         }
-        _settingsState = new SettingsViewModel(Settings, _doc, Choices.Current.Relations, _services.HasGitHubToken);
+        var form = new SettingsViewModel(Settings, _doc, Choices.Current.Relations, _services.HasGitHubToken);
+        form.Display.Changed += () => ApplyDisplaySettings(form.Display);
+        _settingsState = form;
         Queue(new HostCommand.OpenSettings(_settingsState));
     }
 

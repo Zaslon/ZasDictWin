@@ -26,7 +26,7 @@ dotnet publish ZasDictWin.csproj -c Release
 dotnet publish ZasDictWin.csproj -c Release -p:SelfContained=true   # ランタイムの無い環境向け
 ```
 
-- 出力は `bin\Release\net8.0-windows\win-x64\publish\ZasDictWin.exe` の 1 個（`win-x64` 固定）。
+- 出力は `bin\Release\net8.0-windows10.0.17763.0\win-x64\publish\ZasDictWin.exe` の 1 個（`win-x64` 固定）。
   通常は約 2.1MB で .NET 8 デスクトップランタイムが必要。自己完結は約 67MB で、初回起動時の展開があるぶん遅い
 - `WebView2Loader.dll` はネイティブ DLL なので、初回起動時に `%TEMP%\.net\ZasDictWin\` へ展開される。
   exe を消してもこの展開先は残る
@@ -73,8 +73,8 @@ UI 要素は配信に映らない。これを避けるため次の構成を取�
   - `Views/RadioGroup.cs`・`Views/HeadedRow.cs`: ラジオグループ（ZasDesignSystem components.md「ラジオグループ」）。
     検索方法・検索対象・配色・編集モード・Heksa の取り先・密度に使う。Tab では選択中の選択肢にだけ止まり、
     矢印キーでフォーカスと選択を同時に移す
-  - 表示の設定（`ViewModels/DisplaySettingsViewModel.cs`・`Views/Overlays/DisplaySettingsOverlay.xaml`）は
-    選んだ時点で反映するので、［適用］で反映する設定ウィンドウとは分け、確認ダイアログの層に重ねる
+  - 表示の設定（`ViewModels/DisplaySettingsViewModel.cs`）は設定ウィンドウの「表示」タブに置く。選んだ時点で反映するので、
+    ［適用］で反映する他のタブとはタブ単位で分け、［適用］・［キャンセル］の対象にしない
 - 標準の枠は消してある（`WindowStyle="None"` ＋ `WindowChrome`）。移動・最大化・最小化・閉じるは自前。
   ウィンドウの大きさは `settings.json` に覚える
 - 単語ウィンドウ・単語数ウィンドウ・持ち出したタブの独立ウィンドウは意図的に別 HWND
