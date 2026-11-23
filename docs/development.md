@@ -89,7 +89,7 @@ UI 要素は配信に映らない。これを避けるため次の構成を取�
 キー名を変えるとオーバーレイ類まで壊れるため、調整は値の変更でおこなう。
 
 - 起動時に `Views/ThemePalette.cs` が、設定の配色（OS に合わせる・ライト・ダーク）から配色の辞書を選び、
-  外見の辞書より先に読み込む。App.xaml には書かない。並べて読み込むと、外見の辞書を読み込んだ時点で先に読んだ配色に
+  アイコンの辞書（`Themes/Icons.xaml`）とともに外見の辞書より先に読み込む。App.xaml には書かない。並べて読み込むと、外見の辞書を読み込んだ時点で先に読んだ配色に
   結び付き、後から配色を差し替えてもスタイルに届かない。同じ理由で、`Theme.xaml` の中に色の値を書かない
   （同じ辞書の中の参照はビルド時に結び付く）。`Tests/ThemePaletteTests.cs` がこの 2 つを検査する
 - `Dark.xaml` と `Light.xaml` は同じキーを持つ。片方にしか無いキーは、その配色のときだけ見つからずに落ちる
@@ -100,11 +100,23 @@ UI 要素は配信に映らない。これを避けるため次の構成を取�
   画質が落ちる。奥行きは面の明暗と枠線で表現する
 - hover / pressed は背景を塗り替えずヴェール（`HoverVeil` / `PressedVeil`。ダークは白・黒、ライトは黒）を重ね、
   Primary などの塗りを潰さない
-- 角の丸みはカード `12` / ボタン・入力欄 `8` / タグ・バッジ `6` の 3 段。長丸（`CornerRadius="999"`）は
-  使わない（短いタグがほぼ真円になり、隣の部品と形が揃わない）
+- 角の丸みは ZasDesignSystem tokens.md「角の丸み」の値だけを使う。カード・ダイアログ・ポップアップ・タブのページ `12`（radius-card）/
+  ボタン・入力欄・タブ・メニューの項目・一覧の行 `8`（radius-control）/ タグ・件数欄 `6`（radius-chip）。
+  枠の内側に収める角は、外の値から枠の太さを引く（ラジオグループの両端の選択肢の `7`）。
+  チェックボックスの箱は部品の面ではないので DADS の比率（一辺 18 に `2`）のまま。
+  長丸は使わない（短いタグがほぼ真円になり、隣の部品と形が揃わない）。そのため幅や高さが数 px の帯
+  （一覧の選択の印・タブの下線・スクロールバーのつまみ）は角を丸めない
+- 角を丸める要素は `Border` ではなく `v:SquircleBorder`（`Views/SquircleBorder.cs`）で描く。`Border` の `CornerRadius` は円弧で、
+  tokens.md は超楕円を求める。プロパティは `Border` と同じ名前で、Setter・Trigger・TemplateBinding はそのまま使える。
+  子は輪郭で切り抜かない。キー付きの面のスタイル（`Card` `FilterCard` `DropDownPanel` `DockTab` `AreaCorner` `RadioGroupFrame`）は
+  `TargetType` が `v:SquircleBorder` なので、付ける要素も `v:SquircleBorder` にする
+- アイコンは `Themes/Icons.xaml`（ZasDesignSystem の `design-system/icons/wpf/Icons.xaml` の写し。Material Symbols Rounded）の
+  `Icon_名前` を使う。手で編集せず、DS 側で生成し直したものを写す。ボタンの `Content` に `{StaticResource Icon_名前}` を渡すと、
+  `Theme.xaml` の `Geometry` 用 DataTemplate が size-icon（24）でボタンの文字色に塗る。文字に添えるときは `Viewbox` で 16 にする
+  （`Path` の `Stretch` は使わない。図形の外接枠に合わせて拡大し、アイコンごとに大きさと位置が変わる）
 - ボタンのホバー・押下で文字に下線を引かない（Windows の標準のボタンには付かず、リンクと紛れる）
 - 上端はタイトル行（辞書名・未保存の印・最小化／最大化／閉じる）とメニューバー（メニューと近道のボタン）の 2 段。
-  コードビハインドから文字列を代入するボタン（最大化・元に戻すなど）があるので `Content` はプレーンテキストのままにする
+  最大化と元に戻すのボタンは、窓の状態に合わせてコードビハインドが `Content` のアイコン（`Icon_crop_square` / `Icon_filter_none`）を差し替える
 - 文字の大きさは `{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}`
   のように、ConverterParameter に文字スタイルのトークン名（`display` `h1` `h2` `h3` `body` `dense` `oneline` `mono` `small`）を書く。
   密度ごとの大きさは `Services/DisplayScale.cs` の `TextStyles` が持ち、密度を変えると `Scale` の変更も通知されるので再計算される。

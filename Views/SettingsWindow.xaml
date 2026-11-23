@@ -50,7 +50,7 @@
                 BorderThickness="0,0,0,1" Padding="16,10"
                 MouseLeftButtonDown="Header_MouseLeftButtonDown">
             <DockPanel>
-                <Button DockPanel.Dock="Right" Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                <Button DockPanel.Dock="Right" Content="{StaticResource Icon_close}"
                         Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="{x:Static res:Strings.Common_Close}"
                         AutomationProperties.Name="{x:Static res:Strings.Common_Close}" Margin="0" />
                 <TextBlock v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold" VerticalAlignment="Center"
@@ -92,7 +92,7 @@
                         <!-- 状態を選択肢の言葉で示すラジオグループ（ZasDesignSystem components.md「ラジオグループ」）。 -->
                         <v:HeadedRow Margin="0,18,0,0" HorizontalAlignment="Left">
                             <TextBlock x:Name="ThemeHeading" v:LocalizedText.Text="{x:Static res:Strings.Settings_ThemeLabel}" Style="{StaticResource RadioGroupHeading}" />
-                            <Border Style="{StaticResource RadioGroupFrame}">
+                            <v:SquircleBorder Style="{StaticResource RadioGroupFrame}">
                                 <UniformGrid Rows="1" v:RadioGroup.IsGroup="True" AutomationProperties.LabeledBy="{Binding ElementName=ThemeHeading}">
                                     <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ThemeSystem}" r:IntentTrigger.OnClick="SettingsThemeSelected" r:IntentTrigger.Payload="System"
                                                  IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=System}" />
@@ -101,7 +101,7 @@
                                     <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ThemeDark}" r:IntentTrigger.OnClick="SettingsThemeSelected" r:IntentTrigger.Payload="Dark"
                                                  IsChecked="{Binding Theme, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Dark}" />
                                 </UniformGrid>
-                            </Border>
+                            </v:SquircleBorder>
                         </v:HeadedRow>
                         <TextBlock v:LocalizedText.Text="{x:Static res:Strings.Settings_LanguageNote}" Style="{StaticResource Label}" Margin="0,4,0,0" />
 
@@ -132,14 +132,14 @@
                                    v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaDescription}" />
                         <v:HeadedRow Margin="0,8,0,0" HorizontalAlignment="Left">
                             <TextBlock x:Name="HeksaSourceHeading" v:LocalizedText.Text="{x:Static res:Strings.Settings_HeksaSourceLabel}" Style="{StaticResource RadioGroupHeading}" />
-                            <Border Style="{StaticResource RadioGroupFrame}">
+                            <v:SquircleBorder Style="{StaticResource RadioGroupFrame}">
                                 <UniformGrid Rows="1" v:RadioGroup.IsGroup="True" AutomationProperties.LabeledBy="{Binding ElementName=HeksaSourceHeading}">
                                     <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Settings_HeksaSourceFile}" r:IntentTrigger.OnClick="SettingsHeksaSourceSelected" r:IntentTrigger.Payload="File"
                                                  IsChecked="{Binding HeksaFontSource, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=File}" />
                                     <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Settings_HeksaSourceInstalled}" r:IntentTrigger.OnClick="SettingsHeksaSourceSelected" r:IntentTrigger.Payload="Installed"
                                                  IsChecked="{Binding HeksaFontSource, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Installed}" />
                                 </UniformGrid>
-                            </Border>
+                            </v:SquircleBorder>
                         </v:HeadedRow>
                         <DockPanel Margin="0,8,0,0" Visibility="{Binding IsHeksaFromFile, Converter={StaticResource BoolVis}}">
                             <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.Settings_PickFileButton}" r:IntentTrigger.OnClick="PickHeksaFontRequested" Margin="8,0,0,0" />
@@ -198,14 +198,14 @@
                         <!-- 密度は 2 つから選ぶので、状態を選択肢の言葉で示すラジオグループにする。 -->
                         <v:HeadedRow Margin="0,18,0,0" HorizontalAlignment="Left">
                             <TextBlock x:Name="DensityHeading" v:LocalizedText.Text="{x:Static res:Strings.Display_DensityLabel}" Style="{StaticResource RadioGroupHeading}" />
-                            <Border Style="{StaticResource RadioGroupFrame}">
+                            <v:SquircleBorder Style="{StaticResource RadioGroupFrame}">
                                 <UniformGrid Rows="1" v:RadioGroup.IsGroup="True" AutomationProperties.LabeledBy="{Binding ElementName=DensityHeading}">
                                     <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Display_DensityStandard}"
                                                  IsChecked="{Binding IsStandardDensity, Mode=TwoWay}" />
                                     <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Display_DensityCompact}"
                                                  IsChecked="{Binding IsCompactDensity, Mode=TwoWay}" />
                                 </UniformGrid>
-                            </Border>
+                            </v:SquircleBorder>
                         </v:HeadedRow>
                     </StackPanel>
                 </ScrollViewer>
@@ -239,7 +239,7 @@
                             <Span v:LocalizedText.Text="{x:Static res:Strings.Settings_BackgroundColorLabel}" /><Span Style="{StaticResource FieldNote}" v:LocalizedText.Text="{x:Static res:Strings.Settings_BackgroundColorNote}" />
                         </TextBlock>
                         <DockPanel>
-                            <Border DockPanel.Dock="Right" Width="44" Height="32" CornerRadius="6" Margin="8,0,0,0"
+                            <v:SquircleBorder DockPanel.Dock="Right" Width="44" Height="32" CornerRadius="6" Margin="8,0,0,0"
                                     BorderBrush="{StaticResource Line}" BorderThickness="1"
                                     Background="{Binding StreamBackground, Converter={StaticResource StringBrush}}" />
                             <TextBox Text="{Binding StreamBackground, UpdateSourceTrigger=PropertyChanged}" FontFamily="Consolas" />
@@ -287,14 +287,14 @@
 
                         <v:HeadedRow Margin="0,22,0,0" HorizontalAlignment="Left">
                             <TextBlock x:Name="ModeHeading" v:LocalizedText.Text="{x:Static res:Strings.Settings_EditModeHeading}" Style="{StaticResource RadioGroupHeading}" />
-                            <Border Style="{StaticResource RadioGroupFrame}">
+                            <v:SquircleBorder Style="{StaticResource RadioGroupFrame}">
                                 <UniformGrid Rows="1" v:RadioGroup.IsGroup="True" AutomationProperties.LabeledBy="{Binding ElementName=ModeHeading}">
                                     <RadioButton Style="{StaticResource RadioGroupItem}" v:LocalizedText.Content="{x:Static res:Strings.Settings_ModeLocal}" r:IntentTrigger.OnClick="SettingsModeSelected" r:IntentTrigger.Payload="Local"
                                                  IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=Local}" />
                                     <RadioButton Style="{StaticResource RadioGroupItem}" Content="GitHub" r:IntentTrigger.OnClick="SettingsModeSelected" r:IntentTrigger.Payload="GitHub"
                                                  IsChecked="{Binding Mode, Mode=OneWay, Converter={StaticResource EnumMatch}, ConverterParameter=GitHub}" />
                                 </UniformGrid>
-                            </Border>
+                            </v:SquircleBorder>
                         </v:HeadedRow>
                         <TextBlock Style="{StaticResource Label}" Margin="0,8,0,0"
                                    v:LocalizedText.Text="{x:Static res:Strings.Settings_GitHubModeNote}" />

@@ -69,26 +69,26 @@
                     MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <DockPanel>
                     <!-- 最小化・最大化（元に戻す）・閉じる。標準の枠が無いので自前で持つ。
-                         アイコンは検索欄の虫眼鏡（SearchPanel.xaml）と同じ Segoe MDL2 Assets。 -->
+                         最大化と元に戻すのアイコンは、窓の状態に合わせてコードビハインドが差し替える。 -->
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
-                        <Button Content="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                        <Button Content="{StaticResource Icon_minimize}"
                                 Style="{StaticResource IconButton}" Click="Minimize_Click" ToolTip="{x:Static res:Strings.Common_Minimize}"
                                 AutomationProperties.Name="{x:Static res:Strings.Common_Minimize}" Margin="0" />
-                        <Button x:Name="MaximizeRestoreButton" Content="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                        <Button x:Name="MaximizeRestoreButton" Content="{StaticResource Icon_crop_square}"
                                 Style="{StaticResource IconButton}" Click="MaximizeRestore_Click" ToolTip="{x:Static res:Strings.Common_Maximize}"
                                 AutomationProperties.Name="{x:Static res:Strings.Common_Maximize}" Margin="4,0,0,0" />
-                        <Button Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                        <Button Content="{StaticResource Icon_close}"
                                 Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="{x:Static res:Strings.Common_Close}"
                                 AutomationProperties.Name="{x:Static res:Strings.Common_Close}" Margin="4,0,0,0" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <!-- アプリの顔。辞書名が長くなるので小さく据える -->
-                        <Border Width="24" Height="24" CornerRadius="5" Background="{StaticResource AccentFill}"
+                        <v:SquircleBorder Width="24" Height="24" CornerRadius="6" Background="{StaticResource AccentFill}"
                                 Margin="0,0,9,0" VerticalAlignment="Center">
                             <TextBlock Text="Z" FontSize="13" FontWeight="Bold" Foreground="{StaticResource OnFill}"
                                        HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="NoWrap" />
-                        </Border>
+                        </v:SquircleBorder>
                         <TextBlock v:LocalizedText.Text="{Binding DictionaryName}" FontWeight="SemiBold"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h3}"
                                    VerticalAlignment="Center" Margin="0,0,8,0" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
@@ -155,18 +155,18 @@
                     <TextBlock DockPanel.Dock="Right" Text="{Binding VersionLabel}" Foreground="{StaticResource Muted}"
                                Margin="12,0,0,0" VerticalAlignment="Center"
                                FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
-                    <Border DockPanel.Dock="Right" Background="{StaticResource Raised}" BorderBrush="{StaticResource Divider}"
-                            BorderThickness="1" CornerRadius="4" Padding="10,2" Margin="12,0,0,0" VerticalAlignment="Center">
+                    <v:SquircleBorder DockPanel.Dock="Right" Background="{StaticResource Raised}" BorderBrush="{StaticResource Divider}"
+                            BorderThickness="1" CornerRadius="6" Padding="10,2" Margin="12,0,0,0" VerticalAlignment="Center">
                         <TextBlock v:LocalizedText.Text="{Binding CountLabel}" Foreground="{StaticResource Muted}"
                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
-                    </Border>
+                    </v:SquircleBorder>
                     <!-- フッタは 1 行固定。折り返すと状況によってフッタの高さが変わり、下端の位置が動く -->
                     <!-- Padding と負の Margin を打ち消し合わせ、光る範囲だけ広げてレイアウトへの影響を消している。
                          StatusFlashBrush は Status が変わるたびに FlashStatus が StatusFlashStoryboard で光らせる。 -->
-                    <Border x:Name="StatusFlashBorder" CornerRadius="4" Padding="6,2" Margin="-6,-2,-6,-2">
-                        <Border.Background>
+                    <v:SquircleBorder x:Name="StatusFlashBorder" CornerRadius="6" Padding="6,2" Margin="-6,-2,-6,-2">
+                        <v:SquircleBorder.Background>
                             <SolidColorBrush x:Name="StatusFlashBrush" Color="{StaticResource StatusErrorColor}" Opacity="0" />
-                        </Border.Background>
+                        </v:SquircleBorder.Background>
                         <!-- 状態の種類（Semantic）は色だけでなく、ノティフィケーションアイコンでも示す
                              （ZasDesignSystem rules.md「色だけで情報を表さない」）。アイコンは文字に添えるので
                              size-icon-small（16）を文字サイズ倍率に合わせて伸ばす。 -->
@@ -178,22 +178,22 @@
                                     <Path x:Name="StatusIcon">
                                         <Path.Style>
                                             <Style TargetType="Path">
-                                                <Setter Property="Data" Value="{StaticResource Icon_info}" />
+                                                <Setter Property="Data" Value="{StaticResource Icon_info_fill}" />
                                                 <Setter Property="Fill" Value="{StaticResource NotifyInfo}" />
                                                 <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.Status_Info}" />
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding StatusSemantic}" Value="{x:Static vm:StatusSemantic.Success}">
-                                                        <Setter Property="Data" Value="{StaticResource Icon_success}" />
+                                                        <Setter Property="Data" Value="{StaticResource Icon_check_circle_fill}" />
                                                         <Setter Property="Fill" Value="{StaticResource NotifySuccess}" />
                                                         <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.Status_Success}" />
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding StatusSemantic}" Value="{x:Static vm:StatusSemantic.Warning}">
-                                                        <Setter Property="Data" Value="{StaticResource Icon_warning}" />
+                                                        <Setter Property="Data" Value="{StaticResource Icon_warning_fill}" />
                                                         <Setter Property="Fill" Value="{StaticResource NotifyWarning}" />
                                                         <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.Status_Warning}" />
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding StatusSemantic}" Value="{x:Static vm:StatusSemantic.Error}">
-                                                        <Setter Property="Data" Value="{StaticResource Icon_error}" />
+                                                        <Setter Property="Data" Value="{StaticResource Icon_error_fill}" />
                                                         <Setter Property="Fill" Value="{StaticResource NotifyError}" />
                                                         <Setter Property="AutomationProperties.Name" Value="{x:Static res:Strings.Status_Error}" />
                                                     </DataTrigger>
@@ -207,7 +207,7 @@
                                        FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}"
                                        VerticalAlignment="Center" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" />
                         </DockPanel>
-                    </Border>
+                    </v:SquircleBorder>
                 </DockPanel>
             </Border>
 

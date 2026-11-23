@@ -27,7 +27,7 @@ public class DropDown : Control, IPopupLayer
     /// <summary>本体と一覧のすき間。</summary>
     private const double Gap = 2;
 
-    private Border? _panel;
+    private SquircleBorder? _panel;
     private ListBox? _list;
     private ListAdorner? _adorner;
     private AdornerLayer? _layer;
@@ -163,7 +163,7 @@ public class DropDown : Control, IPopupLayer
         _list.PreviewMouseLeftButtonUp += OnListMouseUp;
         _list.KeyDown += OnListKeyDown;
 
-        _panel = new Border
+        _panel = new SquircleBorder
         {
             Style = TryFindResource("DropDownPanel") as Style,
             MinWidth = ActualWidth,

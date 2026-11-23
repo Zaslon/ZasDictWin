@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Input;
 using ZasDictWin.Resources;
@@ -146,8 +146,7 @@ public partial class FloatingWindow : Window, IUiHost
     private void UpdateMaximizeRestoreIcon()
     {
         var maximized = WindowState == WindowState.Maximized;
-        // MDL2 Assets: ChromeMaximize (E922) / ChromeRestore (E923)
-        MaximizeRestoreButton.Content = maximized ? "" : "";
+        MaximizeRestoreButton.Content = FindResource(maximized ? "Icon_filter_none" : "Icon_crop_square");
         MaximizeRestoreButton.ToolTip = maximized ? Strings.Common_Restore : Strings.Common_Maximize;
         System.Windows.Automation.AutomationProperties.SetName(MaximizeRestoreButton, (string)MaximizeRestoreButton.ToolTip);
     }

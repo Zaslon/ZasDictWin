@@ -25,28 +25,31 @@
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
-    <!-- キーボードで選んだ要素のフォーカス表示（ZasDesignSystem implementation/wpf.md「フォーカス表示」）。
+    <!-- キーボードで選んだ要素のフォーカス表示（ZasDesignSystem implementation/wpf.md「フォーカス表示」「角の形」）。
          color-accent、太さ 2 の枠を要素から 2 離して描く。FocusVisualStyle は Tab や矢印キーで移ったときだけ描かれ、
          クリックで選んだときは出ない。テンプレートの IsFocused / IsKeyboardFocused のトリガーで描くと、
          クリックでも出てしまうので、操作要素の Style ではこれを FocusVisualStyle に指定する。
-         AdornerLayer に描かれるので、要素の寸法は変わらない。 -->
+         AdornerLayer に描かれるので、要素の寸法は変わらない。
+         角は radius-control（8）に離す距離を足した超楕円。CornerRadius は枠の外側の値なので、内側の縁が 8 + 2 になるよう 12 とする。 -->
     <Style x:Key="FocusRing">
         <Setter Property="Control.Template">
             <Setter.Value>
                 <ControlTemplate>
-                    <Border Margin="-4" BorderBrush="{StaticResource Accent}" BorderThickness="2" CornerRadius="10"
-                            SnapsToDevicePixels="True" />
+                    <v:SquircleBorder Margin="-4" BorderBrush="{StaticResource Accent}" BorderThickness="2" CornerRadius="12"
+                                      SnapsToDevicePixels="True" />
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
 
-    <!-- ノティフィケーションアイコン（ZasDesignSystem の icons/wpf/Icons.xaml から写した DADS コード例の図形。
-         MIT License、licenses/LICENSE-dads-code.txt）。24×24 の座標で、色は置く側の Fill で付ける。 -->
-    <PathGeometry x:Key="Icon_info" FillRule="EvenOdd" Figures="M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20ZM12 7a1 1 0 1 0 0 2a1 1 0 1 0 0-2ZM11 11h2v6h-2Z" />
-    <PathGeometry x:Key="Icon_success" FillRule="EvenOdd" Figures="M12 2a10 10 0 1 0 0 20a10 10 0 1 0 0-20ZM17.6 9.6l-7 7-4.3-4.3L7.7 11l2.9 2.9 5.7-5.6 1.3 1.4Z" />
-    <PathGeometry x:Key="Icon_warning" FillRule="EvenOdd" Figures="M1 21 12 2l11 19H1ZM13 15h-2v-5h2v5ZM12 16a1 1 0 1 0 0 2a1 1 0 1 0 0-2Z" />
-    <PathGeometry x:Key="Icon_error" FillRule="EvenOdd" Figures="M8.25 21 3 15.75v-7.5L8.25 3h7.5L21 8.25v7.5L15.75 21h-7.5ZM12 13.4l-2.85 2.85-1.4-1.4L10.6 12 7.75 9.15l1.4-1.4L12 10.6l2.85-2.85 1.4 1.4L13.4 12l2.85 2.85-1.4 1.4L12 13.4Z" />
+    <!-- アイコンは Themes/Icons.xaml（ZasDesignSystem icons/wpf/Icons.xaml の写し、Material Symbols Rounded）の
+         Icon_名前 を使う。ボタンの Content に Geometry を渡すと、この型の DataTemplate が size-icon（24）で描き、
+         色はボタンの文字色に従う。単独のアイコンボタンは UI 倍率だけで拡大する（tokens.md「表示の設定」）ので、文字の倍率は掛けない。 -->
+    <DataTemplate DataType="{x:Type Geometry}">
+        <Canvas Width="24" Height="24">
+            <Path Data="{Binding}" Fill="{Binding Path=(TextElement.Foreground), RelativeSource={RelativeSource Self}}" />
+        </Canvas>
+    </DataTemplate>
 
     <!-- 明示的な Style を指定すると既定（暗黙の）TextBlock スタイルが打ち消されるため、折り返しは
          ここで再度宣言する必要がある。省略すると長い案内文が幅を超えて横にはみ出し、オーバーレイ側で
@@ -126,14 +129,14 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="bd" CornerRadius="8"
-                            Background="{TemplateBinding Background}"
-                            BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}">
+                    <v:SquircleBorder x:Name="bd" CornerRadius="8"
+                                      Background="{TemplateBinding Background}"
+                                      BorderBrush="{TemplateBinding BorderBrush}"
+                                      BorderThickness="{TemplateBinding BorderThickness}">
                         <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                           Margin="{TemplateBinding Padding}" />
-                    </Border>
+                    </v:SquircleBorder>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -182,22 +185,21 @@
         </Style.Triggers>
     </Style>
 
-    <!-- 警告ボタン（color-destructive-*）。削除など、データを失う操作に使う。 -->
-    <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="{StaticResource DangerFill}" />
-        <Setter Property="Foreground" Value="{StaticResource OnFill}" />
-        <Setter Property="FontWeight" Value="SemiBold" />
-        <Setter Property="BorderBrush" Value="{StaticResource DangerFill}" />
+    <!-- 警告ボタンの枠の版（color-destructive-outline*、ZasDesignSystem implementation/wpf.md「警告ボタン」）。
+         画面に置く削除などに使う。塗りの赤を画面に並べると主操作より目立つため、塗りの版は確認ダイアログの確定だけに使う。 -->
+    <Style x:Key="DangerOutlineButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+        <Setter Property="Foreground" Value="{StaticResource DangerOutline}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DangerOutline}" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource DangerFillHover}" />
-                <Setter Property="Foreground" Value="{StaticResource OnFill}" />
-                <Setter Property="BorderBrush" Value="{StaticResource DangerFillHover}" />
+                <Setter Property="Background" Value="{StaticResource DangerOutlineHoverBackground}" />
+                <Setter Property="Foreground" Value="{StaticResource DangerOutlineHover}" />
+                <Setter Property="BorderBrush" Value="{StaticResource DangerOutlineHover}" />
             </Trigger>
             <Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{StaticResource DangerFillActive}" />
-                <Setter Property="Foreground" Value="{StaticResource OnFill}" />
-                <Setter Property="BorderBrush" Value="{StaticResource DangerFillActive}" />
+                <Setter Property="Background" Value="{StaticResource DangerOutlineActiveBackground}" />
+                <Setter Property="Foreground" Value="{StaticResource DangerOutlineActive}" />
+                <Setter Property="BorderBrush" Value="{StaticResource DangerOutlineActive}" />
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Background" Value="{StaticResource Disabled}" />
@@ -300,11 +302,9 @@
     <Style x:Key="TabCloseButton" TargetType="Button" BasedOn="{StaticResource IconButton}">
         <Setter Property="MinWidth" Value="28" />
         <Setter Property="MinHeight" Value="28" />
-        <Setter Property="Padding" Value="3" />
+        <Setter Property="Padding" Value="2" />
         <Setter Property="Margin" Value="0" />
-        <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
-        <Setter Property="Content" Value="&#xE711;" />
-        <Setter Property="FontSize" Value="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=12}" />
+        <Setter Property="Content" Value="{StaticResource Icon_close}" />
     </Style>
 
     <!-- ウィンドウを閉じるボタン。hover で他の IconButton と違い赤面にして、押すと閉じる操作だと
@@ -352,19 +352,34 @@
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
                     <Grid>
-                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                    <v:SquircleBorder x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <!-- 先頭のアイコン（v:FieldIcon.Data）。文字に添えるので size-icon-small（16）を文字の倍率で伸ばす。
+                                 入力と案内文字は隣の列にあり、アイコンが伸びたぶん後ろへ下がる。無い欄では列ごと潰れる。 -->
+                            <Viewbox Grid.Column="0" Margin="12,0,0,0" VerticalAlignment="Center" IsHitTestVisible="False"
+                                     Visibility="{Binding Path=(v:FieldIcon.Data), RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource NullVis}}"
+                                     Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}"
+                                     Height="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}">
+                                <Canvas Width="24" Height="24">
+                                    <Path Data="{Binding Path=(v:FieldIcon.Data), RelativeSource={RelativeSource TemplatedParent}}"
+                                          Fill="{StaticResource Muted}" />
+                                </Canvas>
+                            </Viewbox>
                             <!-- ここに Margin="{TemplateBinding Padding}" を足さないこと。TextBox は
                                  中身を Padding のぶん自分で内側へ寄せるため、余白が二重に効いて
                                  欄が縦に膨らみ、打った字だけが下の案内文字より右へずれる。 -->
-                            <ScrollViewer x:Name="PART_ContentHost" />
+                            <ScrollViewer x:Name="PART_ContentHost" Grid.Column="1" />
                             <!-- 案内文字は 1 行。NoWrap を書かないと暗黙の TextBlock スタイル（Wrap）が効いて
                                  折り返してしまい、TextTrimming が働かない。
                                  TextBlock は上の TextBox と違って自分では寄せないので、Margin で同じだけ寄せる。
                                  入力欄の中身と違って必ず UI 文字列なので、入力欄側のフォント
                                  （URL 欄の en、綴り欄の Heksa、英数字だけの欄の Consolas）は継承させない。 -->
-                            <TextBlock x:Name="ph"
+                            <TextBlock x:Name="ph" Grid.Column="1"
                                        v:LocalizedText.Text="{Binding Path=(v:Placeholder.Text), RelativeSource={RelativeSource TemplatedParent}}"
                                        FontFamily="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=UiFont}"
                                        Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
@@ -372,10 +387,10 @@
                                        TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                                        IsHitTestVisible="False" Visibility="Collapsed" />
                         </Grid>
-                    </Border>
+                    </v:SquircleBorder>
                     <!-- フォーカス中・エラー中の太さ 2 の枠。bd の枠を 1 から 2 に太くすると中の文字が 1 ずれるので、
                          太くせずに同じ角丸の枠を上に重ねる（重ねた枠の内側 1 は余白に掛かるだけで、文字は動かない）。 -->
-                    <Border x:Name="ring" CornerRadius="8" BorderThickness="2" IsHitTestVisible="False"
+                    <v:SquircleBorder x:Name="ring" CornerRadius="8" BorderThickness="2" IsHitTestVisible="False"
                             BorderBrush="{StaticResource Accent}" Visibility="Collapsed" />
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -477,16 +492,19 @@
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Border x:Name="box" Grid.Column="0" CornerRadius="4"
+                        <!-- 箱の角は部品の面の値（radius-*）ではなく、DADS のチェックボックスの比率（一辺 18 に 2）のまま。
+                             ZasDesignSystem の Web 実装（design-system.css の調整層）と同じ扱い。 -->
+                        <v:SquircleBorder x:Name="box" Grid.Column="0" CornerRadius="2"
                                 Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}"
                                 Height="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=18}"
                                 Background="{StaticResource Field}" BorderBrush="{StaticResource InputBorder}"
                                 BorderThickness="1" VerticalAlignment="Center">
-                            <Path x:Name="check" Data="M 3.4,8.6 L 7.0,12.0 L 14.2,4.6"
-                                  Stroke="{StaticResource OnFill}" StrokeThickness="2.2"
-                                  StrokeStartLineCap="Round" StrokeEndLineCap="Round"
-                                  Stretch="Uniform" Margin="4" Visibility="Collapsed" />
-                        </Border>
+                            <Viewbox x:Name="check" Visibility="Collapsed">
+                                <Canvas Width="24" Height="24">
+                                    <Path Data="{StaticResource Icon_check}" Fill="{StaticResource OnFill}" />
+                                </Canvas>
+                            </Viewbox>
+                        </v:SquircleBorder>
                         <ContentPresenter Grid.Column="1" Margin="8,0,0,0" VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -534,11 +552,12 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8"
+                    <!-- 下の面に重なる面なので radius-card。 -->
+                    <v:SquircleBorder Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12"
                             Padding="{TemplateBinding Padding}">
                         <ContentPresenter VerticalAlignment="Center" />
-                    </Border>
+                    </v:SquircleBorder>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -572,11 +591,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ContextMenu">
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8"
+                    <v:SquircleBorder Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="12"
                             Padding="{TemplateBinding Padding}">
                         <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
-                    </Border>
+                    </v:SquircleBorder>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -594,23 +613,23 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="MenuItem">
-                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}"
+                    <v:SquircleBorder x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
                             Padding="{TemplateBinding Padding}">
                         <!-- アプリ全体の暗黙の TextBlock スタイルは Foreground を Text に固定する。テンプレート内の
                              TextBlock にも届いてしまうため、ここで Foreground を持たないスタイルに差し替える。
                              差し替えないと、文字が MenuItem の Foreground（無効時の DisabledText）を継がない。 -->
-                        <Border.Resources>
+                        <v:SquircleBorder.Resources>
                             <Style TargetType="TextBlock">
                                 <Setter Property="TextWrapping" Value="NoWrap" />
                                 <Setter Property="TextTrimming" Value="CharacterEllipsis" />
                             </Style>
-                        </Border.Resources>
+                        </v:SquircleBorder.Resources>
                         <DockPanel>
                             <TextBlock DockPanel.Dock="Right" Text="{TemplateBinding InputGestureText}" Margin="24,0,0,0"
                                        Foreground="{StaticResource Muted}" FontWeight="Normal" VerticalAlignment="Center" />
                             <ContentPresenter ContentSource="Header" RecognizesAccessKey="True" VerticalAlignment="Center" />
                         </DockPanel>
-                    </Border>
+                    </v:SquircleBorder>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsHighlighted" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
@@ -654,17 +673,18 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListBoxItem">
-                    <Border x:Name="bd" CornerRadius="8" Background="Transparent" Padding="{TemplateBinding Padding}">
+                    <v:SquircleBorder x:Name="bd" CornerRadius="8" Background="Transparent" Padding="{TemplateBinding Padding}">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="3" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Border x:Name="mark" Grid.Column="0" CornerRadius="2" Margin="0,3,7,3"
+                            <!-- 幅 3 の帯は角を丸めない。radius-* の値ではどれも長丸になり、長丸は使わない（tokens.md「角の丸み」）。 -->
+                            <Border x:Name="mark" Grid.Column="0" Margin="0,3,7,3"
                                     Background="{StaticResource AccentFill}" Opacity="0" />
                             <ContentPresenter Grid.Column="1" VerticalAlignment="Center" />
                         </Grid>
-                    </Border>
+                    </v:SquircleBorder>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
@@ -696,14 +716,15 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <Border Grid.Row="1" Background="{TemplateBinding Background}"
+                        <!-- ページは面なので radius-card。左上は最初のタブとつなげるため丸めない。 -->
+                        <v:SquircleBorder Grid.Row="1" Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}"
-                                CornerRadius="0,8,8,8" Padding="{TemplateBinding Padding}">
+                                CornerRadius="0,12,12,12" Padding="{TemplateBinding Padding}">
                             <!-- 名前は PART_SelectedContentHost 固定。TabControl はこの名前で
                                  ページの差し替え先を探す。 -->
                             <ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" />
-                        </Border>
+                        </v:SquircleBorder>
                         <!-- ヘッダーを前面に置き、選択タブがページの上枠を隠せるようにする -->
                         <TabPanel Grid.Row="0" Panel.ZIndex="1" IsItemsHost="True"
                                   KeyboardNavigation.TabIndex="1" />
@@ -728,7 +749,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="TabItem">
                     <Grid>
-                        <Border x:Name="bd" Background="Transparent" BorderBrush="Transparent"
+                        <v:SquircleBorder x:Name="bd" Background="Transparent" BorderBrush="Transparent"
                                 BorderThickness="1,1,1,0" CornerRadius="8,8,0,0"
                                 Padding="{TemplateBinding Padding}"
                                 TextElement.Foreground="{StaticResource Muted}">
@@ -739,10 +760,10 @@
                                  （PtsHost の FailFast）にまで至る。既定テンプレートと同じ形に固定する。 -->
                             <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"
                                               VerticalAlignment="Center" />
-                        </Border>
+                        </v:SquircleBorder>
                         <!-- 選択を示すアクセントは上辺に置く。下辺に置くとページとの境界線に見える。
-                             左右の余白は角丸をまたがないための逃げ。 -->
-                        <Border x:Name="ul" Height="2" Margin="9,1,9,0" VerticalAlignment="Top" CornerRadius="1"
+                             左右の余白は角丸をまたがないための逃げ。太さ 2 の線は角を丸めない（丸めると長丸になる）。 -->
+                        <Border x:Name="ul" Height="2" Margin="9,1,9,0" VerticalAlignment="Top"
                                 Background="{StaticResource AccentFill}" Opacity="0" />
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -783,7 +804,8 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
-                    <Border x:Name="tb" CornerRadius="3" Margin="2" Background="{StaticResource ThumbBrush}" />
+                    <!-- 幅 8 のつまみは角を丸めない。radius-* の値ではどれも長丸になり、長丸は使わない（tokens.md「角の丸み」）。 -->
+                    <Border x:Name="tb" Margin="2" Background="{StaticResource ThumbBrush}" />
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="tb" Property="Background" Value="{StaticResource ThumbHover}" />
@@ -858,7 +880,7 @@
         <Setter Property="Background" Value="{StaticResource Panel}" />
     </Style>
 
-    <Style x:Key="Card" TargetType="Border">
+    <Style x:Key="Card" TargetType="v:SquircleBorder">
         <Style.Resources>
             <SolidColorBrush x:Key="RowHover" Color="{StaticResource RowHoverOnPanelColor}" />
         </Style.Resources>
@@ -881,8 +903,8 @@
 
     <!-- 設定画面のタブ。ドッキングのタブ（DockTab）と同じ見え方に揃える。裏のタブは文字だけ、
          表のタブだけを中身と同じ Panel で塗り、上と左右の枠を付けて下端を中身の上枠に 1px 重ねる。
-         タブ列を中身の左端から少し内へ寄せてあるのは、中身の角丸と表のタブの左辺が重なって
-         角が欠けて見えるのを避けるため。 -->
+         タブ列を中身の左端から中身の角の値（radius-card 12）だけ内へ寄せてあるのは、中身の角丸と
+         表のタブの左辺が重なって角が欠けて見えるのを避けるため。 -->
     <Style x:Key="SettingsTabControl" TargetType="TabControl">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
@@ -901,20 +923,20 @@
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="TabItem">
-                                <Border x:Name="Root"
+                                <v:SquircleBorder x:Name="Root"
                                         Padding="{TemplateBinding Padding}"
                                         Margin="{TemplateBinding Margin}"
                                         Background="{TemplateBinding Background}"
                                         BorderBrush="{TemplateBinding BorderBrush}"
                                         BorderThickness="{TemplateBinding BorderThickness}"
-                                        CornerRadius="6,6,0,0"
+                                        CornerRadius="8,8,0,0"
                                         SnapsToDevicePixels="True">
                                     <ContentPresenter ContentSource="Header"
                                                       HorizontalAlignment="Center"
                                                       VerticalAlignment="Center"
                                                       RecognizesAccessKey="True"
                                                       TextElement.Foreground="{TemplateBinding Foreground}" />
-                                </Border>
+                                </v:SquircleBorder>
                                 <ControlTemplate.Triggers>
                                     <Trigger Property="IsMouseOver" Value="True">
                                         <Setter Property="Foreground" Value="{StaticResource Text}" />
@@ -942,14 +964,14 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <TabPanel Grid.Row="0" IsItemsHost="True" Margin="6,0,6,0" Panel.ZIndex="1" />
-                        <Border Grid.Row="1"
+                        <TabPanel Grid.Row="0" IsItemsHost="True" Margin="12,0,12,0" Panel.ZIndex="1" />
+                        <v:SquircleBorder Grid.Row="1"
                                 Background="{StaticResource Panel}"
                                 BorderBrush="{StaticResource Divider}"
                                 BorderThickness="1"
-                                CornerRadius="8">
+                                CornerRadius="12">
                             <ContentPresenter ContentSource="SelectedContent" />
-                        </Border>
+                        </v:SquircleBorder>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>
@@ -963,8 +985,8 @@
          裏にも同じ太さの透明な枠を持たせてあるのは、表裏の切り替えで文字の位置がずれないようにするため。
          高さは行なりに伸ばす（VerticalAlignment は既定の Stretch）。閉じるボタンの有無でタブの
          背は変わるので、伸ばさないと表のタブが区切り線まで届かず、中身との間に隙間が残る。 -->
-    <Style x:Key="DockTab" TargetType="Border">
-        <Setter Property="CornerRadius" Value="6,6,0,0" />
+    <Style x:Key="DockTab" TargetType="v:SquircleBorder">
+        <Setter Property="CornerRadius" Value="8,8,0,0" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="BorderThickness" Value="1,1,1,0" />
@@ -995,14 +1017,14 @@
 
     <!-- タブの閉じるボタンの出し分け。表のタブと、カーソルが乗っているタブでだけ見せる。
          Visibility ではなく Opacity で消すのは、出し入れのたびにタブの幅が変わって列が揺れるため。
-         祖先の Border は DockTab（ボタン自身のテンプレート内の Border は子孫なので当たらない）。 -->
+         祖先の SquircleBorder は DockTab（ボタン自身のテンプレート内の SquircleBorder は子孫なので当たらない）。 -->
     <Style x:Key="DockTabCloseButton" TargetType="Button" BasedOn="{StaticResource TabCloseButton}">
         <Setter Property="Opacity" Value="0" />
         <Style.Triggers>
             <DataTrigger Binding="{Binding IsActive}" Value="True">
                 <Setter Property="Opacity" Value="1" />
             </DataTrigger>
-            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Border}}" Value="True">
+            <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=v:SquircleBorder}}" Value="True">
                 <Setter Property="Opacity" Value="1" />
             </DataTrigger>
         </Style.Triggers>
@@ -1061,11 +1083,11 @@
 
     <!-- 枠の四隅のつまみ。普段は見えず、触れたときだけ「引ける角」だと分かる印を出す
          （面は透明でも当たり判定は残るので、掴む場所は常にここにある） -->
-    <Style x:Key="AreaCorner" TargetType="Border">
+    <Style x:Key="AreaCorner" TargetType="v:SquircleBorder">
         <Setter Property="Width" Value="14" />
         <Setter Property="Height" Value="14" />
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Cursor" Value="SizeAll" />
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
@@ -1114,14 +1136,14 @@
     </Style>
 
     <!-- 検索条件のような、面として固める小さな区切り -->
-    <Style x:Key="FilterCard" TargetType="Border">
+    <Style x:Key="FilterCard" TargetType="v:SquircleBorder">
         <Style.Resources>
             <SolidColorBrush x:Key="RowHover" Color="{StaticResource RowHoverOnPanelColor}" />
         </Style.Resources>
         <Setter Property="Background" Value="{StaticResource Panel}" />
         <Setter Property="BorderBrush" Value="{StaticResource Divider}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="12,10" />
     </Style>
 
@@ -1143,7 +1165,7 @@
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:DropDown}">
                     <Grid>
-                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                    <v:SquircleBorder x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <Grid>
                             <Grid.ColumnDefinitions>
@@ -1172,11 +1194,17 @@
                                      v:Placeholder.Text="{TemplateBinding Placeholder}"
                                      Background="Transparent" BorderThickness="0"
                                      Padding="{TemplateBinding Padding}" VerticalAlignment="Center" />
-                            <Path x:Name="arrow" Grid.Column="1" Data="M 0,0 L 9,0 L 4.5,5.5 Z"
-                                  Fill="{StaticResource Muted}" Margin="6,0,10,0" VerticalAlignment="Center" />
+                            <!-- 開閉の印は expand_more。文字に添えるので size-icon-small（16）を文字の倍率に合わせて伸ばす。 -->
+                            <Viewbox Grid.Column="1" Margin="2,0,8,0" VerticalAlignment="Center"
+                                     Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}"
+                                     Height="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}">
+                                <Canvas Width="24" Height="24">
+                                    <Path x:Name="arrow" Data="{StaticResource Icon_expand_more}" Fill="{StaticResource Muted}" />
+                                </Canvas>
+                            </Viewbox>
                         </Grid>
-                    </Border>
-                    <Border x:Name="ring" CornerRadius="8" BorderThickness="2" IsHitTestVisible="False"
+                    </v:SquircleBorder>
+                    <v:SquircleBorder x:Name="ring" CornerRadius="8" BorderThickness="2" IsHitTestVisible="False"
                             BorderBrush="{StaticResource Accent}" Visibility="Collapsed" />
                     </Grid>
                     <ControlTemplate.Triggers>
@@ -1219,14 +1247,14 @@
 
     <!-- 開いた一覧の器。影を使わない方針なので、下地（Panel）より一段明るい面と、Line より明るい枠で
          せり出して見せる。枠をアクセント色にすると、中の選択行（AccentDim）と色がぶつかる。 -->
-    <Style x:Key="DropDownPanel" TargetType="Border">
+    <Style x:Key="DropDownPanel" TargetType="v:SquircleBorder">
         <Style.Resources>
             <SolidColorBrush x:Key="RowHover" Color="{StaticResource RowHoverOnPanelColor}" />
         </Style.Resources>
         <Setter Property="Background" Value="{StaticResource HeaderFill}" />
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="CornerRadius" Value="12" />
         <Setter Property="Padding" Value="4" />
         <Setter Property="MaxWidth" Value="420" />
     </Style>
@@ -1256,15 +1284,20 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:MenuButton}">
-                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
+                    <v:SquircleBorder x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}"
                             BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}">
                         <StackPanel Orientation="Horizontal" Margin="{TemplateBinding Padding}">
                             <TextBlock v:LocalizedText.Text="{TemplateBinding Header}" Foreground="{TemplateBinding Foreground}"
                                        VerticalAlignment="Center" TextWrapping="NoWrap" />
-                            <Path Data="M 0,0 L 8,0 L 4,5 Z" Fill="{TemplateBinding Foreground}"
-                                  Opacity="0.6" Margin="7,0,0,0" VerticalAlignment="Center" />
+                            <Viewbox Margin="4,0,0,0" VerticalAlignment="Center"
+                                     Width="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}"
+                                     Height="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=16}">
+                                <Canvas Width="24" Height="24">
+                                    <Path Data="{StaticResource Icon_expand_more}" Fill="{TemplateBinding Foreground}" />
+                                </Canvas>
+                            </Viewbox>
                         </StackPanel>
-                    </Border>
+                    </v:SquircleBorder>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
@@ -1282,8 +1315,9 @@
         </Setter>
     </Style>
 
-    <!-- 一覧の行に付ける操作メニュー（v:MenuButton）。見た目は IconButton（⋯）そのままで、
-         中身は MenuButton の仕組みをそのまま借りる（右クリックでも同じものを開けるよう Open() を公開） -->
+    <!-- 一覧の行に付ける操作メニュー（v:MenuButton）。見た目は more_vert のアイコンボタンで、
+         中身は MenuButton の仕組みをそのまま借りる（右クリックでも同じものを開けるよう Open() を公開）。
+         アイコンだけなので、使う側で AutomationProperties.Name を付けること。 -->
     <Style x:Key="RowMenuButton" TargetType="{x:Type v:MenuButton}">
         <Setter Property="Foreground" Value="{StaticResource Muted}" />
         <Setter Property="Background" Value="Transparent" />
@@ -1297,20 +1331,19 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:MenuButton}">
-                    <Border x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}">
-                        <TextBlock x:Name="txt"
-                                   v:LocalizedText.Text="{Binding Header, RelativeSource={RelativeSource TemplatedParent}}"
-                                   Foreground="{TemplateBinding Foreground}"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
+                    <v:SquircleBorder x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}">
+                        <Canvas Width="24" Height="24" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <Path x:Name="icon" Data="{StaticResource Icon_more_vert}" Fill="{TemplateBinding Foreground}" />
+                        </Canvas>
+                    </v:SquircleBorder>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
-                            <Setter TargetName="txt" Property="Foreground" Value="{StaticResource Text}" />
+                            <Setter TargetName="icon" Property="Fill" Value="{StaticResource Text}" />
                         </Trigger>
                         <Trigger Property="IsOpen" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
-                            <Setter TargetName="txt" Property="Foreground" Value="{StaticResource Text}" />
+                            <Setter TargetName="icon" Property="Fill" Value="{StaticResource Text}" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -1386,11 +1419,11 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="{x:Type v:MenuButton}">
-                    <Border x:Name="bd" CornerRadius="6" Background="{TemplateBinding Background}">
+                    <v:SquircleBorder x:Name="bd" CornerRadius="8" Background="{TemplateBinding Background}">
                         <TextBlock v:LocalizedText.Text="{Binding Label, RelativeSource={RelativeSource TemplatedParent}}"
                                    Foreground="{TemplateBinding Foreground}" Margin="{TemplateBinding Padding}"
                                    VerticalAlignment="Center" TextWrapping="NoWrap" />
-                    </Border>
+                    </v:SquircleBorder>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="bd" Property="Background" Value="{DynamicResource RowHover}" />
@@ -1409,8 +1442,8 @@
 
     <!-- ラジオグループ（ZasDesignSystem components.md「ラジオグループ」、implementation/wpf.md「ラジオグループ」）。
          外枠は RadioGroupFrame、中の並びに v:RadioGroup.IsGroup を付け、選択肢は RadioGroupItem の RadioButton。
-         区切り線と両端の角丸は v:RadioGroup が並びの位置から付ける（外枠の Border は子の背景を角丸で切り抜かない）。 -->
-    <Style x:Key="RadioGroupFrame" TargetType="Border">
+         区切り線と両端の角丸は v:RadioGroup が並びの位置から付ける（外枠は子の背景を角丸で切り抜かない）。 -->
+    <Style x:Key="RadioGroupFrame" TargetType="v:SquircleBorder">
         <Setter Property="BorderBrush" Value="{StaticResource Line}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="8" />
@@ -1435,12 +1468,12 @@
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <!-- 選択中の印（標準の丸）は描かない。印の分だけ文字が動く。 -->
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                    <v:SquircleBorder Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="{Binding (v:RadioGroup.ItemCornerRadius), RelativeSource={RelativeSource TemplatedParent}}">
                         <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
                                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
-                    </Border>
+                    </v:SquircleBorder>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

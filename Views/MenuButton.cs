@@ -48,7 +48,7 @@ public class MenuButton : Control, IPopupLayer
         => SetValue(LabelKey, string.IsNullOrEmpty(AccessKey) ? Header : $"{Header}({AccessKey})");
     private const double Gap = 2;
 
-    private Border? _panel;
+    private SquircleBorder? _panel;
     private ItemsControl? _list;
     private MenuAdorner? _adorner;
     private AdornerLayer? _layer;
@@ -97,7 +97,7 @@ public class MenuButton : Control, IPopupLayer
     }
 
     /// <summary><paramref name="at"/> はこのボタン基準の位置。右クリックで開くときはポインタの位置を渡す。
-    /// 行の ⋯ は行の右端にあるので、⋯ の下に出すと、行の左側を右クリックしたときに一覧がポインタから遠く離れる。</summary>
+    /// 行の ︙ は行の右端にあるので、︙ の下に出すと、行の左側を右クリックしたときに一覧がポインタから遠く離れる。</summary>
     public void Open(Point? at)
     {
         if (IsOpen) return;
@@ -123,7 +123,7 @@ public class MenuButton : Control, IPopupLayer
         // 無効な項目（IsEnabled=false）はそもそもヒットテストされず Click が上がらない。
         _list.AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(OnItemClick));
 
-        _panel = new Border
+        _panel = new SquircleBorder
         {
             Style = TryFindResource("DropDownPanel") as Style,
             MinWidth = ActualWidth,

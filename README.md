@@ -47,10 +47,11 @@ dotnet publish ZasDictWin.csproj -c Release --no-build
 
 ## ライセンス表記
 
-ステータスバーのノティフィケーションアイコン（`Themes/Theme.xaml` の `Icon_info` / `Icon_success` / `Icon_warning` / `Icon_error`）は、デジタル庁「デザインシステム コード例（HTML版）」の図形を基にしています（MIT License、[licenses/LICENSE-dads-code.txt](licenses/LICENSE-dads-code.txt)）。
+アイコン（`Themes/Icons.xaml`）は Google の [Material Symbols](https://fonts.google.com/icons)（Rounded）を基に、塗りを変更できるようにしたものです（Apache License 2.0、[licenses/LICENSE-material-symbols.txt](licenses/LICENSE-material-symbols.txt)）。変更箇所は各図形の直前のコメントに記してあります。
 
 ## ドキュメント
 
 - [使い方](docs/usage.md) — 画面の分割とタブ、メニューバー、表示の設定、GitHub モード、キーボード操作
 - [データと設定ファイル](docs/data.md) — 辞書・例文の形式、`%APPDATA%\ZasDictWin\` のファイル、障害ログ、語源欄の描き分け
 - [開発者向け](docs/development.md) — ビルド・配布、OBS 前提の実装制約、テーマの制約、GitHub 通信の仕組み
+- [用語集](docs/glossary.md) — UI に表示する ZasDict 固有の用語（Android 版と共有）

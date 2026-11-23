@@ -9,7 +9,7 @@
          障害の案内（App.UiException）は例外メッセージがそのまま入るうえ、文字サイズ倍率は
          3.0 まで上げられるので、素の StackPanel だとボタンが画面外へ押し出されて押せなくなる。
          Margin で上下に余白を残し、カードが窓の高さを超えないようにしている。 -->
-    <Border Style="{StaticResource Card}" MaxWidth="520" MaxHeight="640" Margin="40,28"
+    <v:SquircleBorder Style="{StaticResource Card}" MaxWidth="520" MaxHeight="640" Margin="40,28"
             VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
         <DockPanel>
             <!-- 開いたときのフォーカスはボタンではなくこの見出しに置く（ChoiceOverlay.xaml.cs）。直前の Enter や連打が
@@ -27,6 +27,8 @@
                         <Button v:LocalizedText.Content="{Binding Label}" r:IntentTrigger.OnClick="ConfirmChoiceSelected" r:IntentTrigger.Payload="{Binding Index}"
                                 HorizontalContentAlignment="Center" Margin="0,0,0,8" Padding="14,10">
                             <Button.Style>
+                                <!-- 破壊的な選択肢は警告ボタンの塗りの版（color-destructive-*）。
+                                     ホバーと押下は塗りの版の値で、この DataTrigger より後に書く（後のトリガーが勝つ）。 -->
                                 <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsDanger}" Value="True">
@@ -35,6 +37,20 @@
                                             <Setter Property="Foreground" Value="{StaticResource OnFill}" />
                                             <Setter Property="FontWeight" Value="SemiBold" />
                                         </DataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsDanger}" Value="True" />
+                                                <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Background" Value="{StaticResource DangerFillHover}" />
+                                        </MultiDataTrigger>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding IsDanger}" Value="True" />
+                                                <Condition Binding="{Binding IsPressed, RelativeSource={RelativeSource Self}}" Value="True" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Background" Value="{StaticResource DangerFillActive}" />
+                                        </MultiDataTrigger>
                                     </Style.Triggers>
                                 </Style>
                             </Button.Style>
@@ -52,5 +68,5 @@
                                   Visibility="{Binding Message, Converter={StaticResource NullVis}}" />
             </ScrollViewer>
         </DockPanel>
-    </Border>
+    </v:SquircleBorder>
 </UserControl>

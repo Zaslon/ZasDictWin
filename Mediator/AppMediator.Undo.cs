@@ -154,7 +154,7 @@ public sealed partial class AppMediator
 
     // ---- メニュー -------------------------------------------------------------------
 
-    /// <summary>選択中の単語に効く操作は、一覧の行の ⋯ と同じものをここにも並べる
+    /// <summary>選択中の単語に効く操作は、一覧の行の ︙ と同じものをここにも並べる
     /// （ZasDesignSystem rules.md「隠れた操作は近道に留める」。行の右クリックとショートカットの手掛かり）。</summary>
     public IReadOnlyList<MenuActionSpec> BuildEditMenu() => new[]
     {

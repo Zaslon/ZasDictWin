@@ -36,13 +36,13 @@
                 MouseLeftButtonDown="Header_MouseLeftButtonDown">
             <DockPanel>
                 <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center" Margin="8,0,0,0">
-                    <Button Content="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                    <Button Content="{StaticResource Icon_minimize}"
                             Style="{StaticResource IconButton}" Click="Minimize_Click" ToolTip="{x:Static res:Strings.Common_Minimize}"
                             AutomationProperties.Name="{x:Static res:Strings.Common_Minimize}" Margin="0" />
-                    <Button x:Name="MaximizeRestoreButton" Content="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                    <Button x:Name="MaximizeRestoreButton" Content="{StaticResource Icon_crop_square}"
                             Style="{StaticResource IconButton}" Click="MaximizeRestore_Click" ToolTip="{x:Static res:Strings.Common_Maximize}"
                             AutomationProperties.Name="{x:Static res:Strings.Common_Maximize}" Margin="4,0,0,0" />
-                    <Button Content="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="10"
+                    <Button Content="{StaticResource Icon_close}"
                             Style="{StaticResource CloseIconButton}" Click="Close_Click" ToolTip="{x:Static res:Strings.Common_Close}"
                             AutomationProperties.Name="{x:Static res:Strings.Common_Close}" Margin="4,0,0,0" />
                 </StackPanel>

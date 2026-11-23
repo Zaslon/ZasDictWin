@@ -13,7 +13,7 @@ namespace ZasDictWin.Views;
 /// </summary>
 public static class RadioGroup
 {
-    /// <summary>外枠（radius-control 8）から枠の太さ 1 を引いた角丸。外枠の Border は子の背景を切り抜かないため、
+    /// <summary>外枠（radius-control 8）から枠の太さ 1 を引いた角の値。外枠は子の背景を切り抜かないため、
     /// 両端の選択肢の外側の角にだけ付ける。</summary>
     private const double InnerRadius = 7;
 

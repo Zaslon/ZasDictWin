@@ -18,23 +18,22 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <Button Content="←" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserBackRequested"
+                    <Button Content="{StaticResource Icon_arrow_back}" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserBackRequested"
                             ToolTip="{x:Static res:Strings.Browser_Back}" AutomationProperties.Name="{x:Static res:Strings.Browser_Back}"
                             IsEnabled="{Binding CanGoBack}" />
-                    <Button Content="→" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserForwardRequested"
+                    <Button Content="{StaticResource Icon_arrow_forward}" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserForwardRequested"
                             ToolTip="{x:Static res:Strings.Browser_Forward}" AutomationProperties.Name="{x:Static res:Strings.Browser_Forward}"
                             IsEnabled="{Binding CanGoForward}" />
-                    <Button Content="⟳" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserReloadRequested"
+                    <Button Content="{StaticResource Icon_refresh}" Style="{StaticResource IconButton}" r:IntentTrigger.OnClick="BrowserReloadRequested"
                             ToolTip="{x:Static res:Strings.Browser_Reload}" AutomationProperties.Name="{x:Static res:Strings.Browser_Reload}"
                             Margin="0" />
                 </StackPanel>
-                <!-- アドレス欄。枠そのものは TextBox ではなく Border で描き、フォーカス中だけ
-                     アクセント色に光らせる。半径は隣の戻る／進む／再読み込みボタン（Button
-                     テンプレートの 5）に合わせ、横並びで角の丸みが揃うようにしている。 -->
-                <Border Grid.Column="1" Margin="6,0,0,0" CornerRadius="5" MinHeight="28"
+                <!-- アドレス欄。枠そのものは TextBox ではなく外側で描き、フォーカス中だけ
+                     アクセント色に光らせる。入力欄なので radius-control。 -->
+                <t:SquircleBorder Grid.Column="1" Margin="6,0,0,0" CornerRadius="8" MinHeight="28"
                         Background="{StaticResource Field}" VerticalAlignment="Center">
-                    <Border.Style>
-                        <Style TargetType="Border">
+                    <t:SquircleBorder.Style>
+                        <Style TargetType="t:SquircleBorder">
                             <Setter Property="BorderBrush" Value="{StaticResource Divider}" />
                             <Setter Property="BorderThickness" Value="1" />
                             <Style.Triggers>
@@ -43,7 +42,7 @@
                                 </DataTrigger>
                             </Style.Triggers>
                         </Style>
-                    </Border.Style>
+                    </t:SquircleBorder.Style>
                     <!-- URL は UI 文字列ではないので、表示言語のフォントを継がせない。Idyerin 表示では
                          主フォントが Heksa になり、そのままだと打った URL がイジェール文字で描かれて
                          読めなくなる。案内文字（Placeholder）は UI 文字列なので、TextBox のテンプレート側で
@@ -54,7 +53,7 @@
                              t:Placeholder.Text="{x:Static res:Strings.Browser_AddressPlaceholder}"
                              Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}"
                              KeyDown="AddressBox_KeyDown" />
-                </Border>
+                </t:SquircleBorder>
             </Grid>
 
             <!-- 読み込み中は WebView2 に重ねられない（airspace のため WPF 描画が常に背後）ので、
