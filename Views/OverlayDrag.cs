@@ -51,7 +51,7 @@ internal sealed class DragGhost : Window
 
         // 影は本体と同じ書体・UI 倍率で出す（別の窓なので、本体の根に掛けた倍率も書体も届かない）。
         FontFamily = display.UiFont;
-        Content = new Border
+        Content = new SquircleBorder
         {
             LayoutTransform = display.UiScaleTransform,
             Background = Brush("Raised"),

@@ -53,6 +53,11 @@
     <SolidColorBrush x:Key="DangerFill" Color="#CE0000" />
     <SolidColorBrush x:Key="DangerFillHover" Color="#A90000" />
     <SolidColorBrush x:Key="DangerFillActive" Color="#620000" />
+    <SolidColorBrush x:Key="DangerOutline" Color="#CE0000" />                  <!-- color-destructive-outline -->
+    <SolidColorBrush x:Key="DangerOutlineHover" Color="#A90000" />             <!-- color-destructive-outline-hover -->
+    <SolidColorBrush x:Key="DangerOutlineActive" Color="#620000" />            <!-- color-destructive-outline-active -->
+    <SolidColorBrush x:Key="DangerOutlineHoverBackground" Color="#FFBBBB" />   <!-- color-destructive-outline-hover-background -->
+    <SolidColorBrush x:Key="DangerOutlineActiveBackground" Color="#FF9696" />  <!-- color-destructive-outline-active-background -->
 
     <SolidColorBrush x:Key="Disabled" Color="#B3B3B3" />
     <SolidColorBrush x:Key="OnDisabled" Color="#F2F2F2" />

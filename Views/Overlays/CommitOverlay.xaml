@@ -7,7 +7,7 @@
              xmlns:res="clr-namespace:ZasDictWin.Resources">
 
     <!-- ChoiceOverlay と同じく中央固定のカード。コミットメッセージだけ書き換えられる。 -->
-    <Border Style="{StaticResource Card}" MaxWidth="520" MaxHeight="640" Margin="40,28"
+    <v:SquircleBorder Style="{StaticResource Card}" MaxWidth="520" MaxHeight="640" Margin="40,28"
             VerticalAlignment="Center" HorizontalAlignment="Center" Padding="24">
         <DockPanel>
             <TextBlock DockPanel.Dock="Top" v:LocalizedText.Text="{Binding Title}" FontWeight="SemiBold"
@@ -32,5 +32,5 @@
                          VerticalScrollBarVisibility="Auto" />
             </StackPanel>
         </DockPanel>
-    </Border>
+    </v:SquircleBorder>
 </UserControl>

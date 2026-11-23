@@ -3,9 +3,9 @@ title: "UIガイドライン：用語集（ZasDict）"
 date: 2026-11-11
 ---
 
-ZasDict（Windows 版・Android 版）の UI に表示する用語を定める。両版で同じ語を使う。全ソフト共通の用語は [glossary.md](glossary.md) に従う。
+ZasDict（Windows 版・Android 版）の UI に表示する用語を定める。両版で同じ語を使う。全ソフト共通の用語は [ZasDesignSystem implementation/glossary.md](https://github.com/Zaslon/ZasDesignSystem/blob/main/implementation/glossary.md) に従う。
 
-対応規則：[rules.md](../rules.md)「用語を統一する」
+対応規則：[ZasDesignSystem rules.md](https://github.com/Zaslon/ZasDesignSystem/blob/main/rules.md)「用語を統一する」
 
 ## 辞書ファイル
 

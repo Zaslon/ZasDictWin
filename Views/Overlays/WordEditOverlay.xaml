@@ -61,7 +61,7 @@
                     <ItemsControl ItemsSource="{Binding Translations}" IsTabStop="False">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:TranslationRow}">
-                                <Border Background="{StaticResource Ink}" CornerRadius="8"
+                                <v:SquircleBorder Background="{StaticResource Ink}" CornerRadius="12"
                                         Padding="10" Margin="0,0,0,8">
                                     <StackPanel>
                                         <Grid>
@@ -73,12 +73,13 @@
                                             <!-- Background を敷かないと透明な部分でマウスを拾えず、掴める幅が字の太さだけになる -->
                                             <Border Grid.Column="0" v:RowDrag.IsGrip="True" Background="Transparent"
                                                     Padding="2,0,8,0" ToolTip="{x:Static res:Strings.WordEdit_DragTooltip}">
-                                                <TextBlock Text="≡" Foreground="{StaticResource Muted}" VerticalAlignment="Center"
-                                                           FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=h3}" />
+                                                <Canvas Width="24" Height="24" VerticalAlignment="Center">
+                                                    <Path Data="{StaticResource Icon_drag_indicator}" Fill="{StaticResource Muted}" />
+                                                </Canvas>
                                             </Border>
                                             <TextBox Grid.Column="1" Text="{Binding FormsText, UpdateSourceTrigger=PropertyChanged}"
                                                      Margin="0,0,6,0" />
-                                            <Button Grid.Column="2" Content="✕" Style="{StaticResource GhostButton}" Margin="0" MinWidth="28"
+                                            <Button Grid.Column="2" Content="{StaticResource Icon_close}" Style="{StaticResource GhostButton}" Margin="0" MinWidth="28"
                                                     AutomationProperties.Name="{x:Static res:Strings.WordEdit_RemoveTranslationName}"
                                                     r:IntentTrigger.OnClick="TranslationRowRemoveRequested"
                                                     r:IntentTrigger.Payload="{Binding}" />
@@ -88,7 +89,7 @@
                                                     ItemsSource="{Binding DataContext.PosTitles, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     SelectedItem="{Binding Title}" />
                                     </StackPanel>
-                                </Border>
+                                </v:SquircleBorder>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -99,7 +100,7 @@
                             <DataTemplate DataType="{x:Type vm:ContentRow}">
                                 <StackPanel Margin="0,0,0,10">
                                     <DockPanel>
-                                        <Button DockPanel.Dock="Right" Content="✕" Style="{StaticResource GhostButton}" Margin="0" MinWidth="28"
+                                        <Button DockPanel.Dock="Right" Content="{StaticResource Icon_close}" Style="{StaticResource GhostButton}" Margin="0" MinWidth="28"
                                                 AutomationProperties.Name="{Binding Title, StringFormat={x:Static res:Strings.WordEdit_RemoveContentName}}"
                                                 r:IntentTrigger.OnClick="ContentRowRemoveRequested"
                                                 r:IntentTrigger.Payload="{Binding}" />
@@ -154,7 +155,7 @@
                                     <TextBox Grid.Column="0" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0" />
                                     <TextBlock Grid.Column="1" Text="{Binding Form}" VerticalAlignment="Center"
                                                FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
-                                    <Button Grid.Column="2" Content="✕" Style="{StaticResource GhostButton}" Margin="4,0,0,0" MinWidth="28"
+                                    <Button Grid.Column="2" Content="{StaticResource Icon_close}" Style="{StaticResource GhostButton}" Margin="4,0,0,0" MinWidth="28"
                                             AutomationProperties.Name="{Binding Form, StringFormat={x:Static res:Strings.WordEdit_RemoveRelationName}}"
                                             r:IntentTrigger.OnClick="RelationRowRemoveRequested"
                                             r:IntentTrigger.Payload="{Binding}" />
@@ -163,7 +164,7 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
 
-                    <Border Background="{StaticResource Ink}" CornerRadius="8" Padding="14" Margin="0,10,0,0">
+                    <v:SquircleBorder Background="{StaticResource Ink}" CornerRadius="12" Padding="14" Margin="0,10,0,0">
                         <StackPanel>
                             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.WordEdit_AddRelationHeading}" Style="{StaticResource Label}" />
                             <Grid Margin="0,4,0,0">
@@ -200,7 +201,7 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </StackPanel>
-                    </Border>
+                    </v:SquircleBorder>
 
                     <DockPanel Margin="0,20,0,6">
                         <Button DockPanel.Dock="Right" v:LocalizedText.Content="{x:Static res:Strings.WordEdit_AddVariationButton}" Style="{StaticResource GhostButton}"
@@ -219,7 +220,7 @@
                                     <TextBox Grid.Column="0" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,6,0" />
                                     <TextBox Grid.Column="1" Text="{Binding Form, UpdateSourceTrigger=PropertyChanged}"
                                              FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=FieldFamily}" />
-                                    <Button Grid.Column="2" Content="✕" Style="{StaticResource GhostButton}" Margin="4,0,0,0" MinWidth="28"
+                                    <Button Grid.Column="2" Content="{StaticResource Icon_close}" Style="{StaticResource GhostButton}" Margin="4,0,0,0" MinWidth="28"
                                             AutomationProperties.Name="{x:Static res:Strings.WordEdit_RemoveVariationName}"
                                             r:IntentTrigger.OnClick="VariationRowRemoveRequested"
                                             r:IntentTrigger.Payload="{Binding}" />

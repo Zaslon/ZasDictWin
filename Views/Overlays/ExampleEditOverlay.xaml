@@ -32,7 +32,7 @@
                         <ColumnDefinition Width="Auto" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Column="0" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerButton}"
+                    <Button Grid.Column="0" v:LocalizedText.Content="{x:Static res:Strings.Common_Delete}" Style="{StaticResource DangerOutlineButton}"
                             r:IntentTrigger.OnClick="DeleteExampleRequested" IsEnabled="{Binding CanDelete}" Margin="0,0,24,0" />
                     <Button Grid.Column="2" v:LocalizedText.Content="{x:Static res:Strings.Common_Cancel}" r:IntentTrigger.OnClick="ExampleEditCancelled" />
                     <Button Grid.Column="3" v:LocalizedText.Content="{x:Static res:Strings.Common_Register}" Style="{StaticResource PrimaryButton}" r:IntentTrigger.OnClick="ExampleCommitted" Margin="0" />
@@ -68,7 +68,7 @@
 
                     <!-- 関連単語。単語エディタの関連語と同じく、検索欄と候補ボタンをその場に置く
                          （別ウィンドウの選択ダイアログは OBS のウィンドウキャプチャに映らないため） -->
-                    <Border Style="{StaticResource FilterCard}" Margin="0,18,0,0">
+                    <v:SquircleBorder Style="{StaticResource FilterCard}" Margin="0,18,0,0">
                         <StackPanel>
                             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.ExampleEdit_RelatedWordsHeading}" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
 
@@ -78,18 +78,18 @@
                                 </ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate DataType="{x:Type m:ExampleWord}">
-                                        <Border Background="{StaticResource Raised}" BorderBrush="{StaticResource Divider}"
+                                        <v:SquircleBorder Background="{StaticResource Raised}" BorderBrush="{StaticResource Divider}"
                                                 BorderThickness="1" CornerRadius="6" Padding="10,3" Margin="0,0,6,6">
                                             <StackPanel Orientation="Horizontal">
                                                 <TextBlock Text="{Binding Form}" VerticalAlignment="Center"
                                                            FontFamily="{Binding Source={x:Static vm:HeadwordFontState.Instance}, Path=Family}" />
-                                                <Button Content="✕" Style="{StaticResource GhostButton}" Margin="6,0,0,0" Padding="4,0"
+                                                <Button Content="{StaticResource Icon_close}" Style="{StaticResource GhostButton}" Margin="6,0,0,0" Padding="4,0"
                                                         MinWidth="28" MinHeight="28"
                                                         AutomationProperties.Name="{Binding Form, StringFormat={x:Static res:Strings.ExampleEdit_RemoveWordName}}"
                                                         r:IntentTrigger.OnClick="ExampleWordRemoveRequested"
                                                         r:IntentTrigger.Payload="{Binding}" />
                                             </StackPanel>
-                                        </Border>
+                                        </v:SquircleBorder>
                                     </DataTemplate>
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
@@ -118,10 +118,10 @@
                                 </ItemsControl.ItemTemplate>
                             </ItemsControl>
                         </StackPanel>
-                    </Border>
+                    </v:SquircleBorder>
 
                     <!-- 出典。ComboBox は一覧が別 HWND になって配信に映らないため、自前の v:DropDown を使う -->
-                    <Border Style="{StaticResource FilterCard}" Margin="0,14,0,16">
+                    <v:SquircleBorder Style="{StaticResource FilterCard}" Margin="0,14,0,16">
                         <StackPanel>
                             <TextBlock v:LocalizedText.Text="{x:Static res:Strings.ExampleEdit_SourceHeading}" Style="{StaticResource SectionHeading}" Margin="0,0,0,7" />
 
@@ -165,7 +165,7 @@
                                 </Grid>
                             </StackPanel>
                         </StackPanel>
-                    </Border>
+                    </v:SquircleBorder>
 
                 </StackPanel>
             </ScrollViewer>

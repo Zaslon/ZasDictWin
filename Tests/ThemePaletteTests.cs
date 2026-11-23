@@ -89,7 +89,10 @@ public class ThemePaletteTests
             Assert.NotEqual(onInk, onPanel);
 
             var inside = new Button { Style = (Style)app.FindResource("GhostButton") };
-            var surface = new Border { Style = (Style)app.FindResource(surfaceStyle), Child = inside };
+            var style = (Style)app.FindResource(surfaceStyle);
+            var surface = (Decorator)Activator.CreateInstance(style.TargetType)!;
+            surface.Style = style;
+            surface.Child = inside;
             var outside = new Button { Style = (Style)app.FindResource("GhostButton") };
             _ = new StackPanel { Children = { surface, outside } };
 

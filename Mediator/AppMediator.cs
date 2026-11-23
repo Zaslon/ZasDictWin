@@ -1199,7 +1199,7 @@ public sealed partial class AppMediator
             AccessKey: 'A'),
     };
 
-    /// <summary>一覧の行の ⋯。その行の単語に効く編集・複製・削除。</summary>
+    /// <summary>一覧の行の ︙。その行の単語に効く編集・複製・削除。</summary>
     public IReadOnlyList<MenuActionSpec> BuildRowMenu(object? rowItem)
     {
         if (rowItem is not Word w) return Array.Empty<MenuActionSpec>();

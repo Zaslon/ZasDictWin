@@ -29,22 +29,19 @@
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type vm:OverlayViewModel}">
                                 <!-- 据え置きのタブ（検索・単語詳細）は運べるが閉じられない。 -->
-                                <Border MouseDown="Tab_MouseDown" Style="{StaticResource DockTab}"
+                                <v:SquircleBorder MouseDown="Tab_MouseDown" Style="{StaticResource DockTab}"
                                         v:OverlayDrag.IsGrip="True">
                                     <StackPanel Orientation="Horizontal">
                                             <!-- 見出しは 1 行。長い題は末尾を省略してタブの幅を暴れさせない -->
                                         <TextBlock v:LocalizedText.Text="{Binding Title}" VerticalAlignment="Center" MaxWidth="150"
                                                    TextWrapping="NoWrap" TextTrimming="CharacterEllipsis"
                                                    FontSize="{Binding Source={x:Static vm:FontScaleState.Instance}, Path=Scale, Converter={StaticResource ScaleFont}, ConverterParameter=body}" />
-                                        <!-- Width/Height を固定しない。記号の FontSize は文字サイズ倍率に連動して
-                                             大きくなるため、箱を固定すると倍率を上げたときに記号がはみ出す。
-                                             MinWidth/MinHeight（TabCloseButton 側）を床にして箱ごと追従させる。 -->
                                         <Button Style="{StaticResource DockTabCloseButton}"
                                                 AutomationProperties.Name="{x:Static res:Strings.Dock_CloseTabName}"
                                                 Margin="6,0,0,0" r:IntentTrigger.OnClick="TabCloseRequested" r:IntentTrigger.Payload="{Binding}"
                                                 Visibility="{Binding IsPinned, Converter={StaticResource BoolVis}, ConverterParameter=invert}" />
                                     </StackPanel>
-                                </Border>
+                                </v:SquircleBorder>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
@@ -95,13 +92,13 @@
                 Visibility="{Binding IsJoinTarget, Converter={StaticResource BoolVis}}" />
 
         <!-- 四隅のつまみ。内へ引けば分割、隣の枠へ引けば結合（どちらも下見が出る）。 -->
-        <Border Style="{StaticResource AreaCorner}" v:AreaDrag.IsGrip="True"
+        <v:SquircleBorder Style="{StaticResource AreaCorner}" v:AreaDrag.IsGrip="True"
                 HorizontalAlignment="Left" VerticalAlignment="Top" />
-        <Border Style="{StaticResource AreaCorner}" v:AreaDrag.IsGrip="True"
+        <v:SquircleBorder Style="{StaticResource AreaCorner}" v:AreaDrag.IsGrip="True"
                 HorizontalAlignment="Right" VerticalAlignment="Top" />
-        <Border Style="{StaticResource AreaCorner}" v:AreaDrag.IsGrip="True"
+        <v:SquircleBorder Style="{StaticResource AreaCorner}" v:AreaDrag.IsGrip="True"
                 HorizontalAlignment="Left" VerticalAlignment="Bottom" />
-        <Border Style="{StaticResource AreaCorner}" v:AreaDrag.IsGrip="True"
+        <v:SquircleBorder Style="{StaticResource AreaCorner}" v:AreaDrag.IsGrip="True"
                 HorizontalAlignment="Right" VerticalAlignment="Bottom" />
     </Grid>
 </UserControl>

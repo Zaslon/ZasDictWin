@@ -90,7 +90,7 @@ public partial class SearchPanel : UserControl
         }
     }
 
-    /// <summary>行の ⋯ は開く直前に組み直す。ListBox は行を使い回す（仮想化のリサイクル）ため、
+    /// <summary>行の ︙ は開く直前に組み直す。ListBox は行を使い回す（仮想化のリサイクル）ため、
     /// 行の生成時に詰める作りだと中身が入らないまま開く行が出る。</summary>
     private void RowMenu_Opening(object sender, EventArgs e)
     {
@@ -98,7 +98,7 @@ public partial class SearchPanel : UserControl
         menu.Items = AppRoot.Current.Mediator.BuildRowMenu(menu.DataContext);
     }
 
-    /// <summary>行（ListBoxItem）のどこを右クリックしても、その行の ⋯ を探して同じメニューを開く。</summary>
+    /// <summary>行（ListBoxItem）のどこを右クリックしても、その行の ︙ を探して同じメニューを開く。</summary>
     private void Row_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
     {
         if (sender is not DependencyObject root) return;

@@ -5,12 +5,13 @@ using ZasDictWin.Services;
 namespace ZasDictWin.Views;
 
 /// <summary>
-/// 起動時に配色を決めて、配色の辞書（Themes/Dark.xaml か Themes/Light.xaml）と外見の辞書（Themes/Theme.xaml）を
-/// この順でアプリに読み込む。
+/// 起動時に配色を決めて、配色の辞書（Themes/Dark.xaml か Themes/Light.xaml）、アイコンの辞書（Themes/Icons.xaml）、
+/// 外見の辞書（Themes/Theme.xaml）をこの順でアプリに読み込む。外見はアイコンも StaticResource で引くので、先に読む。
 /// </summary>
 public static class ThemePalette
 {
     internal static readonly Uri ThemeUri = new("/ZasDictWin;component/Themes/Theme.xaml", UriKind.Relative);
+    internal static readonly Uri IconsUri = new("/ZasDictWin;component/Themes/Icons.xaml", UriKind.Relative);
     internal static readonly Uri DarkUri = new("/ZasDictWin;component/Themes/Dark.xaml", UriKind.Relative);
     internal static readonly Uri LightUri = new("/ZasDictWin;component/Themes/Light.xaml", UriKind.Relative);
 
@@ -23,6 +24,7 @@ public static class ThemePalette
     {
         var palette = Resolve(theme) == AppTheme.Light ? LightUri : DarkUri;
         app.Resources.MergedDictionaries.Add((ResourceDictionary)Application.LoadComponent(palette));
+        app.Resources.MergedDictionaries.Add((ResourceDictionary)Application.LoadComponent(IconsUri));
         app.Resources.MergedDictionaries.Add((ResourceDictionary)Application.LoadComponent(ThemeUri));
     }
 
