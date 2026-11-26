@@ -1468,12 +1468,25 @@
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">
                     <!-- 選択中の印（標準の丸）は描かない。印の分だけ文字が動く。 -->
-                    <v:SquircleBorder Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
-                            BorderThickness="{TemplateBinding BorderThickness}"
-                            CornerRadius="{Binding (v:RadioGroup.ItemCornerRadius), RelativeSource={RelativeSource TemplatedParent}}">
-                        <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
-                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
-                    </v:SquircleBorder>
+                    <Grid>
+                        <v:SquircleBorder Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="{Binding (v:RadioGroup.ItemCornerRadius), RelativeSource={RelativeSource TemplatedParent}}">
+                            <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center"
+                                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" />
+                        </v:SquircleBorder>
+                        <!-- 選択中の縁。接する外枠と区切り線を、塗りと同じ色（無効・高コントラストの塗りも含む）で覆う。
+                             位置は v:RadioGroup が付け、負の余白で選択肢の外へはみ出して描く。隣の操作を奪わないよう当たり判定を外す。 -->
+                        <v:SquircleBorder x:Name="SelectedEdge" Visibility="Collapsed" IsHitTestVisible="False"
+                                BorderBrush="{TemplateBinding Background}" BorderThickness="1"
+                                Margin="{Binding (v:RadioGroup.SelectedEdgeMargin), RelativeSource={RelativeSource TemplatedParent}}"
+                                CornerRadius="{Binding (v:RadioGroup.SelectedEdgeCornerRadius), RelativeSource={RelativeSource TemplatedParent}}" />
+                    </Grid>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="SelectedEdge" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
@@ -1498,6 +1511,8 @@
                 <Setter Property="Background" Value="{StaticResource AccentFill}" />
                 <Setter Property="Foreground" Value="{StaticResource OnFill}" />
                 <Setter Property="IsTabStop" Value="True" />
+                <!-- 選択中の縁が隣の区切り線の上に来るよう前面に出す。 -->
+                <Setter Property="Panel.ZIndex" Value="1" />
             </Trigger>
             <Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Foreground" Value="{StaticResource DisabledText}" />
@@ -1519,9 +1534,9 @@
                 <Setter Property="Background" Value="{x:Static SystemColors.HighlightBrush}" />
                 <Setter Property="Foreground" Value="{x:Static SystemColors.HighlightTextBrush}" />
             </MultiDataTrigger>
-            <!-- フォーカスの枠が隣の選択肢に隠れないよう前面に出す。 -->
+            <!-- フォーカスの枠が隣の選択肢に隠れないよう、選択中の選択肢よりも前面に出す。 -->
             <Trigger Property="IsKeyboardFocused" Value="True">
-                <Setter Property="Panel.ZIndex" Value="1" />
+                <Setter Property="Panel.ZIndex" Value="2" />
             </Trigger>
         </Style.Triggers>
     </Style>

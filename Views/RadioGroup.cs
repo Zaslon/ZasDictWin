@@ -17,6 +17,11 @@ public static class RadioGroup
     /// 両端の選択肢の外側の角にだけ付ける。</summary>
     private const double InnerRadius = 7;
 
+    /// <summary>外枠と区切り線の太さ。RadioGroupFrame の BorderThickness と揃える。</summary>
+    private const double FrameThickness = 1;
+
+    private static double Outer(double inner) => inner > 0 ? inner + FrameThickness : 0;
+
     public static readonly DependencyProperty IsGroupProperty = DependencyProperty.RegisterAttached(
         "IsGroup", typeof(bool), typeof(RadioGroup), new PropertyMetadata(false, OnIsGroupChanged));
 
@@ -30,6 +35,23 @@ public static class RadioGroup
     public static CornerRadius GetItemCornerRadius(DependencyObject o) => (CornerRadius)o.GetValue(ItemCornerRadiusProperty);
 
     public static void SetItemCornerRadius(DependencyObject o, CornerRadius value) => o.SetValue(ItemCornerRadiusProperty, value);
+
+    /// <summary>選択中の縁（外枠と区切り線のうち、選択肢に接する部分を塗りと同じ色で覆う枠）の位置。
+    /// 外枠と区切り線は外枠や隣の選択肢が描くため、選択肢の中身の領域から枠の太さだけ外へ広げて重ねる。</summary>
+    public static readonly DependencyProperty SelectedEdgeMarginProperty = DependencyProperty.RegisterAttached(
+        "SelectedEdgeMargin", typeof(Thickness), typeof(RadioGroup), new PropertyMetadata(default(Thickness)));
+
+    public static Thickness GetSelectedEdgeMargin(DependencyObject o) => (Thickness)o.GetValue(SelectedEdgeMarginProperty);
+
+    public static void SetSelectedEdgeMargin(DependencyObject o, Thickness value) => o.SetValue(SelectedEdgeMarginProperty, value);
+
+    /// <summary>選択中の縁の角。両端の外側の角だけ外枠と同じ値にし、外枠の線にぴったり重ねる。</summary>
+    public static readonly DependencyProperty SelectedEdgeCornerRadiusProperty = DependencyProperty.RegisterAttached(
+        "SelectedEdgeCornerRadius", typeof(CornerRadius), typeof(RadioGroup), new PropertyMetadata(default(CornerRadius)));
+
+    public static CornerRadius GetSelectedEdgeCornerRadius(DependencyObject o) => (CornerRadius)o.GetValue(SelectedEdgeCornerRadiusProperty);
+
+    public static void SetSelectedEdgeCornerRadius(DependencyObject o, CornerRadius value) => o.SetValue(SelectedEdgeCornerRadiusProperty, value);
 
     private static void OnIsGroupChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
     {
@@ -66,6 +88,12 @@ public static class RadioGroup
                 : new CornerRadius(first ? r : 0, last ? r : 0, last ? r : 0, first ? r : 0);
             if (items[i].BorderThickness != thickness) items[i].BorderThickness = thickness;
             if (GetItemCornerRadius(items[i]) != radius) SetItemCornerRadius(items[i], radius);
+
+            var edgeMargin = new Thickness(thickness.Left - FrameThickness, thickness.Top - FrameThickness,
+                thickness.Right - FrameThickness, thickness.Bottom - FrameThickness);
+            var edgeRadius = new CornerRadius(Outer(radius.TopLeft), Outer(radius.TopRight), Outer(radius.BottomRight), Outer(radius.BottomLeft));
+            if (GetSelectedEdgeMargin(items[i]) != edgeMargin) SetSelectedEdgeMargin(items[i], edgeMargin);
+            if (GetSelectedEdgeCornerRadius(items[i]) != edgeRadius) SetSelectedEdgeCornerRadius(items[i], edgeRadius);
         }
     }
 
